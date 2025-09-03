@@ -116,7 +116,7 @@ export default function UpcomingEventsPage() {
         } else {
           backendEvents = [];
         }
-        const BASE_URL = "https://api.etribes.ezcrm.site"; // Change to your backend's base URL
+        const BASE_URL = import.meta.env.VITE_API_BASE_URL;
         const mappedEvents = backendEvents.map((e, idx) => {
           let datetime = '';
           if (e.event_date && e.event_time) {
@@ -292,7 +292,7 @@ export default function UpcomingEventsPage() {
         } else {
           backendEvents = [];
         }
-        const BASE_URL = "https://api.etribes.ezcrm.site";
+        const BASE_URL = import.meta.env.VITE_API_BASE_URL;
         const mappedEvents = backendEvents.map((e, idx) => {
           let datetime = '';
           if (e.event_date && e.event_time) {
@@ -480,7 +480,7 @@ export default function UpcomingEventsPage() {
         } else {
           backendEvents = [];
         }
-        const BASE_URL = "https://api.etribes.ezcrm.site";
+        const BASE_URL = import.meta.env.VITE_API_BASE_URL;
         const mappedEvents = backendEvents.map((e, idx) => {
           let datetime = '';
           if (e.event_date && e.event_time) {
@@ -610,7 +610,7 @@ export default function UpcomingEventsPage() {
         } else {
           backendEvents = [];
         }
-        const BASE_URL = "https://api.etribes.ezcrm.site";
+        const BASE_URL = import.meta.env.VITE_API_BASE_URL;
         const mappedEvents = backendEvents.map((e, idx) => {
           let datetime = '';
           if (e.event_date && e.event_time) {

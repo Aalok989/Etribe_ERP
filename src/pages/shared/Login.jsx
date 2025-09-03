@@ -158,7 +158,25 @@ const Login = () => {
       const response = await api.post('/common/login', { username, password });
       console.log('Login response:', response.data);
       
-      const data = response.data || {};
+      // Handle malformed responses that might contain PHP errors mixed with JSON
+      let data = response.data || {};
+      
+      // If response is a string, try to extract JSON from it
+      if (typeof data === 'string') {
+        try {
+          // Look for JSON object in the response string
+          const jsonMatch = data.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            data = JSON.parse(jsonMatch[0]);
+          } else {
+            throw new Error('No valid JSON found in response');
+          }
+        } catch (parseError) {
+          console.error('Failed to parse response:', parseError);
+          toast.error('Server returned invalid response format. Please try again.');
+          return;
+        }
+      }
 
       // Success path: token present
       if (data?.token) {
@@ -216,6 +234,48 @@ const Login = () => {
       console.error('Login error:', err);
       const status = err.response?.status;
       const respData = err.response?.data;
+
+      // Handle cases where response might contain PHP errors but still have valid data
+      if (respData && typeof respData === 'object' && respData.token) {
+        // If we somehow got a token despite an error, try to use it
+        console.log('Found token in error response, attempting login...');
+        localStorage.setItem('token', respData.token);
+        
+        const userData = respData.data || respData.user || {};
+        const uidCandidate = userData.id ?? userData.user_id ?? respData.user_id ?? respData.id;
+        if (uidCandidate) {
+          localStorage.setItem('uid', String(uidCandidate));
+        }
+        
+        let userRole = 'user';
+        const u = userData;
+        if (
+          u?.role === 'admin' ||
+          u?.user_type === 'admin' ||
+          u?.is_admin === true ||
+          u?.admin === true ||
+          u?.type === 'admin' ||
+          u?.user_role === 'admin'
+        ) {
+          userRole = 'admin';
+        } else if (String(uidCandidate) === '1') {
+          userRole = 'admin';
+        }
+        
+        localStorage.setItem('userRole', userRole);
+        toast.success(`${userRole === 'admin' ? 'Admin' : 'User'} login successful!`);
+        
+        if (userRole === 'admin') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/user/dashboard');
+        }
+        
+        setTimeout(() => {
+          window.dispatchEvent(new Event('login'));
+        }, 50);
+        return;
+      }
 
       // Extract meaningful backend messages
       const backendMessage =

@@ -31,4 +31,56 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Helper function to extract JSON from mixed content
+const extractJsonFromString = (str) => {
+  if (typeof str !== 'string') return str;
+  
+  try {
+    // First try to parse the entire string as JSON
+    return JSON.parse(str);
+  } catch {
+    // If that fails, look for JSON objects in the string
+    const jsonMatches = str.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g);
+    if (jsonMatches && jsonMatches.length > 0) {
+      // Try to parse the last (most complete) JSON object found
+      for (let i = jsonMatches.length - 1; i >= 0; i--) {
+        try {
+          const parsed = JSON.parse(jsonMatches[i]);
+          // Check if it looks like a valid API response
+          if (parsed && (parsed.status !== undefined || parsed.token !== undefined || parsed.message !== undefined)) {
+            return parsed;
+          }
+        } catch (e) {
+          continue;
+        }
+      }
+    }
+  }
+  return str;
+};
+
+// Add response interceptor to handle malformed responses
+api.interceptors.response.use(
+  (response) => {
+    // Clean up response data if it's a string with mixed content
+    if (typeof response.data === 'string') {
+      const cleaned = extractJsonFromString(response.data);
+      if (cleaned !== response.data) {
+        response.data = cleaned;
+      }
+    }
+    return response;
+  },
+  (error) => {
+    // Handle response errors
+    if (error.response && typeof error.response.data === 'string') {
+      const cleaned = extractJsonFromString(error.response.data);
+      if (cleaned !== error.response.data) {
+        error.response.data = cleaned;
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

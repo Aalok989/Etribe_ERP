@@ -31,6 +31,7 @@ import RichTextEditor from '../../components/shared/RichTextEditor';
  */
 
 export default function MemberDetail_Admin() {
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const { memberId: urlMemberId } = useParams();
   const navigate = useNavigate();
   
@@ -2796,7 +2797,7 @@ export default function MemberDetail_Admin() {
         <div className="relative">
           {(member.profile_image || member.user_image || member.avatar) ? (
             <img
-              src={`https://api.etribes.ezcrm.site/${member.profile_image || member.user_image || member.avatar}`}
+              src={`${BASE_URL}/${member.profile_image || member.user_image || member.avatar}`}
               alt="User Profile"
               className="w-28 h-28 rounded-full object-cover border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-gray-800"
               onError={(e) => {
@@ -3039,7 +3040,7 @@ export default function MemberDetail_Admin() {
         <div className="relative">
           {(member.logo || member.company_logo || member.business_logo) ? (
             <img
-              src={`https://api.etribes.ezcrm.site/${member.logo || member.company_logo || member.business_logo}`}
+              src={`${BASE_URL}/${member.logo || member.company_logo || member.business_logo}`}
               alt="Business Logo"
               className="w-28 h-28 rounded-full object-cover border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-gray-800"
               onError={(e) => {
@@ -3353,7 +3354,7 @@ export default function MemberDetail_Admin() {
                             <div className="mb-4">
                               <div className="relative group cursor-pointer" onClick={() => handleViewDocument(doc)}>
                                 <img 
-                                  src={`https://api.etribes.ezcrm.site/${doc.document_path}`}
+                                  src={`${BASE_URL}/${doc.document_path}`}
                                   alt={doc.doc_type}
                                   className="w-full h-32 object-cover rounded-lg border border-gray-200 dark:border-gray-600 group-hover:opacity-80 transition-opacity"
                                   onError={(e) => {
@@ -3498,7 +3499,7 @@ export default function MemberDetail_Admin() {
                             <div className="mb-4">
                               <div className="relative group cursor-pointer" onClick={() => handleViewDocument(doc)}>
                                 <img 
-                                  src={`https://api.etribes.ezcrm.site/${doc.document_path}`}
+                                  src={`${BASE_URL}/${doc.document_path}`}
                                   alt={doc.doc_type}
                                   className="w-full h-32 object-cover rounded-lg border border-gray-200 dark:border-gray-600 group-hover:opacity-80 transition-opacity"
                                   onError={(e) => {
@@ -4079,7 +4080,7 @@ export default function MemberDetail_Admin() {
                           {selectedPayment.chequeImg ? (
                             <div className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
                               <img 
-                                src={`https://api.etribes.ezcrm.site/${selectedPayment.chequeImg}`} 
+                                src={`${BASE_URL}/${selectedPayment.chequeImg}`} 
                                 alt="Cheque Image" 
                                 className="w-full h-auto max-h-96 object-contain bg-gray-50 dark:bg-gray-700"
                                 onError={(e) => {
@@ -4477,7 +4478,7 @@ export default function MemberDetail_Admin() {
                         <td className="p-3 text-center border-r border-gray-200 dark:border-gray-700">
                           {product.image ? (
                             <img
-                              src={`https://api.etribes.ezcrm.site/${product.image}`}
+                              src={`${BASE_URL}/${product.image}`}
                               alt={product.product}
                               className="w-16 h-16 object-cover rounded-lg mx-auto"
                               onError={(e) => {
@@ -4511,7 +4512,7 @@ export default function MemberDetail_Admin() {
                       <div className="flex-shrink-0">
                         {product.image ? (
                           <img
-                            src={`https://api.etribes.ezcrm.site/${product.image}`}
+                            src={`${BASE_URL}/${product.image}`}
                             alt={product.product}
                             className="w-16 h-16 object-cover rounded-lg"
                             onError={(e) => {
@@ -4859,7 +4860,7 @@ export default function MemberDetail_Admin() {
                   {selectedDocument.document_path ? (
                     <div className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
                       <img 
-                        src={`https://api.etribes.ezcrm.site/${selectedDocument.document_path}`} 
+                        src={`${BASE_URL}/${selectedDocument.document_path}`} 
                         alt="Document Preview" 
                         className="w-full h-auto max-h-96 object-contain bg-gray-50 dark:bg-gray-700"
                         onError={(e) => {

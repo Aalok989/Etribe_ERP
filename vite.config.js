@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: process.env.VITE_API_BASE_URL || 'https://api.etribes.ezcrm.site/',
+        target: process.env.VITE_API_BASE_URL || 'https://etribesapi.bbills.win/',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
         secure: false,

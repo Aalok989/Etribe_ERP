@@ -19,7 +19,7 @@ export default function UpcomingEvents() {
 
   useEffect(() => {
     if (rawEvents.length > 0) {
-      const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.etribes.ezcrm.site";
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL;
       const mappedEvents = rawEvents.map((e, idx) => {
         const eventDate = e.event_date && e.event_time
           ? new Date(`${e.event_date}T${e.event_time}`)

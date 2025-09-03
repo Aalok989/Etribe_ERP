@@ -408,7 +408,7 @@ export const DashboardProvider = ({ children }) => {
       const backendData = response.data?.data || response.data || {};
       
       // Get API base URL from environment
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.etribes.ezcrm.site';
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
       
       // Process logo and signature URLs with correct API base URL
       const processedData = {

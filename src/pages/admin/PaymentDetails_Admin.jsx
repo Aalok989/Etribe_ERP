@@ -25,6 +25,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 export default function PaymentDetails() {
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -1338,7 +1339,7 @@ export default function PaymentDetails() {
                     {selectedPayment.chequeImg ? (
                       <div className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
                         <img 
-                          src={`https://api.etribes.ezcrm.site/${selectedPayment.chequeImg}`} 
+                          src={`${BASE_URL}/${selectedPayment.chequeImg}`} 
                           alt="Cheque Image" 
                           className="w-full h-auto max-h-96 object-contain bg-gray-50 dark:bg-gray-700"
                           onError={(e) => {

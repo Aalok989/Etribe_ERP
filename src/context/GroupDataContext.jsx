@@ -20,7 +20,7 @@ export const GroupDataProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   // Get API base URL from environment (same as GroupData page)
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.etribes.ezcrm.site';
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const fetchGroupData = async () => {
     try {

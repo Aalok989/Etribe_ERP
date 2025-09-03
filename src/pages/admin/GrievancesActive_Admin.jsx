@@ -26,6 +26,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 export default function GrievancesActive() {
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [grievances, setGrievances] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -59,6 +60,7 @@ export default function GrievancesActive() {
         return;
       }
 
+      const uid = localStorage.getItem("uid");
       console.log('Fetching active grievances with credentials:', { uid, token });
       
       const response = await api.get("/grievances/activegrievances", {
@@ -910,7 +912,7 @@ export default function GrievancesActive() {
                     {selectedGrievance.file ? (
                       <div className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
                         <img 
-                          src={`https://api.etribes.ezcrm.site/${selectedGrievance.file}`} 
+                          src={`${BASE_URL}/${selectedGrievance.file}`} 
                           alt="Grievance Attachment" 
                           className="w-full h-auto max-h-96 object-contain bg-gray-50 dark:bg-gray-700"
                           onError={(e) => {

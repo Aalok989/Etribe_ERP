@@ -25,6 +25,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 export default function Resume() {
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -457,7 +458,7 @@ export default function Resume() {
     try {
       const fileUrl = resume.resumeFile.startsWith('http') 
         ? resume.resumeFile 
-        : `https://api.etribes.ezcrm.site/${resume.resumeFile}`;
+        : `${BASE_URL}/${resume.resumeFile}`;
       
       const fileExtension = resume.resumeFile.split('.').pop()?.toLowerCase();
       
@@ -493,7 +494,7 @@ export default function Resume() {
 
     const fileUrl = resume.resumeFile.startsWith('http') 
       ? resume.resumeFile 
-      : `https://api.etribes.ezcrm.site/${resume.resumeFile}`;
+      : `${BASE_URL}/${resume.resumeFile}`;
     
     const fileExtension = resume.resumeFile.split('.').pop()?.toLowerCase();
     
@@ -1298,7 +1299,7 @@ export default function Resume() {
                           return (
                             <>
                               <img 
-                                src={`https://api.etribes.ezcrm.site/${selectedResume.resumeFile}`} 
+                                src={`${BASE_URL}/${selectedResume.resumeFile}`} 
                                 alt="Resume File" 
                                 className="w-full h-auto max-h-96 object-contain bg-gray-50 dark:bg-gray-700"
                                 onError={(e) => {
@@ -1315,7 +1316,7 @@ export default function Resume() {
                             </>
                           );
                           } else if (isPDF) {
-    const pdfUrl = `https://api.etribes.ezcrm.site/${selectedResume.resumeFile}`;
+    const pdfUrl = `${BASE_URL}/${selectedResume.resumeFile}`;
     const googleDocsViewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
     
     return (

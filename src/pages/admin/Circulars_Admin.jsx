@@ -11,6 +11,7 @@ import autoTable from "jspdf-autotable";
 
 
 export default function Circulars() {
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [circulars, setCirculars] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -84,6 +85,7 @@ export default function Circulars() {
         return;
       }
 
+      const uid = localStorage.getItem("uid");
       console.log('Fetching circulars with credentials:', { uid, token });
       
       const response = await api.post("/notifications/get_all_circulars", {}, {
@@ -294,7 +296,7 @@ export default function Circulars() {
       // Construct the full URL for the circular file
       const fileUrl = filePath.startsWith('http') 
         ? filePath 
-        : `https://api.etribes.ezcrm.site/${filePath}`;
+        : `${BASE_URL}/${filePath}`;
       
       console.log("Full file URL:", fileUrl);
       
@@ -1573,7 +1575,7 @@ export default function Circulars() {
                     })() ? (
                       <div className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
                         <img 
-                          src={`https://api.etribes.ezcrm.site/${selectedCircular.file || selectedCircular.file_path || selectedCircular.document || selectedCircular.attachment}`} 
+                          src={`${BASE_URL}/${selectedCircular.file || selectedCircular.file_path || selectedCircular.document || selectedCircular.attachment}`} 
                           alt="Circular Attachment" 
                           className="w-full h-auto max-h-96 object-contain bg-gray-50 dark:bg-gray-700"
                           onError={(e) => {

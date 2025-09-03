@@ -28,7 +28,7 @@ function GroupDataContent() {
   const { fetchGroupData } = useGroupData();
 
   // Get API base URL from environment
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.etribes.ezcrm.site';
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   // Test API connectivity
   const testAPI = async () => {
@@ -150,7 +150,7 @@ function GroupDataContent() {
           'Auth-Key': import.meta.env.VITE_AUTH_KEY || 'simplerestapi',
           'uid': uid,
           'token': token,
-          'rurl': import.meta.env.VITE_RURL || 'https://api.etribes.ezcrm.site',
+          'rurl': import.meta.env.VITE_RURL,
           // Don't set Content-Type for FormData - let browser set it with boundary
         },
         withCredentials: true,
@@ -291,7 +291,7 @@ function GroupDataContent() {
           'Auth-Key': import.meta.env.VITE_AUTH_KEY || 'simplerestapi',
           'uid': uid,
           'token': token,
-          'rurl': import.meta.env.VITE_RURL || 'https://api.etribes.ezcrm.site',
+          'rurl': import.meta.env.VITE_RURL,
           // Don't set Content-Type for FormData - let browser set it with boundary
         },
         withCredentials: true,

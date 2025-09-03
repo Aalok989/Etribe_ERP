@@ -109,7 +109,7 @@ export default function AllEvents() {
         } else {
           backendEvents = [];
         }
-        const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.etribes.ezcrm.site";
+        const BASE_URL = import.meta.env.VITE_API_BASE_URL;
         const mappedEvents = backendEvents.map((e, idx) => ({
           id: e.id || idx,
           event: e.event_title || e.event || e.title || e.name || "",
@@ -304,7 +304,7 @@ export default function AllEvents() {
         } else {
           backendEvents = [];
         }
-        const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.etribes.ezcrm.site";
+        const BASE_URL = import.meta.env.VITE_API_BASE_URL;
         const mappedEvents = backendEvents.map((e, idx) => ({
           id: e.id || idx,
           event: e.event_title || e.event || e.title || e.name || "",
@@ -563,7 +563,7 @@ export default function AllEvents() {
         } else {
           backendEvents = [];
         }
-        const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.etribes.ezcrm.site";
+        const BASE_URL = import.meta.env.VITE_API_BASE_URL;
         const mappedEvents = backendEvents.map((e, idx) => ({
           id: e.id || idx,
           event: e.event_title || e.event || e.title || e.name || "",
@@ -637,7 +637,7 @@ export default function AllEvents() {
           } else {
             backendEvents = [];
           }
-          const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.etribes.ezcrm.site";
+          const BASE_URL = import.meta.env.VITE_API_BASE_URL;
           const mappedEvents = backendEvents.map((e, idx) => ({
             id: e.id || idx,
             event: e.event_title || e.event || e.title || e.name || "",
