@@ -141,7 +141,7 @@ export default function Feedbacks() {
       "Sr No": index + 1,
       Company: feedback.company || 'N/A',
       Subject: feedback.subject || 'N/A',
-      Contents: feedback.contents || 'N/A',
+      Contents: feedback.contents ? feedback.contents.replace(/<[^>]*>/g, '').trim() || 'N/A' : 'N/A',
       Date: feedback.date || 'N/A',
     }));
 
@@ -159,7 +159,7 @@ export default function Feedbacks() {
         index + 1,
         feedback.company || 'N/A',
         feedback.subject || 'N/A',
-        feedback.contents || 'N/A',
+        feedback.contents ? feedback.contents.replace(/<[^>]*>/g, '').trim() || 'N/A' : 'N/A',
         feedback.date || 'N/A',
       ])
     ].map(row => row.join(",")).join("\n");
@@ -178,7 +178,7 @@ export default function Feedbacks() {
 
   const copyToClipboard = () => {
     const text = filteredFeedbacks.map((feedback, index) => 
-      `${index + 1}. ${feedback.company || 'N/A'} - ${feedback.subject || 'N/A'} - ${feedback.contents || 'N/A'} - ${feedback.date || 'N/A'}`
+      `${index + 1}. ${feedback.company || 'N/A'} - ${feedback.subject || 'N/A'} - ${feedback.contents ? feedback.contents.replace(/<[^>]*>/g, '').trim() || 'N/A' : 'N/A'} - ${feedback.date || 'N/A'}`
     ).join("\n");
     
     navigator.clipboard.writeText(text).then(() => {
@@ -221,7 +221,7 @@ export default function Feedbacks() {
         index + 1,
         feedback.company || 'N/A',
         feedback.subject || 'N/A',
-        feedback.contents || 'N/A',
+        feedback.contents ? feedback.contents.replace(/<[^>]*>/g, '').trim() || 'N/A' : 'N/A',
         feedback.date || 'N/A'
       ]);
 
@@ -546,7 +546,7 @@ export default function Feedbacks() {
                       {feedback.subject || 'N/A'}
                     </td>
                     <td className="p-3 text-center border-r border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100">
-                      {feedback.contents || 'N/A'}
+                      {feedback.contents ? feedback.contents.replace(/<[^>]*>/g, '').trim() || 'N/A' : 'N/A'}
                     </td>
                     <td className="p-3 text-center border-r border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100">
                       {feedback.date || 'N/A'}
@@ -575,7 +575,7 @@ export default function Feedbacks() {
                 <div className="grid grid-cols-1 gap-3 text-sm">
                   <div>
                     <span className="text-gray-600 dark:text-gray-400">Contents:</span>
-                    <p className="font-medium text-gray-800 dark:text-gray-100">{feedback.contents || 'N/A'}</p>
+                    <p className="font-medium text-gray-800 dark:text-gray-100">{feedback.contents ? feedback.contents.replace(/<[^>]*>/g, '').trim() || 'N/A' : 'N/A'}</p>
                   </div>
                   <div>
                     <span className="text-gray-600 dark:text-gray-400">Date:</span>

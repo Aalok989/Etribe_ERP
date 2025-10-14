@@ -2273,7 +2273,7 @@ export default function MemberDetail_Admin() {
       //     'Auth-Key': '4F21zrjoAASqz25690Zpqf67UyY',
       //     'uid': uid,
       //     'token': token,
-      //     'rurl': 'etribes.ezcrm.site',
+      //     'rurl': 'etribe.mittalservices.com',
       //     'Content-Type': 'application/json',
       //   },
       // });

@@ -5,7 +5,6 @@ import {
   FiRefreshCw,
   FiDownload,
   FiEye,
-  FiEdit,
   FiTrash2,
   FiCopy,
   FiFile,
@@ -233,11 +232,6 @@ export default function GrievancesPending() {
   const handleView = (grievance) => {
     setSelectedGrievance(grievance);
     setShowViewModal(true);
-  };
-
-  const handleEdit = (grievance) => {
-    console.log("Edit grievance:", grievance);
-    toast.info("Edit functionality to be implemented");
   };
 
   const handleDelete = async (id) => {
@@ -663,13 +657,6 @@ export default function GrievancesPending() {
                       title="View Details"
                     >
                       <FiEye size={14} />
-                    </button>
-                    <button
-                      onClick={() => handleEdit(grievance)}
-                      className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1.5 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
-                      title="Edit"
-                    >
-                      <FiEdit size={14} />
                     </button>
                     <button
                       onClick={() => handleDelete(grievance.id)}

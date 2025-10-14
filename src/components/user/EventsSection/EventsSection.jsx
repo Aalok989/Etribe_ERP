@@ -59,4 +59,15 @@ export default function EventsSection() {
       {eventsStats.map((stat) => (
         <div
           key={stat.label}
-          className={`
+          className={`${stat.color} rounded-2xl shadow-lg h-32 p-6 flex items-center justify-between transition-transform duration-200 hover:scale-105`}
+        >
+          <div className="flex flex-col">
+            <span className="text-sm font-medium opacity-90">{stat.label}</span>
+            <span className="text-3xl font-bold mt-2">{stat.count}</span>
+          </div>
+          <div className="flex-shrink-0">{stat.icon}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
