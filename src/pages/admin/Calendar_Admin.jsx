@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import DashboardLayout from "../../components/admin/Layout/DashboardLayout";
 import { FiCalendar, FiPlus, FiClock, FiUsers, FiMapPin, FiSearch, FiFilter, FiRefreshCw, FiEye, FiEdit2, FiTrash2, FiX, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import api from "../../api/axiosConfig";
-import { getAuthHeaders } from "../../utils/apiHeaders";
+import { getAuthHeaders, getAuthHeadersFormData } from "../../utils/apiHeaders";
 import RichTextEditor from "../../components/shared/RichTextEditor";
 import { toast } from 'react-toastify';
 
@@ -216,10 +216,7 @@ export default function Calendar() {
       }
       await fetch('/api/event/add', {
         method: 'POST',
-        headers: {
-          ...getAuthHeaders(),
-          'Authorization': 'Bearer ' + (localStorage.getItem('authToken') || ''),
-        },
+        headers: getAuthHeadersFormData(),
         credentials: 'include',
         body: formData,
       });
@@ -337,10 +334,7 @@ export default function Calendar() {
       }
       await fetch('/api/event/edit', {
         method: 'POST',
-        headers: {
-          ...getAuthHeaders(),
-          'Authorization': 'Bearer ' + (localStorage.getItem('authToken') || ''),
-        },
+        headers: getAuthHeadersFormData(),
         credentials: 'include',
         body: formData,
       });
@@ -431,11 +425,7 @@ export default function Calendar() {
       const uid = localStorage.getItem('uid');
       await fetch('/api/event/remove', {
         method: 'POST',
-        headers: {
-          ...getAuthHeaders(),
-          'Content-Type': 'text/plain',
-          'Authorization': 'Bearer ' + (localStorage.getItem('authToken') || ''),
-        },
+        headers: getAuthHeaders(),
         credentials: 'include',
         body: JSON.stringify({ id: eventId }),
       });

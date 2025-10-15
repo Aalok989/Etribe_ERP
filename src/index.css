@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 body {
+  font-family: 'Montserrat', sans-serif;
   background-color: #f9fafb; /* Tailwind gray-50 */
 }
 .dark body {

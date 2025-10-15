@@ -3,6 +3,7 @@ import { FiSun, FiMoon, FiUser, FiBell, FiClock, FiCalendar, FiCheckCircle, FiRe
 import { Link } from "react-router-dom";
 import api from "../../../api/axiosConfig";
 import { getAuthHeaders } from "../../../utils/apiHeaders";
+import GlobalSearch from "../../common/GlobalSearch/GlobalSearch";
 
 export default function TopBar() {
   const [profile, setProfile] = useState({ 
@@ -83,7 +84,7 @@ export default function TopBar() {
         backendEvents = data.data;
       }
       
-      const readNotificationIds = JSON.parse(localStorage.getItem('readNotifications') || '[]');
+      const readNotificationIds = JSON.parse(localStorage.getItem('userReadNotifications') || '[]');
 
       // Map events to notification objects, preserve read state if possible
       setNotifications(prev => {
@@ -124,10 +125,10 @@ export default function TopBar() {
   // Mark as read handler
   const markAsRead = (id) => {
     // Add to localStorage
-    const readNotificationIds = JSON.parse(localStorage.getItem('readNotifications') || '[]');
+    const readNotificationIds = JSON.parse(localStorage.getItem('userReadNotifications') || '[]');
     if (!readNotificationIds.includes(id)) {
       readNotificationIds.push(id);
-      localStorage.setItem('readNotifications', JSON.stringify(readNotificationIds));
+      localStorage.setItem('userReadNotifications', JSON.stringify(readNotificationIds));
     }
 
     setNotifications(notifications => {
@@ -237,6 +238,9 @@ export default function TopBar() {
     <header className="flex items-center justify-between bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow px-3 sm:px-6 py-3 mb-8 rounded-xl min-h-[60px]">
       <div className="font-bold text-lg sm:text-xl text-gray-800 dark:text-gray-100 truncate">Dashboard Overview</div>
       <div className="flex items-center gap-2 sm:gap-4">
+        {/* Global Search */}
+        <GlobalSearch userType="user" />
+        
         <button
           className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none flex items-center justify-center"
           title="Toggle theme"

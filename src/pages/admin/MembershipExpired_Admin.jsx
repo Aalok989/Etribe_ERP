@@ -659,7 +659,7 @@ export default function MembershipExpired() {
               }
               
               calculatedValidUpto = today.toISOString().split('T')[0];
-              console.log('Calculated valid upto date:', calculatedValidUpto);
+              console.log('Calculated valid upto date from plan selection:', calculatedValidUpto);
             } catch (error) {
               console.log('Error calculating valid upto date:', error);
               calculatedValidUpto = planValidity; // Fallback to original value
@@ -724,6 +724,7 @@ export default function MembershipExpired() {
             }
             
             const calculatedValidUpto = baseDate.toISOString().split('T')[0];
+            console.log('Recalculated valid upto date from date change:', calculatedValidUpto);
             setForm(prev => ({ ...prev, validTill: calculatedValidUpto }));
           } catch (error) {
             console.log('Error calculating valid upto date:', error);
@@ -746,6 +747,11 @@ export default function MembershipExpired() {
       closeModify();
       return;
     }
+    if (!form.validTill) {
+      setUpdateError('Valid till date is not calculated. Please reselect the membership plan.');
+      closeModify();
+      return;
+    }
     // Check if date is in future
     const selectedDate = new Date(form.validUpto);
     const today = new Date();
@@ -763,7 +769,7 @@ export default function MembershipExpired() {
       await activateMembership({
         company_detail_id: modifyMember.company_detail_id || modifyMember.id,
         membership_plan_id: form.plan, // Use the selected plan's ID
-        valid_upto: form.validUpto,
+        valid_upto: form.validTill, // Use the calculated valid_till date instead of the calendar chosen date
       });
       
       // Refresh members data after successful activation
@@ -779,6 +785,10 @@ export default function MembershipExpired() {
         cheque_amount: isCheque ? form.chequeAmount : (selectedPlan ? (selectedPlan.price || selectedPlan.plan_price || selectedPlan.cost || selectedPlan.amount || '') : ''),
         cheque_no: isCheque ? form.chequeNo : '',
         cheque_date: isCheque ? form.chequeDate : '',
+        valid_upto: form.validTill, // Use the calculated valid_till date
+        valid_till: form.validTill, // Use the calculated valid_till date
+        price: selectedPlan ? (selectedPlan.price || selectedPlan.plan_price || selectedPlan.cost || selectedPlan.amount || '') : '',
+        plan: selectedPlan ? (selectedPlan.plan_name || selectedPlan.name) : '',
         file: isCheque ? form.chequeImg : undefined,
       };
       
@@ -786,6 +796,8 @@ export default function MembershipExpired() {
       console.log('Is Cheque:', isCheque);
       console.log('Selected Plan:', selectedPlan);
       console.log('Selected Payment Mode:', selectedPaymentModeName);
+      console.log('Form validUpto (calendar date):', form.validUpto);
+      console.log('Form validTill (calculated end date):', form.validTill);
       
       const paymentResponse = await addPaymentDetail(paymentPayload, isCheque);
       console.log('Payment API Response:', paymentResponse);

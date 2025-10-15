@@ -391,7 +391,7 @@ export default function ActiveMembers() {
   // Fetch data on component mount
   useEffect(() => {
     refreshMembers();
-  }, [refreshMembers]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (dashboardLoading.members && dashboardMembers.length === 0) {
     return (
@@ -617,7 +617,38 @@ export default function ActiveMembers() {
                 ))}
               </tbody>
             </table>
+
+            {/* Empty State for Desktop Table */}
+            {!dashboardLoading.members && paginated.length === 0 && search && (
+              <div className="text-center py-12 px-4">
+                <p className="text-gray-600 dark:text-gray-400">
+                  No members found matching "{search}"
+                </p>
+              </div>
+            )}
           </div>
+
+          {/* Empty State */}
+          {!dashboardLoading.members && dashboardMembers.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 px-4">
+              <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
+                <FiUsers className="text-gray-400 text-5xl" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                No Active Members Found
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 text-center mb-4">
+                There are no active members in the system at the moment.
+              </p>
+              <button
+                onClick={handleRefresh}
+                className="flex items-center gap-2 bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition"
+              >
+                <FiRefreshCw />
+                Refresh
+              </button>
+            </div>
+          )}
 
           {/* Mobile Cards View */}
           <div className="lg:hidden p-4 sm:p-6 space-y-4">

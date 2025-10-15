@@ -28,7 +28,7 @@ import api from "../../api/axiosConfig";
 import RichTextEditor from "../../components/shared/RichTextEditor";
 import UploadAttendanceModal from "../../components/admin/UploadAttendanceModal";
 import { toast } from "react-toastify";
-import { getAuthHeaders } from "../../utils/apiHeaders";
+import { getAuthHeaders, getAuthHeadersFormData } from "../../utils/apiHeaders";
 
 
 
@@ -257,10 +257,7 @@ export default function AllEvents() {
       }
       await fetch("/api/event/add", {
         method: "POST",
-        headers: {
-          ...getAuthHeaders(),
-          Authorization: "Bearer " + (localStorage.getItem("authToken") || ""),
-        },
+        headers: getAuthHeadersFormData(),
         credentials: "include",
         body: formData,
       });
@@ -525,11 +522,7 @@ export default function AllEvents() {
       }
       await fetch("/api/event/edit", {
         method: "POST",
-        headers: {
-          ...getAuthHeaders(),
-          Authorization: "Bearer " + (localStorage.getItem("authToken") || ""),
-          // Do NOT set Content-Type for FormData
-        },
+        headers: getAuthHeadersFormData(),
         credentials: "include",
         body: formData,
       });
@@ -600,11 +593,7 @@ export default function AllEvents() {
       const uid = localStorage.getItem("uid");
       await fetch("/api/event/remove", {
         method: "POST",
-        headers: {
-          ...getAuthHeaders(),
-          "Content-Type": "text/plain",
-          Authorization: "Bearer " + (localStorage.getItem("authToken") || ""),
-        },
+        headers: getAuthHeaders(),
         credentials: "include",
         body: JSON.stringify({ id: eventId }),
       });

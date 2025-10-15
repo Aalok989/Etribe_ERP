@@ -25,4 +25,20 @@ export const getAuthHeaders = () => {
   };
 };
 
+// Utility function to get API headers with user authentication for FormData (without Content-Type)
+export const getAuthHeadersFormData = () => {
+  const token = localStorage.getItem('token');
+  const uid = localStorage.getItem('uid');
+  const authToken = localStorage.getItem('authToken') || token; // Use authToken if available, fallback to token
+  
+  return {
+    'Client-Service': import.meta.env.VITE_CLIENT_SERVICE,
+    'Auth-Key': import.meta.env.VITE_AUTH_KEY,
+    'uid': uid,
+    'token': token,
+    'rurl': import.meta.env.VITE_RURL,
+    'Authorization': `Bearer ${authToken}`,
+  };
+};
+
 

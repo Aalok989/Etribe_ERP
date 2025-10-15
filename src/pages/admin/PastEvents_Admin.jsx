@@ -29,7 +29,7 @@ import api from "../../api/axiosConfig";
 import RichTextEditor from "../../components/shared/RichTextEditor";
 import UploadAttendanceModal from "../../components/admin/UploadAttendanceModal";
 import { toast } from "react-toastify";
-import { getAuthHeaders } from "../../utils/apiHeaders";
+import { getAuthHeaders, getAuthHeadersFormData } from "../../utils/apiHeaders";
 
 
 // Helper to decode HTML entities
@@ -248,10 +248,7 @@ export default function PastEvents() {
       }
       await fetch('/api/event/add', {
         method: 'POST',
-        headers: {
-          ...getAuthHeaders(),
-          'Authorization': 'Bearer ' + (localStorage.getItem('authToken') || ''),
-        },
+        headers: getAuthHeadersFormData(),
         credentials: 'include',
         body: formData,
       });
@@ -347,11 +344,7 @@ export default function PastEvents() {
       }
       await fetch('/api/event/edit', {
         method: 'POST',
-        headers: {
-          ...getAuthHeaders(),
-          Authorization: 'Bearer ' + (localStorage.getItem('authToken') || ''),
-          // Do NOT set Content-Type for FormData
-        },
+        headers: getAuthHeadersFormData(),
         credentials: 'include',
         body: formData,
       });
@@ -920,8 +913,8 @@ export default function PastEvents() {
               </button>
               
               <div className="mb-6">
-                <h2 className="text-xl font-bold text-indigo-700 flex items-center gap-2">
-                  <FiPlus className="text-indigo-600" />
+                <h2 className="text-xl font-bold text-indigo-700 dark:text-indigo-300 flex items-center gap-2">
+                  <FiPlus className="text-indigo-600 dark:text-indigo-300" />
                   Add New Event
                 </h2>
                 <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">Create a new past event with details, venue, and schedule</p>
@@ -938,7 +931,7 @@ export default function PastEvents() {
                       name="event"
                       value={addEventForm.event}
                       onChange={handleAddEventChange}
-                      className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-colors ${formErrors.event ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}`}
+                      className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-300 focus:border-transparent transition-colors ${formErrors.event ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}`}
                       placeholder="Enter event name"
                     />
                     {formErrors.event && (
@@ -955,7 +948,7 @@ export default function PastEvents() {
                       name="venue"
                       value={addEventForm.venue}
                       onChange={handleAddEventChange}
-                      className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-colors ${formErrors.venue ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}`}
+                      className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-300 focus:border-transparent transition-colors ${formErrors.venue ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}`}
                       placeholder="Enter venue"
                     />
                     {formErrors.venue && (
@@ -972,7 +965,7 @@ export default function PastEvents() {
                       name="date"
                       value={addEventForm.date}
                       onChange={handleAddEventChange}
-                      className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-colors ${formErrors.date ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}`}
+                      className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-300 focus:border-transparent transition-colors ${formErrors.date ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}`}
                       placeholder="Select date"
                     />
                     {formErrors.date && (
@@ -989,7 +982,7 @@ export default function PastEvents() {
                       name="time"
                       value={addEventForm.time}
                       onChange={handleAddEventChange}
-                      className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-colors ${formErrors.time ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}`}
+                      className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-300 focus:border-transparent transition-colors ${formErrors.time ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'}`}
                       placeholder="Select time"
                     />
                     {formErrors.time && (
@@ -997,24 +990,11 @@ export default function PastEvents() {
                     )}
                   </div>
                   
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Image URL
-                    </label>
-                    <input
-                      type="file"
-                      name="invitationImage"
-                      onChange={handleAddEventChange}
-                      className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-colors"
-                      accept="image/*"
-                    />
-                  </div>
-                  
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Agenda <span className="text-red-500">*</span>
                     </label>
-                    <div className={`rounded-lg p-1 bg-white dark:bg-gray-700 ${formErrors.agenda ? 'border border-red-500' : ''}`}>
+                    <div className={`rounded-lg p-1 bg-white dark:bg-gray-700 dark:text-gray-700 ${formErrors.agenda ? 'border border-red-500' : ''}`}>
                       <RichTextEditor
                         data={addEventForm.agenda}
                         onChange={handleAgendaChange}
@@ -1025,11 +1005,24 @@ export default function PastEvents() {
                       <div className="text-red-600 text-xs mt-1">{formErrors.agenda}</div>
                     )}
                   </div>
+                  
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Invitation Image
+                    </label>
+                    <input
+                      type="file"
+                      name="invitationImage"
+                      onChange={handleAddEventChange}
+                      className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-300 focus:border-transparent transition-colors"
+                      accept="image/*"
+                    />
+                  </div>
                 </div>
                 
                 {/* Removed saveError and saveSuccess messages */}
                 
-                <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">
+                <div className="flex gap-4 mt-4">
                   <button
                     type="button"
                     className="px-6 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-100 font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
@@ -1040,21 +1033,21 @@ export default function PastEvents() {
                   <button
                     type="submit"
                     disabled={saveLoading}
-                    className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-colors ${
+                    className={`flex items-center gap-2 px-8 py-2 rounded-lg font-medium transition-colors text-white ${
                       saveLoading 
-                        ? 'bg-gray-400 cursor-not-allowed text-white' 
-                        : 'bg-green-600 text-white hover:bg-green-700'
+                        ? 'bg-gray-400 cursor-not-allowed' 
+                        : 'bg-green-600 hover:bg-green-700'
                     }`}
                   >
                     {saveLoading ? (
                       <>
                         <FiRefreshCw className="animate-spin" />
-                        Adding...
+                        Saving...
                       </>
                     ) : (
                       <>
-                        <FiPlus />
-                        Add Event
+                        <span className="text-lg">✔</span>
+                        Save
                       </>
                     )}
                   </button>
