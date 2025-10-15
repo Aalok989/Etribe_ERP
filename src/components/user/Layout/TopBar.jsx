@@ -235,7 +235,7 @@ export default function TopBar() {
   };
 
   return (
-    <header className="flex items-center justify-between bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow px-3 sm:px-6 py-3 mb-8 rounded-xl min-h-[60px]">
+    <header className="flex items-center justify-between bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow px-3 sm:px-6 py-2 mb-2 rounded-xl min-h-[45px]">
       <div className="font-bold text-lg sm:text-xl text-gray-800 dark:text-gray-100 truncate">Dashboard Overview</div>
       <div className="flex items-center gap-2 sm:gap-4">
         {/* Global Search */}
@@ -354,11 +354,11 @@ export default function TopBar() {
                 <div className="text-xs text-gray-400 dark:text-gray-400 truncate group-hover:text-blue-500 dark:group-hover:text-blue-300 transition-colors">
                   {profile.email}
                 </div>
-                {profile.company_name && (
+                {/* {profile.company_name && (
                   <div className="text-xs text-gray-500 dark:text-gray-500 truncate group-hover:text-blue-500 dark:group-hover:text-blue-300 transition-colors">
                     {profile.company_name}
                   </div>
-                )}
+                )} */}
               </>
             )}
           </div>

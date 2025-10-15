@@ -56,9 +56,8 @@ export default function UpcomingEvents() {
     return (
       <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 h-full w-full flex flex-col">
         <div className="relative rounded-t-2xl overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-indigo-200 via-blue-100 to-blue-200 dark:from-indigo-900 dark:via-blue-900 dark:to-gray-900" />
-          <div className="absolute inset-0 bg-white/30 dark:bg-gray-800/40 backdrop-blur-md border-b border-white/30 dark:border-gray-700" />
-          <h2 className="relative z-10 text-lg font-bold text-gray-900 dark:text-gray-100 tracking-wide px-5 py-3">
+          <div className="absolute inset-0 bg-white dark:bg-gray-800" />
+          <h2 className="relative z-10 text-lg font-bold text-gray-800 dark:text-gray-100 tracking-wide px-5 py-3 border-b border-gray-200 dark:border-gray-700">
             Upcoming Events
           </h2>
         </div>
@@ -76,9 +75,8 @@ export default function UpcomingEvents() {
     return (
       <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 h-full w-full flex flex-col">
         <div className="relative rounded-t-2xl overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-indigo-200 via-blue-100 to-blue-200 dark:from-indigo-900 dark:via-blue-900 dark:to-gray-900" />
-          <div className="absolute inset-0 bg-white/30 dark:bg-gray-800/40 backdrop-blur-md border-b border-white/30 dark:border-gray-700" />
-          <h2 className="relative z-10 text-lg font-bold text-gray-900 dark:text-gray-100 tracking-wide px-5 py-3">
+          <div className="absolute inset-0 bg-white dark:bg-gray-800" />
+          <h2 className="relative z-10 text-lg font-bold text-gray-800 dark:text-gray-100 tracking-wide px-5 py-3 border-b border-gray-200 dark:border-gray-700">
             Upcoming Events
           </h2>
         </div>

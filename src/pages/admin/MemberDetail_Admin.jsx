@@ -3323,7 +3323,7 @@ export default function MemberDetail_Admin() {
               </h1>
             </div>
             
-            <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 max-w-7xl w-full mx-auto">
+            <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full">
               {getCompanyDocuments().length === 0 ? (
                 <div className="text-center py-16">
                   <FiFileText className="mx-auto h-20 w-20 text-gray-300 mb-6" />
@@ -3468,7 +3468,7 @@ export default function MemberDetail_Admin() {
               </h1>
             </div>
             
-            <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 max-w-7xl w-full mx-auto">
+            <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full">
               {getPersonalDocuments().length === 0 ? (
                 <div className="text-center py-16">
                   <FiFileText className="mx-auto h-20 w-20 text-gray-300 mb-6" />
@@ -3622,7 +3622,7 @@ export default function MemberDetail_Admin() {
                 </button>
               </div>
             </div>
-            <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 max-w-7xl w-full mx-auto">
+            <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full">
               {/* Controls */}
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -4406,7 +4406,7 @@ export default function MemberDetail_Admin() {
                 <span>Total Products: {products.length}</span>
               </div>
             </div>
-            <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 max-w-7xl w-full mx-auto">
+            <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full">
               {/* Controls */}
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">

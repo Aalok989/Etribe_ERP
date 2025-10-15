@@ -4,15 +4,13 @@ import DashboardLayout from "../../components/user/Layout/DashboardLayout";
 import StatusCards from "../../components/user/StatusCards/StatusCards";
 import AnalyticsGraph from "../../components/user/AnalyticsGraph/AnalyticsGraph";
 import ImportantContacts from "../../components/user/ImportantContacts/ImportantContacts";
-import PastEventCard from "../../components/user/PastEventCard/PastEventCard";
-import TotalEventCard from "../../components/user/TotalEventCard/TotalEventCard";
 import UpcomingEvents from "../../components/user/UpcomingEvents/UpcomingEvents";
 import FastPreloader from "../../components/user/FastPreloader/FastPreloader";
 import { useDashboard } from "../../context/DashboardContext";
 
 // Fast loading skeleton for dashboard
 const DashboardSkeleton = () => (
-  <div className="space-y-6 py-3">
+  <div className="space-y-4 py-2">
     {/* Status Cards Skeleton */}
     <div className="space-y-4">
       <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-48 animate-pulse"></div>
@@ -92,73 +90,63 @@ function DashboardContent() {
   return (
     <>
       {/* Mobile & Tablet Layout (xs to lg) - Image Layout */}
-      <div className="block lg:hidden space-y-6 py-3 bg-transparent dark:bg-gray-800 transition-colors duration-300">
+      <div className="block lg:hidden space-y-4 py-2 bg-transparent dark:bg-gray-800 transition-colors duration-300">
         {/* Dashboard Overview Section */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Dashboard Overview</h2>
+        <div>
           <StatusCards />
         </div>
         
         {/* Event Statistics Section */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Event Statistics</h3>
-          <div className="grid grid-cols-3 gap-4">
-            <PastEventCard />
-            <TotalEventCard />
+        <div>
+          <div className="grid grid-cols-1 gap-4">
             <UpcomingEventsCard />
           </div>
         </div>
         
         {/* Member Analytics Section */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Member Analytics</h3>
+        <div>
           <div className="h-80">
             <AnalyticsGraph containerClass="h-full p-0 mb-0" chartHeight="100%" />
           </div>
         </div>
         
         {/* Important Contacts Section */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Important Contacts</h3>
+        <div>
           <div className="rounded-2xl shadow">
             <ImportantContacts />
           </div>
         </div>
       </div>
 
-      {/* Desktop Layout (lg and above) - Original Layout */}
-      <div className="hidden lg:grid lg:grid-cols-3 gap-6 py-3 bg-transparent dark:bg-gray-800 transition-colors duration-300">
-        {/* Top Row: Status Cards */}
-        <div className="col-span-3">
+      {/* Desktop Layout (lg and above) - Aligned Layout */}
+      <div className="hidden lg:block space-y-4 py-2 bg-transparent dark:bg-gray-800 transition-colors duration-300">
+        {/* First Row: Status Cards - Full Width */}
+        <div>
           <StatusCards />
         </div>
         
-        {/* Middle Row: Past Event, Total Event, and Upcoming Events */}
-        <div className="col-span-1">
-          <PastEventCard />
-        </div>
-        
-        <div className="col-span-1">
-          <TotalEventCard />
-        </div>
-        
-        {/* Upcoming Events - tall vertical card on the right */}
-        <div className="col-span-1 row-span-2">
-          <UpcomingEvents containerClass="h-full p-0 mb-0" chartHeight="100%" />
-        </div>
-        
-        {/* Bottom Section: Analytics Graph - spans under Past Event + Total Event */}
-        <div className="col-span-2">
-          <div className="h-80">
-            <AnalyticsGraph containerClass="h-full p-0 mb-0" chartHeight="100%" />
+        {/* Second Row: Member Analytics (left) + Upcoming Events (right) */}
+        <div className="grid grid-cols-3 gap-4">
+          {/* Member Analytics - Takes 2 columns */}
+          <div className="col-span-2">
+            <div className="h-80">
+              <AnalyticsGraph containerClass="h-full p-0 mb-0" chartHeight="100%" />
+            </div>
+          </div>
+          
+          {/* Upcoming Events - Takes 1 column */}
+          <div className="col-span-1">
+            <div className="h-80">
+              <UpcomingEvents containerClass="h-full p-0 mb-0" chartHeight="100%" />
+            </div>
           </div>
         </div>
-      </div>
-      
-      {/* Important Contacts - full width for desktop */}
-      <div className="hidden lg:block mt-6">
-        <div className="rounded-2xl shadow">
-          <ImportantContacts />
+        
+        {/* Third Row: Important Contacts - Full Width */}
+        <div>
+          <div className="rounded-2xl shadow">
+            <ImportantContacts />
+          </div>
         </div>
       </div>
     </>

@@ -46,7 +46,7 @@ const SimpleCalendar = ({ selectedDate, onDateSelect, events }) => {
   };
 
   return (
-    <div className="h-full flex flex-col justify-center">
+    <div className="h-full flex flex-col">
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={() => navigateMonth(-1)}
@@ -73,10 +73,10 @@ const SimpleCalendar = ({ selectedDate, onDateSelect, events }) => {
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-1 dark:bg-gray-700 rounded-xl p-2 flex-1">
+      <div className="grid grid-cols-7 gap-1 dark:bg-gray-700 rounded-xl p-2 flex-1 overflow-hidden">
         {days.map((day, index) => {
           if (day === null) {
-            return <div key={index} className="aspect-square"></div>;
+            return <div key={index} className="h-12 w-full"></div>;
           }
           const dayDate = new Date(currentYear, currentMonth, day);
           const eventsForDay = events.filter(event => isSameDay(new Date(event.date), dayDate));
@@ -85,19 +85,19 @@ const SimpleCalendar = ({ selectedDate, onDateSelect, events }) => {
           const dotColor = getEventDotColor(eventsForDay);
 
           // --- CORRECTED CLASSES ---
-          let cellClass = "aspect-square p-2 cursor-pointer rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg relative group ";
-          // Selected date
+          let cellClass = "h-12 w-full cursor-pointer transition-all duration-200 transform hover:scale-105 hover:shadow-lg relative group flex items-center justify-center ";
+          // Selected date - circular shape
           if (isSelected) {
             cellClass +=
-              "ring-2 ring-emerald-400 bg-emerald-100 text-black dark:bg-emerald-700 dark:text-white shadow-md ";
+              "ring-2 ring-emerald-400 bg-emerald-100 text-black dark:bg-emerald-700 dark:text-white shadow-md rounded-full w-10 h-10 mx-auto ";
           } else {
             cellClass +=
-              "hover:bg-gradient-to-br hover:from-emerald-50 hover:to-blue-50 dark:hover:from-gray-600 dark:hover:to-gray-700 ";
+              "hover:bg-gradient-to-br hover:from-emerald-50 hover:to-blue-50 dark:hover:from-gray-600 dark:hover:to-gray-700 rounded-lg ";
           }
           // TODAY - only if not selected date
           if (isToday && !isSelected) {
             cellClass +=
-              "bg-yellow-300 dark:bg-yellow-500 text-black dark:text-white ring-1 ring-yellow-400 ";
+              "bg-yellow-300 dark:bg-yellow-500 text-black dark:text-white ring-1 ring-yellow-400 rounded-lg ";
           }
           return (
             <div
@@ -105,14 +105,14 @@ const SimpleCalendar = ({ selectedDate, onDateSelect, events }) => {
               onClick={() => onDateSelect(dayDate)}
               className={cellClass}
             >
-              <div className="text-lg font-bold text-gray-800 dark:text-white text-center">
+              <div className="text-sm font-bold text-gray-800 dark:text-white flex items-center justify-center w-full h-full">
                 {day}
               </div>
               {eventsForDay.length > 0 && (
                 <>
-                  <div className={`absolute bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full shadow-lg ${dotColor} ${eventsForDay.some(ev => ev.type === 'past') ? '' : 'animate-pulse'}`} />
-                  {eventsForDay.length > 0 && (
-                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-lg">
+                  <div className={`absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full shadow-sm ${dotColor} ${eventsForDay.some(ev => ev.type === 'past') ? '' : 'animate-pulse'}`} />
+                  {eventsForDay.length > 1 && (
+                    <div className="absolute top-0.5 right-0.5 w-4 h-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-sm">
                       {eventsForDay.length}
                     </div>
                   )}
@@ -323,7 +323,7 @@ export default function Calendar() {
                 </div>
                 </div>
 
-        <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 max-w-7xl w-full mx-auto">
+        <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full">
           {/* Header Controls */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
             <div className="flex items-center gap-4">
@@ -354,8 +354,8 @@ export default function Calendar() {
           <div className="flex flex-col xl:flex-row gap-6 p-6 h-[800px]">
             {/* Left: Calendar Card */}
             <div className="flex-1 min-w-0 h-full flex flex-col">
-                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 relative h-full flex flex-col">
-                 <div className="p-4 flex-1 flex flex-col">
+                <div className="bg-transparent rounded-2xl border border-gray-200 dark:border-gray-700 relative h-full flex flex-col overflow-hidden">
+                 <div className="p-4 flex-1 flex flex-col justify-start overflow-hidden">
                   <SimpleCalendar 
                     selectedDate={selectedDate}
                     onDateSelect={setSelectedDate}
@@ -367,7 +367,7 @@ export default function Calendar() {
             
             {/* Right: Event Details Card */}
             <div className="w-full xl:w-96 flex-shrink-0 h-full flex flex-col">
-              <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 h-full flex flex-col">
+              <div className="bg-transparent rounded-2xl border border-gray-200 dark:border-gray-700 h-full flex flex-col">
                 <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
                   <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
                     <FiEye className="text-indigo-600" />
@@ -438,27 +438,27 @@ export default function Calendar() {
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Calendar Legend */}
-        <div className="px-6 pb-4">
-          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-              <FiCalendar className="text-indigo-600" size={16} />
-              Event Color Legend
-            </h3>
-            <div className="flex flex-wrap gap-4 text-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500 shadow-sm"></div>
-                <span className="text-gray-600 dark:text-gray-400">Past Events</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-green-400 shadow-sm"></div>
-                <span className="text-gray-600 dark:text-gray-400">Today's Events</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-blue-400 shadow-sm"></div>
-                <span className="text-gray-600 dark:text-gray-400">Upcoming Events</span>
+          {/* Calendar Legend */}
+          <div className="px-6 pb-4">
+            <div className="bg-transparent rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                <FiCalendar className="text-indigo-600" size={16} />
+                Event Color Legend
+              </h3>
+              <div className="flex flex-wrap gap-4 text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500 shadow-sm"></div>
+                  <span className="text-gray-600 dark:text-gray-400">Past Events</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-green-400 shadow-sm"></div>
+                  <span className="text-gray-600 dark:text-gray-400">Today's Events</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-blue-400 shadow-sm"></div>
+                  <span className="text-gray-600 dark:text-gray-400">Upcoming Events</span>
+                </div>
               </div>
             </div>
           </div>

@@ -54,15 +54,14 @@ export default function UpcomingEvents() {
   // If no events, show a message
   if (loading) {
     return (
-      <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 h-full w-full flex flex-col">
+      <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 h-full w-full flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
         <div className="relative rounded-t-2xl overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-indigo-200 via-blue-100 to-blue-200 dark:from-indigo-900 dark:via-blue-900 dark:to-gray-900" />
-          <div className="absolute inset-0 bg-white/30 dark:bg-gray-800/40 backdrop-blur-md border-b border-white/30 dark:border-gray-700" />
-          <h2 className="relative z-10 text-lg font-bold text-gray-900 dark:text-gray-100 tracking-wide px-5 py-3">
+          <div className="absolute inset-0 bg-white dark:bg-gray-800" />
+          <h2 className="relative z-10 text-lg font-bold text-gray-800 dark:text-gray-100 tracking-wide px-5 py-3 border-b border-gray-200 dark:border-gray-700">
             Upcoming Events
           </h2>
         </div>
-        <div className="p-5 flex-1 flex items-center justify-center">
+        <div className="p-5 flex-1 flex items-center justify-center overflow-hidden">
           <div className="text-center text-gray-600 dark:text-gray-300">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-2"></div>
             <p>Loading events...</p>
@@ -74,15 +73,14 @@ export default function UpcomingEvents() {
 
   if (events.length === 0) {
     return (
-      <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 h-full w-full flex flex-col">
+      <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 h-full w-full flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
         <div className="relative rounded-t-2xl overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-indigo-200 via-blue-100 to-blue-200 dark:from-indigo-900 dark:via-blue-900 dark:to-gray-900" />
-          <div className="absolute inset-0 bg-white/30 dark:bg-gray-800/40 backdrop-blur-md border-b border-white/30 dark:border-gray-700" />
-          <h2 className="relative z-10 text-lg font-bold text-gray-900 dark:text-gray-100 tracking-wide px-5 py-3">
+          <div className="absolute inset-0 bg-white dark:bg-gray-800" />
+          <h2 className="relative z-10 text-lg font-bold text-gray-800 dark:text-gray-100 tracking-wide px-5 py-3 border-b border-gray-200 dark:border-gray-700">
             Upcoming Events
           </h2>
         </div>
-        <div className="p-5 flex-1 flex items-center justify-center">
+        <div className="p-5 flex-1 flex items-center justify-center overflow-hidden">
           <div className="text-center text-gray-600 dark:text-gray-300">
             <p>No upcoming events</p>
           </div>
@@ -92,15 +90,14 @@ export default function UpcomingEvents() {
   }
 
   return (
-    <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 h-full w-full flex flex-col border border-gray-200 dark:border-gray-700">
+    <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 h-full w-full flex flex-col border border-gray-200 dark:border-gray-700 overflow-hidden">
       <div className="relative rounded-t-2xl overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-200 via-blue-100 to-blue-200 dark:from-indigo-900 dark:via-blue-900 dark:to-gray-900" />
-        <div className="absolute inset-0 bg-white/30 dark:bg-gray-800/40 backdrop-blur-md border-b border-white/30 dark:border-gray-700" />
-        <h2 className="relative z-10 text-lg font-bold text-gray-900 dark:text-gray-100 tracking-wide px-5 py-3">
+        <div className="absolute inset-0 bg-white dark:bg-gray-800" />
+        <h2 className="relative z-10 text-lg font-bold text-gray-800 dark:text-gray-100 tracking-wide px-5 py-3 border-b border-gray-200 dark:border-gray-700">
           Upcoming Events
         </h2>
       </div>
-      <div className="p-1 flex-1 flex flex-col justify-between">
+      <div className="p-3 flex-1 flex flex-col justify-between">
         <div>
           <div className="flex space-x-3 overflow-x-auto whitespace-nowrap pb-2 mb-3 custom-scroll">
             {events.map((event) => (
@@ -140,7 +137,7 @@ export default function UpcomingEvents() {
           </div>
 
           {selected && (
-            <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900 dark:to-gray-900 rounded-lg border border-indigo-100 dark:border-gray-700 shadow-inner h-72 overflow-y-auto custom-scroll">
+            <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border-2 border-blue-500 dark:border-blue-400 shadow-sm overflow-y-auto custom-scroll max-h-72 mt-2 mb-3">
               <h3 className="text-base font-bold mb-1 text-indigo-700 dark:text-indigo-200">
                 {selected.title}
               </h3>

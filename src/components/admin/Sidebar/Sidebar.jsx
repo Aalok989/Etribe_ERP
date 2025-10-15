@@ -54,7 +54,7 @@ const menuItems = [
   {
     label: "Dashboard",
     icon: <FiGrid size={20} />,
-    path: "/dashboard",
+    path: "/admin/dashboard",
     dropdown: false,
   },
   {
@@ -224,12 +224,12 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
 
       {/* Desktop Sidebar */}
       <aside
-        className={`bg-blue-50 dark:bg-gray-800 flex flex-col transition-all duration-200 shadow-lg h-screen max-h-screen ${
+        className={`bg-white dark:bg-gray-800 flex flex-col transition-all duration-200 shadow-lg h-screen max-h-screen ${
           collapsed ? "w-20" : "w-72"
         } hidden lg:flex ${className}`}
       >
               {/* Top bar with logo */}
-        <div className="flex items-center gap-3 p-4 border-b border-blue-100 dark:border-gray-700 flex-shrink-0">
+        <div className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           {groupData?.signature ? (
             <img
               src={groupData.signature}
@@ -297,9 +297,9 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
                       }
                       ${
                         isParentActive
-                          ? "text-blue-800 dark:text-blue-300"
-                          : "text-gray-500 dark:text-gray-400"
-                      } hover:text-blue-900 dark:hover:text-blue-400`}
+                          ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 shadow-sm relative before:absolute before:left-0 before:top-1 before:bottom-1 before:w-2 before:bg-gradient-to-b before:from-blue-600 before:to-blue-500 dark:before:from-blue-400 dark:before:to-blue-300 before:rounded-r-xl before:shadow-sm"
+                          : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                      }`}
                   >
                     <span>{item.icon}</span>
                     <span className={`${collapsed ? "hidden" : "flex-1"}`}>
@@ -329,12 +329,12 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
                                 shouldBeActive = true;
                               }
                               
-                              return `block text-sm px-3 py-1 rounded whitespace-nowrap transition-colors
+                              return `block text-sm px-3 py-2 rounded-lg whitespace-nowrap transition-colors
                                 ${
                                   shouldBeActive
-                                    ? "text-blue-800 dark:text-blue-300"
-                                    : "text-gray-500 dark:text-gray-400"
-                                } hover:text-blue-900 dark:hover:text-blue-400`;
+                                    ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 shadow-sm relative before:absolute before:left-0 before:top-1 before:bottom-1 before:w-2 before:bg-gradient-to-b before:from-blue-600 before:to-blue-500 dark:before:from-blue-400 dark:before:to-blue-300 before:rounded-r-xl before:shadow-sm font-medium"
+                                    : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                                }`;
                             }}
                           >
                             {sub.label}
@@ -358,11 +358,11 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
                       }
                       ${
                         isActive
-                          ? "text-blue-800 dark:text-blue-300"
-                          : "text-gray-500 dark:text-gray-400"
-                      } hover:text-blue-900 dark:hover:text-blue-400`
+                          ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 shadow-sm relative before:absolute before:left-0 before:top-1 before:bottom-1 before:w-2 before:bg-gradient-to-b before:from-blue-600 before:to-blue-500 dark:before:from-blue-400 dark:before:to-blue-300 before:rounded-r-xl before:shadow-sm"
+                          : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                      }`
                   }
-                  end={item.path === "/dashboard"}
+                  end={item.path === "/admin/dashboard"}
                 >
                   <span>{item.icon}</span>
                   <span className={`${collapsed ? "hidden" : ""}`}>
@@ -376,7 +376,7 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
       </nav>
 
       {/* Logout */}
-      <div className="p-4 border-t border-blue-100 dark:border-gray-700 flex-shrink-0">
+      <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-2 rounded-lg font-medium text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
@@ -389,12 +389,12 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
 
     {/* Mobile/Tablet Sidebar - Full width with icons and text */}
     <aside
-      className={`lg:hidden fixed top-0 left-0 h-screen max-h-screen bg-blue-50 dark:bg-gray-800 flex flex-col transition-all duration-200 shadow-lg z-50 ${
+      className={`lg:hidden fixed top-0 left-0 h-screen max-h-screen bg-white dark:bg-gray-800 flex flex-col transition-all duration-200 shadow-lg z-50 ${
         mobileSidebarOpen ? "w-72 md:w-80" : "-translate-x-full"
       }`}
     >
       {/* Mobile Logo Section */}
-      <div className="flex items-center justify-between p-4 border-b border-blue-100 dark:border-gray-700 flex-shrink-0">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div className="flex items-center gap-3">
           <img
             src="/src/assets/Etribe-logo.jpg"
@@ -433,9 +433,9 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
                     className={`w-full flex items-center gap-3 px-4 py-2 font-medium text-left whitespace-nowrap rounded-lg transition-colors
                       ${
                         isParentActive
-                          ? "text-blue-800 dark:text-blue-300"
-                          : "text-gray-500 dark:text-gray-400"
-                      } hover:text-blue-900 dark:hover:text-blue-400`}
+                          ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 shadow-sm relative before:absolute before:left-0 before:top-1 before:bottom-1 before:w-2 before:bg-gradient-to-b before:from-blue-600 before:to-blue-500 dark:before:from-blue-400 dark:before:to-blue-300 before:rounded-r-xl before:shadow-sm"
+                          : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                      }`}
                   >
                     <span>{item.icon}</span>
                     <span className="flex-1">{item.label}</span>
@@ -456,12 +456,12 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
                             to={sub.path}
                             onClick={() => setMobileSidebarOpen(false)}
                             className={({ isActive }) =>
-                              `block text-sm px-3 py-1 rounded whitespace-nowrap transition-colors
+                              `block text-sm px-3 py-2 rounded-lg whitespace-nowrap transition-colors
                                 ${
                                   isActive
-                                    ? "text-blue-800 dark:text-blue-300"
-                                    : "text-gray-500 dark:text-gray-400"
-                                } hover:text-blue-900 dark:hover:text-blue-400`
+                                    ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 shadow-sm relative before:absolute before:left-0 before:top-1 before:bottom-1 before:w-2 before:bg-gradient-to-b before:from-blue-600 before:to-blue-500 dark:before:from-blue-400 dark:before:to-blue-300 before:rounded-r-xl before:shadow-sm font-medium"
+                                    : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                                }`
                             }
                           >
                             {sub.label}
@@ -483,11 +483,11 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
                     `w-full flex items-center gap-3 px-4 py-2 font-medium rounded-lg transition-colors whitespace-nowrap
                       ${
                         isActive
-                          ? "text-blue-800 dark:text-blue-300"
-                          : "text-gray-500 dark:text-gray-400"
-                      } hover:text-blue-900 dark:hover:text-blue-400`
+                          ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 shadow-sm relative before:absolute before:left-0 before:top-1 before:bottom-1 before:w-2 before:bg-gradient-to-b before:from-blue-600 before:to-blue-500 dark:before:from-blue-400 dark:before:to-blue-300 before:rounded-r-xl before:shadow-sm"
+                          : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                      }`
                   }
-                  end={item.path === "/dashboard"}
+                  end={item.path === "/admin/dashboard"}
                 >
                   <span>{item.icon}</span>
                   <span className="flex-1">{item.label}</span>
@@ -499,7 +499,7 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
       </nav>
 
       {/* Mobile Logout */}
-      <div className="p-4 border-t border-blue-100 dark:border-gray-700 bg-blue-50 dark:bg-gray-800 flex-shrink-0">
+      <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-2 rounded-lg font-medium text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"

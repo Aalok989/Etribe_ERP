@@ -15,18 +15,16 @@ export default function DashboardLayout({ children }) {
         collapsed ? 'pl-0 lg:pl-20' : 'pl-0 lg:pl-72'
       }`}>
         {/* TopBar with separate padding */}
-        <div className="max-w-7xl mx-auto w-full px-4 pt-10 mb-2">
+        <div className="w-full px-6 pt-4 mb-0">
           <TopBar />
         </div>
         
         {/* Main content area with separate padding */}
-        <div className="max-w-7xl mx-auto w-full px-4 flex-1 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 md:p-6">
-            {children}
-          </div>
+        <div className="w-full px-6 flex-1 mb-2">
+          {children}
         </div>
         {/* Footer */}
-        <div className="max-w-7xl mx-auto w-full px-4 pb-4 mb-4">
+        <div className="w-full px-6 pb-2 mb-2">
           <Footer />
         </div>
       </div>

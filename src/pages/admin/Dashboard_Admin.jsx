@@ -4,8 +4,6 @@ import DashboardLayout from "../../components/admin/Layout/DashboardLayout";
 import StatusCards from "../../components/admin/StatusCards/StatusCards";
 import AnalyticsGraph from "../../components/admin/AnalyticsGraph/AnalyticsGraph";
 import ImportantContacts from "../../components/admin/ImportantContacts/ImportantContacts";
-import PastEventCard from "../../components/admin/PastEventCard/PastEventCard";
-import TotalEventCard from "../../components/admin/TotalEventCard/TotalEventCard";
 import UpcomingEvents from "../../components/admin/UpcomingEvents/UpcomingEvents";
 import FastPreloader from "../../components/user/FastPreloader/FastPreloader";
 import { useDashboard } from "../../context/DashboardContext";
@@ -60,9 +58,7 @@ function DashboardContent() {
         {/* Event Statistics Section */}
         <div className="space-y-4">
           <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Event Statistics</h3>
-          <div className="grid grid-cols-3 gap-4">
-            <PastEventCard />
-            <TotalEventCard />
+          <div className="grid grid-cols-1 gap-4">
             <UpcomingEventsCard />
           </div>
         </div>
@@ -91,16 +87,7 @@ function DashboardContent() {
           <StatusCards />
         </div>
         
-        {/* Middle Row: Past Event, Total Event, and Upcoming Events */}
-        <div className="col-span-1">
-          <PastEventCard />
-        </div>
-        
-        <div className="col-span-1">
-          <TotalEventCard />
-        </div>
-        
-        {/* Upcoming Events - tall vertical card on the right */}
+        {/* Middle Row: Upcoming Events */}
         <div className="col-span-1 row-span-2">
           <UpcomingEvents containerClass="h-full p-0 mb-0" chartHeight="100%" />
         </div>

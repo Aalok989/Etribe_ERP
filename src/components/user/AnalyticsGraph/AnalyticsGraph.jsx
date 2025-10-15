@@ -266,80 +266,60 @@ export default function AnalyticsGraph() {
 
   return (
     <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 h-full w-full flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
-      {/* Header with gradient background, improved for layout consistency */}
+      {/* Header with controls in same row */}
       <div className="relative rounded-t-2xl overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-300 via-blue-200 to-blue-300 dark:from-indigo-900 dark:via-blue-900 dark:to-gray-900" />
-        <div className="absolute inset-0 bg-white/30 dark:bg-gray-800/40 backdrop-blur-md border-b border-white/30 dark:border-gray-700" />
-        <div className="relative z-10 flex items-center gap-3 px-5 py-3">
-          <h2 className="text-xl font-bold text-gray-800 dark:text-indigo-100 tracking-wide">Enquiry Analytics</h2>
-        </div>
-      </div>
+        <div className="absolute inset-0 bg-white dark:bg-gray-800" />
+        <div className="relative z-10 flex items-center justify-between px-5 py-2 border-b border-gray-200 dark:border-gray-700">
+          {/* Left side - Title */}
+          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 tracking-wide">Enquiry Analytics</h2>
+          
+          {/* Right side - Controls */}
+          <div className="flex items-center gap-4">
+            {/* Chart Type Selector */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Chart:</span>
+              <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 border border-gray-200 dark:border-gray-600">
+                {[
+                  { key: 'area', icon: FiPieChart, label: 'Area' },
+                  { key: 'bar', icon: FiBarChart2, label: 'Bar' },
+                  { key: 'line', icon: FiActivity, label: 'Line' }
+                ].map(({ key, icon: Icon, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => setChartType(key)}
+                    disabled={chartData.length === 0}
+                    className={`px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 border-none outline-none focus:ring-2 focus:ring-indigo-400 ${
+                      chartType === key
+                        ? 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-indigo-600 dark:text-indigo-300 shadow-sm'
+                        : 'bg-transparent text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'
+                    } ${chartData.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    aria-label={label}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </button>
+                ))}
+              </div>
+            </div>
 
-      {/* Chart Controls */}
-      <div className="px-8 py-4 bg-gray-50 dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 flex flex-wrap items-center gap-6">
-        {/* Chart Type Selector */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Chart:</span>
-          <div className="flex bg-gray-100 dark:bg-gray-900 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
-            {[
-              { key: 'area', icon: FiPieChart, label: 'Area' },
-              { key: 'bar', icon: FiBarChart2, label: 'Bar' },
-              { key: 'line', icon: FiActivity, label: 'Line' }
-            ].map(({ key, icon: Icon, label }) => (
-              <button
-                key={key}
-                onClick={() => setChartType(key)}
+            {/* Metric Filter */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Filter:</span>
+              <select
+                value={selectedMetric}
+                onChange={(e) => setSelectedMetric(e.target.value)}
                 disabled={chartData.length === 0}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 border-none outline-none focus:ring-2 focus:ring-indigo-400 ${
-                  chartType === key
-                    ? 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-indigo-600 dark:text-indigo-300 shadow-sm'
-                    : 'bg-transparent text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'
-                } ${chartData.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                aria-label={label}
+                className={`px-3 py-1 text-sm border border-gray-200 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                  chartData.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
               >
-                <Icon className="w-4 h-4" />
-              </button>
-            ))}
+                <option value="all">All Metrics</option>
+                <option value="Enquiry Received">Enquiry Received Only</option>
+                <option value="Enquiry Done">Enquiry Done Only</option>
+              </select>
+            </div>
+
           </div>
         </div>
-
-        {/* Metric Filter */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Filter:</span>
-          <select
-            value={selectedMetric}
-            onChange={(e) => setSelectedMetric(e.target.value)}
-            disabled={chartData.length === 0}
-            className={`px-3 py-1 text-sm border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-              chartData.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-          >
-            <option value="all">All Metrics</option>
-            <option value="Enquiry Received">Enquiry Received Only</option>
-            <option value="Enquiry Done">Enquiry Done Only</option>
-          </select>
-        </div>
-
-        {/* Last Updated */}
-        {lastUpdated && chartData.length > 0 ? (
-          <div className="text-xs text-gray-500 dark:text-gray-400">
-            Updated: {lastUpdated.toLocaleTimeString()}
-          </div>
-        ) : chartData.length === 0 ? (
-          <div className="text-xs text-gray-500 dark:text-gray-400">
-            No data available
-          </div>
-        ) : null}
-
-        {/* Refresh Button */}
-        <button
-          onClick={handleRefresh}
-          disabled={loading}
-          className="ml-auto p-2 bg-white/20 dark:bg-gray-800/40 rounded-lg backdrop-blur-sm hover:bg-white/30 dark:hover:bg-gray-700/40 transition-all duration-200 disabled:opacity-50"
-          aria-label="Refresh"
-        >
-          <FiRefreshCw className={`w-5 h-5 text-indigo-600 dark:text-indigo-300 ${loading ? 'animate-spin' : ''}`} />
-        </button>
       </div>
 
       {/* Chart Container */}
