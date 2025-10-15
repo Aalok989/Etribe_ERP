@@ -97,13 +97,14 @@ export default function UpcomingEvents() {
           Upcoming Events
         </h2>
       </div>
-      <div className="p-3 flex-1 flex flex-col justify-between">
-        <div>
+      <div className="p-3 flex-1 flex flex-col overflow-hidden">
+        {/* Date selection row - fixed height */}
+        <div className="flex-shrink-0">
           <div className="flex space-x-3 overflow-x-auto whitespace-nowrap pb-2 mb-3 custom-scroll">
             {events.map((event) => (
               <button
                 key={event.id}
-                className={`relative flex flex-col items-center px-3 py-2 mt-1 rounded-lg border-2 transition-colors duration-150 min-w-[65px] shadow-sm font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400/60 mx-1 overflow-hidden ${
+                className={`relative flex flex-col items-center px-3 py-1 mt-1 rounded-lg border-2 transition-colors duration-150 min-w-[65px] shadow-sm font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400/60 mx-1 overflow-hidden ${
                   selected?.id === event.id
                     ? "bg-gradient-to-br from-indigo-100 via-blue-50 to-blue-100 dark:from-indigo-900 dark:via-blue-900 dark:to-gray-900 border-indigo-400 scale-105 z-10"
                     : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-100 hover:bg-indigo-100 dark:hover:bg-gray-700 hover:border-indigo-400"
@@ -120,44 +121,47 @@ export default function UpcomingEvents() {
                       <span className="text-xl font-bold text-gray-900 dark:text-gray-100">
                         {event.date}
                       </span>
-                      <span className="text-xs text-gray-900 dark:text-gray-100">
-                        {event.month}
-                      </span>
                     </div>
                   </>
                 ) : (
                   <>
                     <span className="font-bold text-sm text-gray-700 dark:text-gray-100">{event.day}</span>
                     <span className="text-xl font-bold text-gray-900 dark:text-gray-100">{event.date}</span>
-                    <span className="text-xs text-gray-700 dark:text-gray-100">{event.month}</span>
                   </>
                 )}
               </button>
             ))}
           </div>
+        </div>
 
-          {selected && (
-            <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border-2 border-blue-500 dark:border-blue-400 shadow-sm overflow-y-auto custom-scroll max-h-72 mt-2 mb-3">
-              <h3 className="text-base font-bold mb-1 text-indigo-700 dark:text-indigo-200">
-                {selected.title}
-              </h3>
-              <div className="text-xs mb-1 text-gray-700 dark:text-gray-200">
-                <span className="font-semibold">Date:</span> {selected.day},{" "}
-                {selected.date} {selected.month} {selected.year}
-              </div>
-              <div className="text-xs mb-1 text-gray-700 dark:text-gray-200">
-                <span className="font-semibold">Time:</span> {selected.time}
-              </div>
-              <div className="text-xs mb-1 text-gray-700 dark:text-gray-200">
-                <span className="font-semibold">Venue:</span> {selected.venue}
-              </div>
-              <div className="text-xs text-gray-700 dark:text-gray-200 whitespace-pre-line">
-                <span className="font-semibold">Description:</span>{" "}
-                {stripHtmlTags(selected.description)}
+        {/* Content area - flexible height with scroll */}
+        {selected && (
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <div className="h-full bg-white dark:bg-gray-800 rounded-lg border-2 border-blue-500 dark:border-blue-400 shadow-sm overflow-hidden">
+              <div className="h-full overflow-y-auto custom-scroll scrollbar-thin scrollbar-thumb-blue-300 dark:scrollbar-thumb-blue-600 scrollbar-track-transparent pr-1">
+                <div className="p-4">
+                  <h3 className="text-base font-bold mb-1 text-indigo-700 dark:text-indigo-200 line-clamp-2 break-words">
+                    {selected.title}
+                  </h3>
+                  <div className="text-xs mb-1 text-gray-700 dark:text-gray-200">
+                    <span className="font-semibold">Date:</span> {selected.day},{" "}
+                    {selected.date} {selected.month} {selected.year}
+                  </div>
+                  <div className="text-xs mb-1 text-gray-700 dark:text-gray-200">
+                    <span className="font-semibold">Time:</span> {selected.time}
+                  </div>
+                  <div className="text-xs mb-1 text-gray-700 dark:text-gray-200">
+                    <span className="font-semibold">Venue:</span> {selected.venue}
+                  </div>
+                  <div className="text-xs text-gray-700 dark:text-gray-200 whitespace-pre-line">
+                    <span className="font-semibold">Description:</span>{" "}
+                    {stripHtmlTags(selected.description)}
+                  </div>
+                </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
