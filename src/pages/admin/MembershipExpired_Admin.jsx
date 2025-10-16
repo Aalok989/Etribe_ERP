@@ -415,7 +415,7 @@ export default function MembershipExpired() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-800">
+        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
           <div className="flex items-center gap-3">
             <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
             <p className="text-indigo-700 dark:text-indigo-300">Loading expired members...</p>
@@ -882,7 +882,7 @@ export default function MembershipExpired() {
           </div>
         </div>
 
-        <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full">
+        <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] w-full">
           {/* Controls */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -963,7 +963,7 @@ export default function MembershipExpired() {
                 </button>
                 
                 {showExportDropdown && (
-                  <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32 export-dropdown">
+                  <div className="absolute right-0 top-full mt-1 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32 export-dropdown">
                     <button
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
                       onClick={() => {
@@ -1047,7 +1047,7 @@ export default function MembershipExpired() {
                   <tr 
                     key={m.id} 
                     className={`border-b border-gray-200 dark:border-gray-700 transition-colors ${
-                      idx % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-900/50'
+                      idx % 2 === 0 ? 'bg-white dark:bg-[#1E1E1E]' : 'bg-gray-50 dark:bg-[#202123]/50'
                     } hover:bg-indigo-50 dark:hover:bg-gray-700 hover:shadow-sm`}
                   >
                     {tableHeaders.map((header, headerIndex) => {
@@ -1147,7 +1147,7 @@ export default function MembershipExpired() {
             ) : (
               <>
                 {paginated.map((member, idx) => (
-                  <div key={member.id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-shadow">
+                  <div key={member.id} className="bg-white dark:bg-[#1E1E1E] rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3">
                         <div className="h-12 w-12 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 dark:from-orange-800 dark:to-amber-900 flex items-center justify-center flex-shrink-0">
@@ -1270,7 +1270,7 @@ export default function MembershipExpired() {
           {/* Renew Membership Modal */}
           {modifyMember && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-              <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl dark:shadow-2xl p-6 w-full max-w-md relative max-h-[90vh] overflow-y-auto">
+              <div className="bg-white dark:bg-[#202123] rounded-xl shadow-xl dark:shadow-2xl p-6 w-full max-w-md relative max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Renew Membership</h2>
                   <button

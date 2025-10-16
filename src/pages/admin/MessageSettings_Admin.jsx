@@ -218,7 +218,7 @@ export default function MessageSettings() {
           </div>
         </div>
 
-        <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full border border-gray-200 dark:border-gray-700">
+        <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] w-full border border-gray-200 dark:border-gray-700">
           {/* Header Controls */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-4 sm:px-6 py-4 border-b border-gray-100 dark:border-gray-700">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -270,7 +270,7 @@ export default function MessageSettings() {
                 </div>
                 {/* Settings Display */}
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
-                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <div className="bg-gray-50 dark:bg-[#1E1E1E] p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                     <h3 className="font-semibold text-gray-700 dark:text-gray-200 mb-3 flex items-center gap-2">
                       <FiLink className="text-indigo-600" />
                       API Configuration
@@ -282,7 +282,7 @@ export default function MessageSettings() {
                       </div>
                     </div>
                   </div>
-                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <div className="bg-gray-50 dark:bg-[#1E1E1E] p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                     <h3 className="font-semibold text-gray-700 dark:text-gray-200 mb-3 flex items-center gap-2">
                       <FiMessageSquare className="text-indigo-600" />
                       Message Parameters
@@ -323,7 +323,7 @@ export default function MessageSettings() {
                 {/* Form Fields */}
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-4">
-                    <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className="bg-gray-50 dark:bg-[#1E1E1E] p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                       <h3 className="font-semibold text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2">
                         <FiLink className="text-indigo-600" />
                         API Configuration
@@ -338,7 +338,7 @@ export default function MessageSettings() {
                     </div>
                 </div>
                   <div className="space-y-4">
-                    <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className="bg-gray-50 dark:bg-[#1E1E1E] p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                       <h3 className="font-semibold text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2">
                         <FiMessageSquare className="text-indigo-600" />
                         Message Parameters

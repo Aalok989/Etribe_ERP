@@ -359,7 +359,7 @@ export default function DocumentType() {
           </div>
         </div>
 
-        <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full border border-gray-200 dark:border-gray-700">
+        <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] w-full border border-gray-200 dark:border-gray-700">
           {/* Header Controls */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-4 sm:px-6 py-4 border-b border-gray-100 dark:border-gray-700">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
@@ -463,7 +463,7 @@ export default function DocumentType() {
               </thead>
               <tbody>
                 {paginatedDocumentTypes.map((docType, idx) => (
-                  <tr key={docType.id} className={`border-b border-gray-200 dark:border-gray-700 transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-900/50'} hover:bg-indigo-50 dark:hover:bg-gray-700 hover:shadow-sm`}>
+                  <tr key={docType.id} className={`border-b border-gray-200 dark:border-gray-700 transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-[#1E1E1E]' : 'bg-gray-50 dark:bg-[#202123]/50'} hover:bg-indigo-50 dark:hover:bg-gray-700 hover:shadow-sm`}>
                     <td className="p-3 text-center font-semibold text-indigo-700 dark:text-indigo-300 border-r border-gray-200 dark:border-gray-700">{startIdx + idx + 1}</td>
                     <td className="p-3 text-left border-r border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 font-medium">{docType.documentType || 'N/A'}</td>
                     <td className="p-3 text-left border-r border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100">{docType.description || 'N/A'}</td>
@@ -511,7 +511,7 @@ export default function DocumentType() {
           {/* Mobile/Tablet Card View */}
           <div className="lg:hidden p-4 space-y-4">
             {paginatedDocumentTypes.map((docType, idx) => (
-              <div key={docType.id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+              <div key={docType.id} className="bg-white dark:bg-[#1E1E1E] rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-lg mb-1">{docType.documentType || 'N/A'}</h3>
@@ -584,7 +584,7 @@ export default function DocumentType() {
         {/* Add/Edit Modal */}
         {(showAddModal || showEditModal) && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 w-full max-w-md relative">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-lg p-8 w-full max-w-md relative">
               <button
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
                 onClick={closeModals}

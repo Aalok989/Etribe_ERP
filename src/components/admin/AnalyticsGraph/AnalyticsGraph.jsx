@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import {
   LineChart,
   Line,
@@ -24,15 +24,15 @@ import { useDashboard } from '../../../context/DashboardContext';
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white/95 backdrop-blur-md border border-gray-200 rounded-lg shadow-xl p-4">
-        <p className="text-gray-600 font-medium mb-2">{label}</p>
+      <div className="bg-white/95 dark:bg-[#1E1E1E]/95 backdrop-blur-md border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl p-4">
+        <p className="text-gray-600 dark:text-gray-200 font-medium mb-2">{label}</p>
         {payload.map((entry, index) => (
           <div key={index} className="flex items-center gap-2 mb-1">
             <div 
               className="w-3 h-3 rounded-full" 
               style={{ backgroundColor: entry.color }}
             />
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
               {entry.name}: <span className="font-bold">{entry.value}</span>
             </span>
           </div>
@@ -53,7 +53,7 @@ const CustomLegend = ({ payload }) => {
             className="w-4 h-4 rounded-full shadow-sm" 
             style={{ backgroundColor: entry.color }}
           />
-          <span className="text-sm font-medium text-gray-700">{entry.value}</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{entry.value}</span>
         </div>
       ))}
     </div>
@@ -62,27 +62,60 @@ const CustomLegend = ({ payload }) => {
 
 export default function AnalyticsGraph() {
   const { data: dashboardData, loading: dashboardLoading, errors, refreshMembers, stats } = useDashboard();
-  const [chartType, setChartType] = useState('area'); // line, area, bar, pie
-  const [selectedMetric, setSelectedMetric] = useState('all'); // all, active, inactive, expired
+  const [chartType, setChartType] = useState('area'); // area, bar, line, pie
+  const [selectedMetric, setSelectedMetric] = useState('all'); // all, members activated, pending approval, membership expired
   const [lastUpdated, setLastUpdated] = useState(null);
 
   // Use analytics data from dashboard context
   const data = dashboardData.analytics || [];
-  const loading = dashboardLoading.members || dashboardLoading.initial;
+  const loading = dashboardLoading.members;
   const error = errors.members;
 
-  // Update last updated when data changes
-  useEffect(() => {
+  // Debug logging
+  console.log('AnalyticsGraph - analytics data:', data);
+  console.log('AnalyticsGraph - loading state:', loading);
+  console.log('AnalyticsGraph - error state:', error);
+
+
+
+  // Process real data to ensure complete year data by filling missing months
+  // Use useMemo to prevent recalculation on every render
+  const chartData = useMemo(() => {
     if (data.length > 0) {
-      setLastUpdated(new Date());
+      // Ensure we have complete year data by filling missing months
+      const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const completeData = monthOrder.map(month => {
+        const existingData = data.find(item => item.month === month);
+        if (existingData) {
+          return existingData;
+        } else {
+          // Fill missing months with zero values for member metrics only
+          return {
+            month,
+            'Members Activated': 0,
+            'Pending Approval': 0,
+            'Membership Expired': 0
+          };
+        }
+      });
+      return completeData;
     }
+    // Return empty array if no data available
+    return [];
   }, [data]);
 
-  const handleRefresh = () => {
-    refreshMembers();
-  };
+  // Update last updated when data changes - only when data actually changes
+  useEffect(() => {
+    if (chartData.length > 0) {
+      setLastUpdated(new Date());
+    }
+  }, [data]); // Changed from chartData to data to prevent infinite loop
 
-  const getChartComponent = () => {
+  const handleRefresh = useCallback(() => {
+    refreshMembers();
+  }, [refreshMembers]);
+
+  const getChartComponent = useCallback(() => {
     const colors = {
       'Members Activated': '#10b981',
       'Pending Approval': '#6366f1', 
@@ -90,8 +123,8 @@ export default function AnalyticsGraph() {
     };
 
     const filteredData = selectedMetric === 'all' 
-      ? data 
-      : data.map(item => ({
+      ? chartData 
+      : chartData.map(item => ({
           month: item.month,
           [selectedMetric]: item[selectedMetric]
         }));
@@ -114,20 +147,24 @@ export default function AnalyticsGraph() {
                 <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.1}/>
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" className="dark:stroke-gray-600" />
             <XAxis 
               dataKey="month" 
               stroke="#6b7280"
+              className="dark:stroke-gray-300"
               fontSize={12}
               tickLine={false}
               axisLine={false}
+              tick={{ fill: '#6b7280', className: 'dark:fill-gray-300' }}
             />
             <YAxis 
               allowDecimals={false}
               stroke="#6b7280"
+              className="dark:stroke-gray-300"
               fontSize={12}
               tickLine={false}
               axisLine={false}
+              tick={{ fill: '#6b7280', className: 'dark:fill-gray-300' }}
             />
             <Tooltip content={<CustomTooltip />} />
             {selectedMetric === 'all' && (
@@ -152,20 +189,24 @@ export default function AnalyticsGraph() {
       case 'bar':
         return (
           <BarChart data={filteredData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" className="dark:stroke-gray-600" />
             <XAxis 
               dataKey="month" 
               stroke="#6b7280"
+              className="dark:stroke-gray-300"
               fontSize={12}
               tickLine={false}
               axisLine={false}
+              tick={{ fill: '#6b7280', className: 'dark:fill-gray-300' }}
             />
             <YAxis 
               allowDecimals={false}
               stroke="#6b7280"
+              className="dark:stroke-gray-300"
               fontSize={12}
               tickLine={false}
               axisLine={false}
+              tick={{ fill: '#6b7280', className: 'dark:fill-gray-300' }}
             />
             <Tooltip content={<CustomTooltip />} />
             {selectedMetric === 'all' && (
@@ -188,20 +229,24 @@ export default function AnalyticsGraph() {
       default: // line chart
         return (
           <LineChart data={filteredData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" className="dark:stroke-gray-600" />
             <XAxis 
               dataKey="month" 
               stroke="#6b7280"
+              className="dark:stroke-gray-300"
               fontSize={12}
               tickLine={false}
               axisLine={false}
+              tick={{ fill: '#6b7280', className: 'dark:fill-gray-300' }}
             />
             <YAxis 
               allowDecimals={false}
               stroke="#6b7280"
+              className="dark:stroke-gray-300"
               fontSize={12}
               tickLine={false}
               axisLine={false}
+              tick={{ fill: '#6b7280', className: 'dark:fill-gray-300' }}
             />
             <Tooltip content={<CustomTooltip />} />
             {selectedMetric === 'all' && (
@@ -245,41 +290,37 @@ export default function AnalyticsGraph() {
           </LineChart>
         );
     }
-  };
+  }, [chartData, selectedMetric, chartType]);
 
   return (
-    <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 h-full w-full flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
+    <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] h-full w-full flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
       {/* Header with controls in same row */}
       <div className="relative rounded-t-2xl overflow-hidden">
-        <div className="absolute inset-0 bg-white dark:bg-gray-800" />
+        <div className="absolute inset-0 bg-white dark:bg-[#1E1E1E]" />
         <div className="relative z-10 flex items-center justify-between px-5 py-2 border-b border-gray-200 dark:border-gray-700">
           {/* Left side - Title */}
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-              <FiTrendingUp className="w-6 h-6 text-gray-600 dark:text-gray-300" />
-            </div>
-            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 tracking-wide">Member Analytics</h2>
-          </div>
+          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 tracking-wide">Member Analytics</h2>
           
           {/* Right side - Controls */}
           <div className="flex items-center gap-4">
         {/* Chart Type Selector */}
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Chart:</span>
-          <div className="flex bg-gray-100 dark:bg-gray-900 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
+          <div className="flex bg-gray-100 dark:bg-[#1E1E1E] rounded-lg p-1 border border-gray-200 dark:border-gray-600">
             {[
               { key: 'area', icon: FiPieChart, label: 'Area' },
-              { key: 'line', icon: FiActivity, label: 'Line' },
-              { key: 'bar', icon: FiBarChart2, label: 'Bar' }
+              { key: 'bar', icon: FiBarChart2, label: 'Bar' },
+              { key: 'line', icon: FiActivity, label: 'Line' }
             ].map(({ key, icon: Icon, label }) => (
               <button
                 key={key}
                 onClick={() => setChartType(key)}
+                disabled={chartData.length === 0}
                 className={`px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 border-none outline-none focus:ring-2 focus:ring-indigo-400 ${
                   chartType === key
-                    ? 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-indigo-600 dark:text-indigo-300 shadow-sm'
+                    ? 'bg-white dark:bg-[#1E1E1E] border border-gray-200 dark:border-gray-700 text-indigo-600 dark:text-indigo-300 shadow-sm'
                     : 'bg-transparent text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'
-                }`}
+                } ${chartData.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                 aria-label={label}
               >
                 <Icon className="w-4 h-4" />
@@ -294,7 +335,10 @@ export default function AnalyticsGraph() {
           <select
             value={selectedMetric}
             onChange={(e) => setSelectedMetric(e.target.value)}
-            className="px-3 py-1 text-sm border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            disabled={chartData.length === 0}
+            className={`px-3 py-1 text-sm border border-gray-200 dark:border-gray-600 rounded-md bg-white dark:bg-[#1E1E1E] text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+              chartData.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
             <option value="all">All Metrics</option>
             <option value="Members Activated">Members Activated Only</option>
@@ -312,8 +356,8 @@ export default function AnalyticsGraph() {
         {loading ? (
           <div className="flex items-center justify-center h-full w-full">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto mb-4"></div>
-              <p className="text-indigo-600 font-medium">Loading analytics...</p>
+              <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">Refreshing chart...</p>
             </div>
           </div>
         ) : error ? (
@@ -331,20 +375,27 @@ export default function AnalyticsGraph() {
               </button>
             </div>
           </div>
-        ) : data.length === 0 ? (
+        ) : chartData.length === 0 ? (
           <div className="flex items-center justify-center h-full w-full">
             <div className="text-center">
-              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FiActivity className="w-6 h-6 text-gray-400" />
+              <div className="w-16 h-16 bg-gray-100 dark:bg-[#1E1E1E] rounded-full flex items-center justify-center mx-auto mb-4">
+                <FiBarChart2 className="w-8 h-8 text-gray-400 dark:text-gray-500" />
               </div>
-              <p className="text-gray-500 font-medium">No data available</p>
+              <p className="text-gray-500 dark:text-gray-400 font-medium mb-2">No Analytics Data Available</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm">Data will appear here once members are processed</p>
+              <button
+                onClick={handleRefresh}
+                className="mt-3 px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors text-sm"
+              >
+                Refresh Data
+              </button>
             </div>
           </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-        <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%">
               {getChartComponent()}
-        </ResponsiveContainer>
+            </ResponsiveContainer>
           </div>
         )}
       </div>

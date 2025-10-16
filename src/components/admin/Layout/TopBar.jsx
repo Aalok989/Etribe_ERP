@@ -165,7 +165,7 @@ export default function TopBar() {
   };
 
   return (
-    <header className="flex items-center justify-between bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow px-3 sm:px-6 py-2 mb-2 rounded-xl min-h-[45px]">
+    <header className="flex items-center justify-between bg-white dark:bg-[#1E1E1E] border-b border-gray-200 dark:border-gray-700 shadow px-3 sm:px-6 py-2 mb-2 rounded-xl min-h-[45px]">
       <div className="font-bold text-lg sm:text-xl text-gray-800 dark:text-gray-100 truncate">Dashboard Overview</div>
       <div className="flex items-center gap-2 sm:gap-4">
         {/* Global Search */}
@@ -192,7 +192,7 @@ export default function TopBar() {
             )}
           </button>
           {isNotificationsOpen && (
-            <div className="absolute right-0 mt-2 w-64 sm:w-72 md:w-80 lg:w-96 max-w-[calc(100vw-2rem)] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-20">
+            <div className="absolute right-0 mt-2 w-64 sm:w-72 md:w-80 lg:w-96 max-w-[calc(100vw-2rem)] bg-white dark:bg-[#202123] rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-20">
               {/* Header */}
               <div className="px-3 sm:px-4 md:px-6 pt-4 sm:pt-5 pb-2 border-b border-gray-100 dark:border-gray-800">
                 <div className="font-bold text-lg text-gray-900 dark:text-gray-100">Notification</div>

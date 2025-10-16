@@ -302,7 +302,7 @@ export default function RoleManagement() {
         {/* Success/Error Messages */}
         {/* No need to clear error/success with toast */}
 
-        <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full">
+        <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] w-full">
           {/* Role Selection Controls */}
           <div className="flex items-center justify-between gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -411,7 +411,7 @@ export default function RoleManagement() {
                     <tr 
                       key={row.module} 
                       className={`border-b border-gray-200 dark:border-gray-700 transition-colors ${
-                        idx % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-900/50'
+                        idx % 2 === 0 ? 'bg-white dark:bg-[#1E1E1E]' : 'bg-gray-50 dark:bg-[#202123]/50'
                       } hover:bg-indigo-50 dark:hover:bg-gray-700 hover:shadow-sm`}
                     >
                       <td className="p-3 text-left font-semibold text-gray-800 dark:text-gray-100 border-r border-gray-200 dark:border-gray-700">
@@ -488,7 +488,7 @@ export default function RoleManagement() {
           {/* Mobile Permissions Cards View */}
           <div className="lg:hidden p-4 sm:p-6 space-y-4">
             {permissions.map((row, idx) => (
-              <div key={row.module} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-shadow">
+              <div key={row.module} className="bg-white dark:bg-[#1E1E1E] rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-indigo-800 dark:to-purple-900 flex items-center justify-center flex-shrink-0">
                     <span className="text-sm font-medium text-white">

@@ -610,7 +610,7 @@ export default function Calendar() {
                 </div>
                 </div>
 
-        <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full">
+        <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] w-full">
           {/* Header Controls */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
             <div className="flex items-center gap-4">
@@ -629,7 +629,7 @@ export default function Calendar() {
               <div className="flex items-center gap-2">
                 <span className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-200 px-3 py-1 rounded-full text-sm font-semibold">{events.filter(ev => isSameDay(new Date(ev.date), new Date())).length} Today</span>
                 <span className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 px-3 py-1 rounded-full text-sm font-semibold">{upcomingCount} Upcoming</span>
-                <span className="bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-200 px-3 py-1 rounded-full text-sm font-semibold">{pastCount} Past</span>
+                <span className="bg-gray-100 dark:bg-[#202123] text-gray-700 dark:text-gray-200 px-3 py-1 rounded-full text-sm font-semibold">{pastCount} Past</span>
                 <span className="text-gray-700 dark:text-gray-200 font-semibold ml-2">{time.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
                 <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">{time.toLocaleTimeString([], { hour12: false })}</span>
               </div>
@@ -691,7 +691,7 @@ export default function Calendar() {
                           ? 'bg-green-50 dark:bg-green-900/40 border-green-200 dark:border-green-700' 
                           : ev.type === 'upcoming' 
                             ? 'bg-blue-50 dark:bg-blue-900/40 border-blue-200 dark:border-blue-700' 
-                            : 'bg-gray-50 dark:bg-gray-800/40 border-gray-200 dark:border-gray-700'
+                            : 'bg-gray-50 dark:bg-[#1E1E1E]/40 border-gray-200 dark:border-gray-700'
                       }`}>
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-2">
@@ -709,7 +709,7 @@ export default function Calendar() {
                               ? 'bg-green-200 dark:bg-green-800 text-green-700 dark:text-green-200' 
                               : ev.type === 'upcoming' 
                                 ? 'bg-blue-200 dark:bg-blue-800 text-blue-700 dark:text-blue-200' 
-                                : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200'
+                                : 'bg-gray-200 dark:bg-[#1E1E1E] text-gray-700 dark:text-gray-200'
                           }`}>
                                 {ev.type.charAt(0).toUpperCase() + ev.type.slice(1)}
                               </span>
@@ -769,7 +769,7 @@ export default function Calendar() {
         {/* Add Event Modal */}
         {showAddEventForm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 w-full max-w-2xl mx-4 relative max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-xl p-8 w-full max-w-2xl mx-4 relative max-h-[90vh] overflow-y-auto">
               <button
                 type="button"
                 className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors"
@@ -909,7 +909,7 @@ export default function Calendar() {
         {/* Edit Event Modal */}
         {showEditEventModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 w-full max-w-2xl mx-4 relative max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-xl p-8 w-full max-w-2xl mx-4 relative max-h-[90vh] overflow-y-auto">
               <button
                 type="button"
                 className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors"

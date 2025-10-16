@@ -466,7 +466,7 @@ function GroupDataContent() {
               <img
                 src={logoPreview}
                 alt="Admin Logo"
-              className="w-28 h-28 rounded-full object-cover border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-gray-800"
+              className="w-28 h-28 rounded-full object-cover border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-[#1E1E1E]"
               />
         {editMode && (
                       <button
@@ -490,7 +490,7 @@ function GroupDataContent() {
                       <img
                         src={signaturePreview}
                 alt="Signature"
-              className="w-40 h-14 object-contain rounded-lg border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-gray-800"
+              className="w-40 h-14 object-contain rounded-lg border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-[#1E1E1E]"
                       />
               {editMode && (
                       <button
@@ -526,7 +526,7 @@ function GroupDataContent() {
           <div className="flex-1 w-full">
             {/* Loading/Error/Success Banners */}
             {loading && (
-            <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 flex items-center justify-center rounded-2xl z-20">
+            <div className="absolute inset-0 bg-white/80 dark:bg-[#202123]/80 flex items-center justify-center rounded-2xl z-20">
               <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-200">
                 <svg className="animate-spin h-6 w-6 mr-2 text-indigo-600 dark:text-indigo-200" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" /><path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" className="opacity-75" /></svg>
                   Loading profile...
@@ -559,8 +559,8 @@ function GroupDataContent() {
                     { label: 'Signature Designation', key: 'signatureDesignation' },
                   ].map(({ label, key }) => (
                   <tr key={key} className="border-b last:border-b-0 border-gray-200 dark:border-gray-700">
-                    <td className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-900/50 w-48 align-top">{label}</td>
-                    <td className="px-6 py-4 bg-white dark:bg-gray-800">
+                    <td className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-[#202123]/50 w-48 align-top">{label}</td>
+                    <td className="px-6 py-4 bg-white dark:bg-[#1E1E1E]">
                         {!editMode ? (
                         <span className="text-gray-900 dark:text-gray-100 text-base font-normal">{data[key]}</span>
                         ) : (

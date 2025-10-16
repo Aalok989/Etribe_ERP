@@ -241,7 +241,7 @@ export default function CompanyAdditionalFields() {
           </div>
         </div>
 
-        <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full border border-gray-200 dark:border-gray-700">
+        <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] w-full border border-gray-200 dark:border-gray-700">
           {/* Header Controls */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-4 sm:px-6 py-4 border-b border-gray-100 dark:border-gray-700">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
@@ -339,8 +339,8 @@ export default function CompanyAdditionalFields() {
                         key={i}
                         className={`p-3 sm:p-4 rounded-lg border ${
                           isConfigured
-                            ? "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
-                            : "bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-700 opacity-60"
+                            ? "bg-gray-50 dark:bg-[#1E1E1E] border-gray-200 dark:border-gray-700"
+                            : "bg-gray-50 dark:bg-[#202123]/50 border-gray-200 dark:border-gray-700 opacity-60"
                         }`}
                       >
                         <div className="flex items-center justify-between mb-2">

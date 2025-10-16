@@ -2745,7 +2745,7 @@ export default function MemberDetail_Admin() {
       );
     } else {
       return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-[#202123] dark:text-gray-200">
           {status || 'Unknown'}
         </span>
       );
@@ -2760,7 +2760,7 @@ export default function MemberDetail_Admin() {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-800">
+        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
           <div className="flex items-center gap-3">
             <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
             <p className="text-indigo-700 dark:text-indigo-300">Loading your membership details...</p>
@@ -2773,7 +2773,7 @@ export default function MemberDetail_Admin() {
   if (error || !member) {
     return (
       <DashboardLayout>
-        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-800">
+        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
           <div className="text-center">
             <FiAlertCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Member Not Found</h2>
@@ -2799,7 +2799,7 @@ export default function MemberDetail_Admin() {
             <img
               src={`${BASE_URL}/${member.profile_image || member.user_image || member.avatar}`}
               alt="User Profile"
-              className="w-28 h-28 rounded-full object-cover border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-gray-800"
+              className="w-28 h-28 rounded-full object-cover border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-[#1E1E1E]"
               onError={(e) => {
                 e.target.style.display = 'none';
                 e.target.nextSibling.style.display = 'flex';
@@ -2807,7 +2807,7 @@ export default function MemberDetail_Admin() {
             />
           ) : null}
           <div 
-            className="w-28 h-28 rounded-full border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-gray-800 flex items-center justify-center" 
+            className="w-28 h-28 rounded-full border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-[#1E1E1E] flex items-center justify-center" 
             style={{ display: (member.profile_image || member.user_image || member.avatar) ? 'none' : 'flex' }}
           >
             <div className="text-center text-gray-600 dark:text-gray-400">
@@ -2881,7 +2881,7 @@ export default function MemberDetail_Admin() {
       {/* Right: Details Table or Edit Form */}
       <div className="flex-1 w-full">
         {editUserMode ? (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <div className="bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Edit User Profile</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -3010,8 +3010,8 @@ export default function MemberDetail_Admin() {
                 ].map(({ label, key, value }) => {
                   return (
                     <tr key={key} className="border-b last:border-b-0 border-gray-200 dark:border-gray-700">
-                      <td className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-900/50 w-48 align-top">{label}</td>
-                      <td className="px-6 py-4 bg-white dark:bg-gray-800">
+                      <td className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-[#202123]/50 w-48 align-top">{label}</td>
+                      <td className="px-6 py-4 bg-white dark:bg-[#1E1E1E]">
                         <span className="text-gray-900 dark:text-gray-100 text-base font-normal">
                           {key === 'state' || key === 'country' ? 
                             (stateCountryLoading ? 
@@ -3042,7 +3042,7 @@ export default function MemberDetail_Admin() {
             <img
               src={`${BASE_URL}/${member.logo || member.company_logo || member.business_logo}`}
               alt="Business Logo"
-              className="w-28 h-28 rounded-full object-cover border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-gray-800"
+              className="w-28 h-28 rounded-full object-cover border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-[#1E1E1E]"
               onError={(e) => {
                 e.target.style.display = 'none';
                 e.target.nextSibling.style.display = 'flex';
@@ -3050,7 +3050,7 @@ export default function MemberDetail_Admin() {
             />
           ) : null}
           <div 
-            className="w-28 h-28 rounded-full border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-gray-800 flex items-center justify-center" 
+            className="w-28 h-28 rounded-full border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-[#1E1E1E] flex items-center justify-center" 
             style={{ display: (member.logo || member.company_logo || member.business_logo) ? 'none' : 'flex' }}
           >
             <div className="text-center text-gray-600 dark:text-gray-400">
@@ -3124,7 +3124,7 @@ export default function MemberDetail_Admin() {
       {/* Right: Business Details Table or Edit Form */}
       <div className="flex-1 w-full">
         {editBusinessMode ? (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <div className="bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Edit Business Profile</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -3272,8 +3272,8 @@ export default function MemberDetail_Admin() {
                 ].map(({ label, key, value, fallback }) => {
                   return (
                     <tr key={key} className="border-b last:border-b-0 border-gray-200 dark:border-gray-700">
-                      <td className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-900/50 w-48 align-top">{label}</td>
-                      <td className="px-6 py-4 bg-white dark:bg-gray-800">
+                      <td className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-[#202123]/50 w-48 align-top">{label}</td>
+                      <td className="px-6 py-4 bg-white dark:bg-[#1E1E1E]">
                         <span className="text-gray-900 dark:text-gray-100 text-base font-normal">
                           {key === 'state' || key === 'country' ? 
                             (stateCountryLoading ? 
@@ -3304,7 +3304,7 @@ export default function MemberDetail_Admin() {
       case 'company-documents':
         if (userDocumentsLoading) {
           return (
-            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-800">
+            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
               <div className="flex items-center gap-3">
                 <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
                 <p className="text-indigo-700 dark:text-indigo-300">Loading company documents...</p>
@@ -3323,7 +3323,7 @@ export default function MemberDetail_Admin() {
               </h1>
             </div>
             
-            <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full">
+            <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] w-full">
               {getCompanyDocuments().length === 0 ? (
                 <div className="text-center py-16">
                   <FiFileText className="mx-auto h-20 w-20 text-gray-300 mb-6" />
@@ -3334,7 +3334,7 @@ export default function MemberDetail_Admin() {
                 <div className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {getCompanyDocuments().map((doc, index) => (
-                      <div key={doc.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 group relative">
+                      <div key={doc.id} className="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 group relative">
                         <div className="absolute top-3 right-3 bg-blue-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
                           {index + 1}
                         </div>
@@ -3449,7 +3449,7 @@ export default function MemberDetail_Admin() {
             case 'personal-documents':
         if (userDocumentsLoading) {
           return (
-            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-800">
+            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
               <div className="flex items-center gap-3">
                 <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
                 <p className="text-indigo-700 dark:text-indigo-300">Loading personal documents...</p>
@@ -3468,7 +3468,7 @@ export default function MemberDetail_Admin() {
               </h1>
             </div>
             
-            <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full">
+            <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] w-full">
               {getPersonalDocuments().length === 0 ? (
                 <div className="text-center py-16">
                   <FiFileText className="mx-auto h-20 w-20 text-gray-300 mb-6" />
@@ -3479,7 +3479,7 @@ export default function MemberDetail_Admin() {
                 <div className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {getPersonalDocuments().map((doc, index) => (
-                      <div key={doc.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 group relative">
+                      <div key={doc.id} className="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 group relative">
                         <div className="absolute top-3 right-3 bg-green-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
                           {index + 1}
                         </div>
@@ -3595,7 +3595,7 @@ export default function MemberDetail_Admin() {
         // --- Payment Details Tab Content ---
         if (paymentsLoading && payments.length === 0) {
           return (
-            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-800">
+            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
               <div className="flex items-center gap-3">
                 <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
                 <p className="text-indigo-700 dark:text-indigo-300">Loading payment details...</p>
@@ -3622,7 +3622,7 @@ export default function MemberDetail_Admin() {
                 </button>
               </div>
             </div>
-            <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full">
+            <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] w-full">
               {/* Controls */}
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -3689,7 +3689,7 @@ export default function MemberDetail_Admin() {
                       <FiChevronDown className={`transition-transform ${showExportDropdown ? 'rotate-180' : ''}`} />
                     </button>
                     {showExportDropdown && (
-                      <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
+                      <div className="absolute right-0 top-full mt-1 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
                         <button
                           className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
                           onClick={() => { copyToClipboard(); setShowExportDropdown(false); }}
@@ -3741,7 +3741,7 @@ export default function MemberDetail_Admin() {
                   </thead>
                   <tbody>
                     {filteredPayments.slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage).map((payment, idx) => (
-                      <tr key={`${payment.id}-${idx}`} className={`border-b border-gray-200 dark:border-gray-700 transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-900/50'} hover:bg-indigo-50 dark:hover:bg-gray-700 hover:shadow-sm`}>
+                      <tr key={`${payment.id}-${idx}`} className={`border-b border-gray-200 dark:border-gray-700 transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-[#1E1E1E]' : 'bg-gray-50 dark:bg-[#202123]/50'} hover:bg-indigo-50 dark:hover:bg-gray-700 hover:shadow-sm`}>
                         <td className="p-3 text-center font-semibold text-indigo-700 dark:text-indigo-300 border-r border-gray-200 dark:border-gray-700">{(currentPage - 1) * entriesPerPage + idx + 1}</td>
                         <td className="p-3 text-left border-r border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100">{payment.company || 'N/A'}</td>
                         <td className="p-3 text-left border-r border-gray-200 dark:border-gray-700"><div className="flex items-center gap-3"><div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">{(payment.name || 'N').charAt(0).toUpperCase()}</div><span className="font-medium text-gray-800 dark:text-gray-100">{payment.name || 'N/A'}</span></div></td>
@@ -3886,7 +3886,7 @@ export default function MemberDetail_Admin() {
               {/* Edit Payment Modal */}
               {showEditModal && selectedPayment && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full">
+                  <div className="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-xl max-w-md w-full">
                     <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                         Edit Cheque Details
@@ -3998,7 +3998,7 @@ export default function MemberDetail_Admin() {
               {/* View Payment Modal */}
               {showViewModal && selectedPayment && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                  <div className="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                     <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                         Payment Details
@@ -4120,7 +4120,7 @@ export default function MemberDetail_Admin() {
               {/* Add Payment Modal */}
               {showAddPaymentModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                                  <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl dark:shadow-2xl p-6 w-full max-w-md relative max-h-[90vh] overflow-y-auto">
+                                  <div className="bg-white dark:bg-[#202123] rounded-xl shadow-xl dark:shadow-2xl p-6 w-full max-w-md relative max-h-[90vh] overflow-y-auto">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Add Payment</h2>
                     <button
@@ -4389,7 +4389,7 @@ export default function MemberDetail_Admin() {
       case 'products':
         if (productsLoading) {
           return (
-            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-800">
+            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
               <div className="flex items-center gap-3">
                 <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
                 <p className="text-indigo-700 dark:text-indigo-300">Loading products...</p>
@@ -4406,7 +4406,7 @@ export default function MemberDetail_Admin() {
                 <span>Total Products: {products.length}</span>
               </div>
             </div>
-            <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full">
+            <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] w-full">
               {/* Controls */}
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -4473,7 +4473,7 @@ export default function MemberDetail_Admin() {
                   </thead>
                   <tbody>
                     {getSortedProducts().slice((productCurrentPage - 1) * productEntriesPerPage, productCurrentPage * productEntriesPerPage).map((product, idx) => (
-                      <tr key={product.id} className={`border-b border-gray-200 dark:border-gray-700 transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-900/50'} hover:bg-indigo-50 dark:hover:bg-gray-700 hover:shadow-sm`}>
+                      <tr key={product.id} className={`border-b border-gray-200 dark:border-gray-700 transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-[#1E1E1E]' : 'bg-gray-50 dark:bg-[#202123]/50'} hover:bg-indigo-50 dark:hover:bg-gray-700 hover:shadow-sm`}>
                         <td className="p-3 text-center font-semibold text-indigo-700 dark:text-indigo-300 border-r border-gray-200 dark:border-gray-700">{(productCurrentPage - 1) * productEntriesPerPage + idx + 1}</td>
                         <td className="p-3 text-center border-r border-gray-200 dark:border-gray-700">
                           {product.image ? (
@@ -4507,7 +4507,7 @@ export default function MemberDetail_Admin() {
               {/* Mobile/Tablet Card View */}
               <div className="lg:hidden p-4 space-y-4">
                 {getSortedProducts().slice((productCurrentPage - 1) * productEntriesPerPage, productCurrentPage * productEntriesPerPage).map((product, idx) => (
-                  <div key={product.id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+                  <div key={product.id} className="bg-white dark:bg-[#1E1E1E] rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
                     <div className="flex items-start gap-4">
                       <div className="flex-shrink-0">
                         {product.image ? (
@@ -4799,7 +4799,7 @@ export default function MemberDetail_Admin() {
       {/* Document View Modal */}
       {showDocumentViewModal && selectedDocument && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Document Details

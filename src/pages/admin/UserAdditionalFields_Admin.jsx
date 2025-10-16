@@ -243,7 +243,7 @@ export default function UserAdditionalFields() {
           </div>
         </div>
 
-        <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full border border-gray-200 dark:border-gray-700">
+        <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] w-full border border-gray-200 dark:border-gray-700">
           {/* Header Controls */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-4 sm:px-6 py-4 border-b border-gray-100 dark:border-gray-700">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
@@ -299,7 +299,7 @@ export default function UserAdditionalFields() {
                     const fieldValue = data[fieldKey];
                     const isConfigured = fieldValue && fieldValue.trim() !== '';
                     return (
-                      <div key={i} className={`p-3 sm:p-4 rounded-lg border ${isConfigured ? 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700' : 'bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-700 opacity-60'}`}> 
+                      <div key={i} className={`p-3 sm:p-4 rounded-lg border ${isConfigured ? 'bg-gray-50 dark:bg-[#1E1E1E] border-gray-200 dark:border-gray-700' : 'bg-gray-50 dark:bg-[#202123]/50 border-gray-200 dark:border-gray-700 opacity-60'}`}> 
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2 text-sm sm:text-base">
                             <FiPlus className="text-indigo-600" />
