@@ -6,7 +6,7 @@ import Footer from "./Footer";
 export default function DashboardLayout({ children }) {
   const [collapsed, setCollapsed] = useState(false);
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 font-sans h-screen overflow-hidden flex transition-colors duration-300">
+    <div className="bg-gray-50 dark:bg-[#202123] font-sans h-screen overflow-hidden flex transition-colors duration-300">
       {/* Fixed Sidebar */}
       <Sidebar className="fixed left-0 top-0 h-screen z-30" collapsed={collapsed} setCollapsed={setCollapsed} />
       {/* Main content area with responsive padding */}

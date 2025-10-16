@@ -149,7 +149,7 @@ export default function ImportantContactsPage() {
   if (loading && contactsData.length === 0) {
     return (
       <DashboardLayout>
-        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-800">
+        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
           <div className="flex items-center gap-3">
             <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
             <p className="text-indigo-700 dark:text-indigo-300">Loading important contacts...</p>
@@ -165,13 +165,13 @@ export default function ImportantContactsPage() {
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h1 className="text-xl sm:text-2xl font-bold text-orange-600">Important Contacts</h1>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <FiUser className="text-indigo-600" />
             <span>Total Contacts: {contactsData.length}</span>
           </div>
         </div>
 
-        <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full">
+        <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] w-full">
           {/* Controls */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -253,7 +253,7 @@ export default function ImportantContactsPage() {
                 </button>
                 
                 {showExportDropdown && (
-                  <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
+                  <div className="absolute right-0 top-full mt-1 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
                     <button
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
                       onClick={() => {
@@ -303,24 +303,24 @@ export default function ImportantContactsPage() {
           {/* Table - Desktop View */}
           <div className="hidden lg:block overflow-x-auto">
             <table className="w-full text-sm border-collapse">
-              <thead className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 text-gray-700 dark:text-gray-200 sticky top-0 z-10 shadow-sm">
-                <tr className="border-b-2 border-indigo-200 dark:border-indigo-800">
-                  <th className="p-3 text-center font-semibold border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap">Sr No</th>
-                  <th className="p-3 text-left font-semibold border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap">Department</th>
-                  <th className="p-3 text-left font-semibold border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap">Name</th>
-                  <th className="p-3 text-left font-semibold border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap">Contact</th>
-                  <th className="p-3 text-left font-semibold border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap">Email</th>
-                  <th className="p-3 text-left font-semibold border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap">Address</th>
+              <thead className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-[#1E1E1E] dark:to-[#1E1E1E] text-gray-700 dark:text-gray-200 sticky top-0 z-10 shadow-sm border-b-2 border-gray-400 dark:border-gray-600">
+                <tr className="border-b-2 border-indigo-200 dark:border-gray-600">
+                  <th className="p-3 text-center font-semibold border-r border-indigo-200 dark:border-gray-600 whitespace-nowrap">Sr No</th>
+                  <th className="p-3 text-left font-semibold border-r border-indigo-200 dark:border-gray-600 whitespace-nowrap">Department</th>
+                  <th className="p-3 text-left font-semibold border-r border-indigo-200 dark:border-gray-600 whitespace-nowrap">Name</th>
+                  <th className="p-3 text-left font-semibold border-r border-indigo-200 dark:border-gray-600 whitespace-nowrap">Contact</th>
+                  <th className="p-3 text-left font-semibold border-r border-indigo-200 dark:border-gray-600 whitespace-nowrap">Email</th>
+                  <th className="p-3 text-left font-semibold border-r border-indigo-200 dark:border-gray-600 whitespace-nowrap">Address</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedContacts.map((c, idx) => (
-                  <tr key={c.id} className={`border-b border-gray-200 dark:border-gray-700 transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-900/50'} hover:bg-indigo-50 dark:hover:bg-gray-700 hover:shadow-sm`}>
+                  <tr key={c.id} className={`border-b border-gray-200 dark:border-gray-700 transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-[#1E1E1E]' : 'bg-gray-50 dark:bg-[#1E1E1E]'} hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-sm`}>
                     <td className="p-3 text-center font-semibold text-indigo-700 dark:text-indigo-300 border-r border-gray-200 dark:border-gray-700">{startIdx + idx + 1}</td>
                     <td className="p-3 text-left border-r border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100">{c.dept}</td>
                     <td className="p-3 text-left border-r border-gray-200 dark:border-gray-700">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-indigo-800 dark:to-purple-900 rounded-full flex items-center justify-center text-white font-semibold text-xs">{c.name.charAt(0).toUpperCase()}</div>
+                        <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">{c.name.charAt(0).toUpperCase()}</div>
                         <span className="font-medium text-gray-800 dark:text-gray-100">{c.name}</span>
                       </div>
                     </td>
@@ -336,10 +336,10 @@ export default function ImportantContactsPage() {
           {/* Mobile Cards View */}
           <div className="lg:hidden p-4 sm:p-6 space-y-4">
             {paginatedContacts.map((c, idx) => (
-              <div key={c.id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-shadow">
+              <div key={c.id} className="bg-white dark:bg-[#1E1E1E] rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-indigo-800 dark:to-purple-900 flex items-center justify-center flex-shrink-0">
+                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
                       <span className="text-sm font-medium text-white">
                         {c.name.charAt(0).toUpperCase()}
                       </span>

@@ -272,26 +272,15 @@ export default function EnquiriesDonePage() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-800">
+        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
           <div className="flex items-center gap-3">
             <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
             <p className="text-indigo-700 dark:text-indigo-300">Loading enquiries...</p>
-                  </div>
-        
-        {/* No Data State */}
-        {!loading && enquiries.length === 0 && (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-              <FiMessageSquare className="text-gray-400 text-2xl" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Enquiries Found</h3>
-            <p className="text-gray-500 dark:text-gray-400">There are no enquiries to display at the moment.</p>
           </div>
-        )}
-      </div>
-    </DashboardLayout>
-  );
-}
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -299,13 +288,13 @@ export default function EnquiriesDonePage() {
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h1 className="text-xl sm:text-2xl font-bold text-orange-600">Enquiries Done</h1>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <FiUser className="text-indigo-600" />
             <span>Total Enquiries: {enquiries.length}</span>
           </div>
         </div>
 
-        <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full">
+        <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] w-full">
           {/* Controls */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -387,7 +376,7 @@ export default function EnquiriesDonePage() {
                 </button>
                 
                 {showExportDropdown && (
-                  <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
+                  <div className="absolute right-0 top-full mt-1 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
                     <button
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
                       onClick={() => {
@@ -437,22 +426,22 @@ export default function EnquiriesDonePage() {
           {/* Table - Desktop View */}
           <div className="hidden lg:block overflow-x-auto">
             <table className="w-full text-sm border-collapse">
-              <thead className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 text-gray-700 dark:text-gray-200 sticky top-0 z-10 shadow-sm">
-                <tr className="border-b-2 border-indigo-200 dark:border-indigo-800">
-                  <th className="p-3 text-center font-semibold border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap">Sr No</th>
-                  <th className="p-3 text-left font-semibold border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap">Product</th>
-                  <th className="p-3 text-left font-semibold border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap">Company Name</th>
-                  <th className="p-3 text-left font-semibold border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap">Enquiry</th>
-                  <th className="p-3 text-left font-semibold border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap">Posted On</th>
+              <thead className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-[#1E1E1E] dark:to-[#1E1E1E] text-gray-700 dark:text-gray-200 sticky top-0 z-10 shadow-sm border-b-2 border-gray-400 dark:border-gray-600">
+                <tr className="border-b-2 border-indigo-200 dark:border-gray-600">
+                  <th className="p-3 text-center font-semibold border-r border-indigo-200 dark:border-gray-600 whitespace-nowrap">Sr No</th>
+                  <th className="p-3 text-left font-semibold border-r border-indigo-200 dark:border-gray-600 whitespace-nowrap">Product</th>
+                  <th className="p-3 text-left font-semibold border-r border-indigo-200 dark:border-gray-600 whitespace-nowrap">Company Name</th>
+                  <th className="p-3 text-left font-semibold border-r border-indigo-200 dark:border-gray-600 whitespace-nowrap">Enquiry</th>
+                  <th className="p-3 text-left font-semibold border-r border-indigo-200 dark:border-gray-600 whitespace-nowrap">Posted On</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedEnquiries.map((enquiry, idx) => (
-                  <tr key={enquiry.id} className={`border-b border-gray-200 dark:border-gray-700 transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-900/50'} hover:bg-indigo-50 dark:hover:bg-gray-700 hover:shadow-sm`}>
+                  <tr key={enquiry.id} className={`border-b border-gray-200 dark:border-gray-700 transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-[#1E1E1E]' : 'bg-gray-50 dark:bg-[#1E1E1E]'} hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-sm`}>
                     <td className="p-3 text-center font-semibold text-indigo-700 dark:text-indigo-300 border-r border-gray-200 dark:border-gray-700">{startIdx + idx + 1}</td>
                     <td className="p-3 text-left border-r border-gray-200 dark:border-gray-700">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-indigo-800 dark:to-purple-900 rounded-full flex items-center justify-center text-white font-semibold text-xs">
+                        <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">
                           <FiPackage size={16} />
                         </div>
                         <span className="font-medium text-gray-800 dark:text-gray-100">{enquiry.product}</span>
@@ -470,10 +459,10 @@ export default function EnquiriesDonePage() {
           {/* Mobile Cards View */}
           <div className="lg:hidden p-4 sm:p-6 space-y-4">
             {paginatedEnquiries.map((enquiry, idx) => (
-              <div key={enquiry.id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-shadow">
+              <div key={enquiry.id} className="bg-white dark:bg-[#1E1E1E] rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-indigo-800 dark:to-purple-900 flex items-center justify-center flex-shrink-0">
+                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
                       <FiPackage className="text-white text-lg" />
                     </div>
                     <div className="min-w-0 flex-1">

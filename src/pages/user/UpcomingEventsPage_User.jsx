@@ -257,7 +257,7 @@ export default function UpcomingEventsPage() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-800">
+        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
           <div className="flex items-center gap-3">
             <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
             <p className="text-indigo-700 dark:text-indigo-300">Loading upcoming events...</p>
@@ -273,13 +273,13 @@ export default function UpcomingEventsPage() {
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h1 className="text-xl sm:text-2xl font-bold text-orange-600">Upcoming Events</h1>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <FiCalendar className="text-indigo-600" />
             <span>Total Upcoming Events: {events.length}</span>
           </div>
         </div>
 
-        <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full">
+        <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] w-full">
           {/* Controls */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -361,7 +361,7 @@ export default function UpcomingEventsPage() {
                 </button>
                 
                 {showExportDropdown && (
-                  <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
+                  <div className="absolute right-0 top-full mt-1 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
                     <button
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
                       onClick={() => {
@@ -411,10 +411,10 @@ export default function UpcomingEventsPage() {
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full text-sm border-collapse">
-              <thead className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 text-gray-700 dark:text-gray-200 sticky top-0 z-10 shadow-sm">
-                <tr className="border-b-2 border-indigo-200 dark:border-indigo-800">
+              <thead className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-[#1E1E1E] dark:to-[#1E1E1E] text-gray-700 dark:text-gray-200 sticky top-0 z-10 shadow-sm border-b-2 border-gray-400 dark:border-gray-600">
+                <tr className="border-b-2 border-indigo-200 dark:border-gray-600">
                   <th
-                    className="px-6 py-4 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider cursor-pointer hover:bg-indigo-100 dark:hover:bg-indigo-900 transition-colors border-r border-indigo-200 dark:border-indigo-800"
+                    className="px-6 py-4 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border-r border-indigo-200 dark:border-gray-600"
                     onClick={() => handleSort("event")}
                   >
                     <div className="flex items-center gap-2">
@@ -422,7 +422,7 @@ export default function UpcomingEventsPage() {
                     </div>
                   </th>
                   <th
-                    className="px-6 py-4 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider cursor-pointer hover:bg-indigo-100 dark:hover:bg-indigo-900 transition-colors border-r border-indigo-200 dark:border-indigo-800"
+                    className="px-6 py-4 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border-r border-indigo-200 dark:border-gray-600"
                     onClick={() => handleSort("agenda")}
                   >
                     <div className="flex items-center gap-2">
@@ -430,7 +430,7 @@ export default function UpcomingEventsPage() {
                     </div>
                   </th>
                   <th
-                    className="px-6 py-4 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider cursor-pointer hover:bg-indigo-100 dark:hover:bg-indigo-900 transition-colors border-r border-indigo-200 dark:border-indigo-800"
+                    className="px-6 py-4 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border-r border-indigo-200 dark:border-gray-600"
                     onClick={() => handleSort("venue")}
                   >
                     <div className="flex items-center gap-2">
@@ -439,7 +439,7 @@ export default function UpcomingEventsPage() {
                     </div>
                   </th>
                   <th
-                    className="px-6 py-4 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider cursor-pointer hover:bg-indigo-100 dark:hover:bg-indigo-900 transition-colors border-r border-indigo-200 dark:border-indigo-800"
+                    className="px-6 py-4 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border-r border-indigo-200 dark:border-gray-600"
                     onClick={() => handleSort("datetime")}
                   >
                     <div className="flex items-center gap-2">
@@ -458,14 +458,14 @@ export default function UpcomingEventsPage() {
                     key={event.id || idx}
                     className={`border-b border-gray-200 dark:border-gray-700 transition-colors ${
                       idx % 2 === 0
-                        ? "bg-white dark:bg-gray-800"
-                        : "bg-gray-50 dark:bg-gray-900/50"
-                    } hover:bg-indigo-50 dark:hover:bg-gray-700 hover:shadow-sm`}
+                        ? "bg-white dark:bg-[#1E1E1E]"
+                        : "bg-gray-50 dark:bg-[#1E1E1E]"
+                    } hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-sm`}
                   >
                     <td className="px-6 py-4 whitespace-nowrap border-r border-gray-200 dark:border-gray-700">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-800 dark:to-purple-900 flex items-center justify-center">
+                          <div className="h-10 w-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center">
                             <span className="text-sm font-medium text-white">
                               {event.event ? event.event.charAt(0).toUpperCase() : "E"}
                             </span>
@@ -602,7 +602,7 @@ export default function UpcomingEventsPage() {
         {/* View Event Modal */}
         {showViewEventModal && selectedEventIdx !== null && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 w-full max-w-lg mx-4 relative">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-xl p-8 w-full max-w-lg mx-4 relative">
             <button
                 className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors"
                 onClick={closeViewEventModal}

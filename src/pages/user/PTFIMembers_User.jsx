@@ -361,7 +361,7 @@ export default function PTFIMembers() {
   if (dashboardLoading.members && dashboardMembers.length === 0) {
     return (
       <DashboardLayout>
-        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-800">
+        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
           <div className="flex items-center gap-3">
             <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
             <p className="text-indigo-700 dark:text-indigo-300">Loading PTFI members...</p>
@@ -376,13 +376,13 @@ export default function PTFIMembers() {
       <div className="flex flex-col gap-4 py-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h1 className="text-xl sm:text-2xl font-bold text-orange-600">PTFI Members</h1>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <FiUsers className="text-indigo-600" />
             <span>Total PTFI Members: {dashboardMembers.length}</span>
           </div>
         </div>
 
-        <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full">
+        <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] w-full">
           {/* Controls */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -463,7 +463,7 @@ export default function PTFIMembers() {
                 </button>
                 
                 {showExportDropdown && (
-                  <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32 export-dropdown">
+                  <div className="absolute right-0 top-full mt-1 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32 export-dropdown">
                     <button
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
                       onClick={() => {
@@ -513,12 +513,12 @@ export default function PTFIMembers() {
           {/* Table - Desktop View */}
           <div className="hidden lg:block overflow-x-auto">
             <table className="w-full text-sm border-collapse">
-              <thead className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 text-gray-700 dark:text-gray-200 sticky top-0 z-10 shadow-sm">
-                <tr className="border-b-2 border-indigo-200 dark:border-indigo-800">
+              <thead className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-[#1E1E1E] dark:to-[#1E1E1E] text-gray-700 dark:text-gray-200 sticky top-0 z-10 shadow-sm border-b-2 border-gray-400 dark:border-gray-600">
+                <tr className="border-b-2 border-indigo-200 dark:border-gray-600">
                   {tableHeaders.map((header, index) => (
                     <th 
                       key={header.key}
-                      className={`p-3 font-semibold cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-900 transition-colors border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap text-center ${
+                      className={`p-3 font-semibold cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border-r border-indigo-200 dark:border-gray-600 whitespace-nowrap text-center ${
                         header.sortable ? '' : 'cursor-default'
                       }`}
                       onClick={() => header.sortable && handleSort(header.key)}
@@ -542,8 +542,8 @@ export default function PTFIMembers() {
                   <tr 
                     key={member.id} 
                     className={`border-b border-gray-200 dark:border-gray-700 transition-colors ${
-                      idx % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-900/50'
-                    } hover:bg-indigo-50 dark:hover:bg-gray-700 hover:shadow-sm`}
+                      idx % 2 === 0 ? 'bg-white dark:bg-[#1E1E1E]' : 'bg-gray-50 dark:bg-[#1E1E1E]'
+                    } hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-sm`}
                   >
                     <td className="p-3 text-center font-semibold text-indigo-700 dark:text-indigo-300 border-r border-gray-200 dark:border-gray-700">
                       {startIdx + idx + 1}
@@ -569,10 +569,10 @@ export default function PTFIMembers() {
           {/* Mobile Cards View */}
           <div className="lg:hidden p-4 sm:p-6 space-y-4">
             {paginated.map((member, idx) => (
-              <div key={member.id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-shadow">
+              <div key={member.id} className="bg-white dark:bg-[#1E1E1E] rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-indigo-800 dark:to-purple-900 flex items-center justify-center flex-shrink-0">
+                    <div className="h-12 w-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
                       <span className="text-sm font-medium text-white">
                         {member.name.charAt(0).toUpperCase()}
                       </span>
@@ -580,13 +580,13 @@ export default function PTFIMembers() {
                     <div className="min-w-0 flex-1">
                       <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{member.name}</h3>
                       <p className="text-xs text-gray-500 dark:text-gray-400">Member #{startIdx + idx + 1}</p>
-                      <span className="inline-block px-2 py-1 bg-green-100 text-green-800 border border-green-200 rounded-full text-xs font-medium">
+                      <span className="inline-block px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-700 rounded-full text-xs font-medium">
                         Active
                       </span>
                     </div>
                   </div>
-
                 </div>
+                
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
                     <FiPhone className="text-gray-400 flex-shrink-0" size={14} />
@@ -609,7 +609,7 @@ export default function PTFIMembers() {
                   <div className="flex items-center gap-2">
                     <FiCalendar className="text-gray-400 flex-shrink-0" size={14} />
                     <span className="text-gray-700 dark:text-gray-300 text-xs">
-                      <span className="font-medium">Valid Until:</span> {member.ad5 || member.valid_upto}
+                      <span className="font-medium">Valid Until:</span> {member.ad5 || member.valid_upto || 'N/A'}
                     </span>
                   </div>
                 </div>

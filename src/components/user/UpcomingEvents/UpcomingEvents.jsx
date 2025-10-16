@@ -54,9 +54,9 @@ export default function UpcomingEvents() {
   // If no events, show a message
   if (loading) {
     return (
-      <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 h-full w-full flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
+      <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] h-full w-full flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
         <div className="relative rounded-t-2xl overflow-hidden">
-          <div className="absolute inset-0 bg-white dark:bg-gray-800" />
+          <div className="absolute inset-0 bg-white dark:bg-[#1E1E1E]" />
           <h2 className="relative z-10 text-lg font-bold text-gray-800 dark:text-gray-100 tracking-wide px-5 py-3 border-b border-gray-200 dark:border-gray-700">
             Upcoming Events
           </h2>
@@ -73,9 +73,9 @@ export default function UpcomingEvents() {
 
   if (events.length === 0) {
     return (
-      <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 h-full w-full flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
+      <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] h-full w-full flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
         <div className="relative rounded-t-2xl overflow-hidden">
-          <div className="absolute inset-0 bg-white dark:bg-gray-800" />
+          <div className="absolute inset-0 bg-white dark:bg-[#1E1E1E]" />
           <h2 className="relative z-10 text-lg font-bold text-gray-800 dark:text-gray-100 tracking-wide px-5 py-3 border-b border-gray-200 dark:border-gray-700">
             Upcoming Events
           </h2>
@@ -90,9 +90,9 @@ export default function UpcomingEvents() {
   }
 
   return (
-    <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 h-full w-full flex flex-col border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] h-full w-full flex flex-col border border-gray-200 dark:border-gray-700 overflow-hidden">
       <div className="relative rounded-t-2xl overflow-hidden">
-        <div className="absolute inset-0 bg-white dark:bg-gray-800" />
+        <div className="absolute inset-0 bg-white dark:bg-[#1E1E1E]" />
         <h2 className="relative z-10 text-lg font-bold text-gray-800 dark:text-gray-100 tracking-wide px-5 py-3 border-b border-gray-200 dark:border-gray-700">
           Upcoming Events
         </h2>
@@ -107,13 +107,13 @@ export default function UpcomingEvents() {
                 className={`relative flex flex-col items-center px-3 py-1 mt-1 rounded-lg border-2 transition-colors duration-150 min-w-[65px] shadow-sm font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400/60 mx-1 overflow-hidden ${
                   selected?.id === event.id
                     ? "bg-gradient-to-br from-indigo-100 via-blue-50 to-blue-100 dark:from-indigo-900 dark:via-blue-900 dark:to-gray-900 border-indigo-400 scale-105 z-10"
-                    : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-100 hover:bg-indigo-100 dark:hover:bg-gray-700 hover:border-indigo-400"
+                    : "bg-gray-50 dark:bg-[#1E1E1E] border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-100 hover:bg-indigo-100 dark:hover:bg-gray-700 hover:border-indigo-400"
                 }`}
                 onClick={() => setSelected(event)}
               >
                 {selected?.id === event.id ? (
                   <>
-                    <div className="absolute inset-0 bg-white/30 dark:bg-gray-800/40 backdrop-blur-md border border-white/30 dark:border-gray-700 rounded-lg pointer-events-none" />
+                    <div className="absolute inset-0 bg-white/30 dark:bg-[#1E1E1E]/40 backdrop-blur-md border border-white/30 dark:border-gray-700 rounded-lg pointer-events-none" />
                     <div className="relative z-10 w-full h-full flex flex-col items-center justify-center">
                       <span className="font-bold text-sm text-gray-900 dark:text-gray-100">
                         {event.day}
@@ -137,7 +137,7 @@ export default function UpcomingEvents() {
         {/* Content area - flexible height with scroll */}
         {selected && (
           <div className="flex-1 min-h-0 overflow-hidden">
-            <div className="h-full bg-white dark:bg-gray-800 rounded-lg border-2 border-blue-500 dark:border-blue-400 shadow-sm overflow-hidden">
+            <div className="h-full bg-white dark:bg-[#1E1E1E] rounded-lg border-2 border-blue-500 dark:border-blue-400 shadow-sm overflow-hidden">
               <div className="h-full overflow-y-auto custom-scroll scrollbar-thin scrollbar-thumb-blue-300 dark:scrollbar-thumb-blue-600 scrollbar-track-transparent pr-1">
                 <div className="p-4">
                   <h3 className="text-base font-bold mb-1 text-indigo-700 dark:text-indigo-200 line-clamp-2 break-words">

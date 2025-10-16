@@ -269,7 +269,7 @@ export default function ProductServices() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-800">
+        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
           <div className="flex items-center gap-3">
             <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
             <p className="text-indigo-700 dark:text-indigo-300">Loading products...</p>
@@ -284,12 +284,12 @@ export default function ProductServices() {
       <div className="flex flex-col gap-4 py-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h1 className="text-xl sm:text-2xl font-bold text-orange-600">Products & Services</h1>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <FiBriefcase className="text-indigo-600" />
             <span>Total Products: {products.length}</span>
           </div>
         </div>
-        <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full">
+        <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] w-full">
           {/* Controls */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -330,38 +330,38 @@ export default function ProductServices() {
           {/* Table - Desktop View */}
           <div className="hidden lg:block overflow-x-auto">
             <table className="w-full text-sm border-collapse">
-              <thead className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 text-gray-700 dark:text-gray-200 sticky top-0 z-10 shadow-sm">
-                <tr className="border-b-2 border-indigo-200 dark:border-indigo-800">
+              <thead className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-[#1E1E1E] dark:to-[#1E1E1E] text-gray-700 dark:text-gray-200 sticky top-0 z-10 shadow-sm border-b-2 border-gray-400 dark:border-gray-600">
+                <tr className="border-b-2 border-indigo-200 dark:border-gray-600">
           <th 
-                    className="p-3 font-semibold border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-800/50 transition-colors" 
+                    className="p-3 font-semibold border-r border-indigo-200 dark:border-gray-600 whitespace-nowrap cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" 
                     style={{ minWidth: '60px', width: '60px' }}
                     onClick={() => handleSort('id')}
                   >
                     Sr No. {renderSortIcon('id')}
                   </th>
           <th 
-                    className="p-3 font-semibold border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-800/50 transition-colors" 
+                    className="p-3 font-semibold border-r border-indigo-200 dark:border-gray-600 whitespace-nowrap cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" 
                     style={{ minWidth: '120px', width: '120px' }}
                     onClick={() => handleSort('image')}
                   >
                     Product Image {renderSortIcon('image')}
                   </th>
           <th 
-                    className="p-3 font-semibold border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-800/50 transition-colors" 
+                    className="p-3 font-semibold border-r border-indigo-200 dark:border-gray-600 whitespace-nowrap cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" 
                     style={{ minWidth: '120px', width: '120px' }}
                     onClick={() => handleSort('hsnCode')}
                   >
                     HSN Code {renderSortIcon('hsnCode')}
                   </th>
           <th 
-                    className="p-3 font-semibold border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-800/50 transition-colors" 
+                    className="p-3 font-semibold border-r border-indigo-200 dark:border-gray-600 whitespace-nowrap cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" 
                     style={{ minWidth: '150px', width: '150px' }}
                     onClick={() => handleSort('product')}
                   >
                     Product Name {renderSortIcon('product')}
                   </th>
           <th 
-                    className="p-3 font-semibold border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-800/50 transition-colors" 
+                    className="p-3 font-semibold border-r border-indigo-200 dark:border-gray-600 whitespace-nowrap cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" 
                     style={{ minWidth: '200px', width: '200px' }}
                     onClick={() => handleSort('description')}
                   >
@@ -377,7 +377,7 @@ export default function ProductServices() {
               </thead>
               <tbody>
                 {getSortedProducts().slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage).map((product, idx) => (
-                  <tr key={product.id} className={`border-b border-gray-200 dark:border-gray-700 transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-900/50'} hover:bg-indigo-50 dark:hover:bg-gray-700 hover:shadow-sm`}>
+                  <tr key={product.id} className={`border-b border-gray-200 dark:border-gray-700 transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-[#1E1E1E]' : 'bg-gray-50 dark:bg-[#1E1E1E]'} hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-sm`}>
                     <td className="p-3 text-center font-semibold text-indigo-700 dark:text-indigo-300 border-r border-gray-200 dark:border-gray-700">{(currentPage - 1) * entriesPerPage + idx + 1}</td>
                     <td className="p-3 text-center border-r border-gray-200 dark:border-gray-700">
                       {product.image ? (
@@ -426,10 +426,10 @@ export default function ProductServices() {
               </tbody>
             </table>
           </div>
-          {/* Mobile/Tablet Card View */}
-          <div className="lg:hidden p-4 space-y-4">
+          {/* Mobile Cards View */}
+          <div className="lg:hidden p-4 sm:p-6 space-y-4">
             {getSortedProducts().slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage).map((product, idx) => (
-              <div key={product.id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+              <div key={product.id} className="bg-white dark:bg-[#1E1E1E] rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0">
                     {product.image ? (
@@ -448,11 +448,23 @@ export default function ProductServices() {
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div><span className="text-gray-600 dark:text-gray-400">Sr No.:</span><p className="font-semibold text-indigo-700 dark:text-indigo-300">{(currentPage - 1) * entriesPerPage + idx + 1}</p></div>
-                      <div><span className="text-gray-600 dark:text-gray-400">HSN Code:</span><p className="font-medium text-gray-800 dark:text-gray-100">{product.hsnCode || 'N/A'}</p></div>
-                      <div className="col-span-2"><span className="text-gray-600 dark:text-gray-400">Product Name:</span><p className="font-medium text-gray-800 dark:text-gray-100">{product.product || 'N/A'}</p></div>
-                      <div className="col-span-2"><span className="text-gray-600 dark:text-gray-400">Description:</span><div className="mt-1 max-h-20 overflow-y-auto" dangerouslySetInnerHTML={{ __html: product.description || 'N/A' }} /></div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500 dark:text-gray-400">Sr No:</span>
+                        <span className="font-semibold text-indigo-700 dark:text-indigo-300">{(currentPage - 1) * entriesPerPage + idx + 1}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500 dark:text-gray-400">HSN Code:</span>
+                        <span className="font-medium text-gray-800 dark:text-gray-100">{product.hsnCode || 'N/A'}</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-gray-500 dark:text-gray-400">Product:</span>
+                        <span className="font-medium text-gray-800 dark:text-gray-100">{product.product || 'N/A'}</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <FiFile className="text-gray-400 flex-shrink-0 mt-0.5" size={14} />
+                        <div className="text-gray-700 dark:text-gray-300 text-xs line-clamp-3" dangerouslySetInnerHTML={{ __html: product.description || 'N/A' }} />
+                      </div>
                     </div>
                     <div className="mt-3 flex items-center gap-2">
                       <button
@@ -518,25 +530,25 @@ export default function ProductServices() {
       {/* Product Modal */}
       {showProductModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto relative">
+          <div className="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-lg p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto relative">
             <button
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
               onClick={closeProductModal}
             >
               <FiX size={24} />
             </button>
-            <h2 className="text-xl font-bold mb-6 text-gray-800">{isEditing ? 'Edit Product' : 'Add Product'}</h2>
+            <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-gray-100">{isEditing ? 'Edit Product' : 'Add Product'}</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               {/* HSN/SAC Code */}
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                   * HSN/SAC Code
                 </label>
                 <input
                   type="text"
                   placeholder="Enter HSN Code"
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
+                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-400 focus:border-orange-400 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                   value={productForm.hsnCode}
                   onChange={(e) => handleProductFormChange('hsnCode', e.target.value)}
                 />
@@ -544,13 +556,13 @@ export default function ProductServices() {
 
               {/* Product Name */}
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                   * Product Name
                 </label>
                 <input
                   type="text"
                   placeholder="Enter Product Name"
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
+                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-400 focus:border-orange-400 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                   value={productForm.productName}
                   onChange={(e) => handleProductFormChange('productName', e.target.value)}
                 />
@@ -559,20 +571,20 @@ export default function ProductServices() {
 
             {/* Product Image */}
             <div className="mb-6">
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                 Product Image
               </label>
               <input
                 type="file"
                 accept="image/*"
-                className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
+                className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-400 focus:border-orange-400 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                 onChange={(e) => handleProductFormChange('productImage', e.target.files[0])}
               />
             </div>
 
             {/* Product Description */}
             <div className="mb-6">
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                 Product Description
               </label>
               <RichTextEditor
@@ -586,13 +598,13 @@ export default function ProductServices() {
             {/* Action Buttons */}
             <div className="flex justify-end gap-3">
               <button
-                className="px-6 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
+                className="px-6 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                 onClick={closeProductModal}
               >
                 Close
               </button>
               <button
-                className="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 rounded-lg bg-blue-600 dark:bg-blue-700 text-white hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={handleProductSave}
                 disabled={productSaving || !productForm.hsnCode || !productForm.productName}
               >
@@ -612,7 +624,7 @@ export default function ProductServices() {
 
       {showViewModal && selectedProduct && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Product Details</h3>
               <button

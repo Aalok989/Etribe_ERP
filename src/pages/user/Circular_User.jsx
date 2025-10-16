@@ -541,7 +541,7 @@ export default function Circulars() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-800">
+        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
           <div className="flex items-center gap-3">
             <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
             <p className="text-indigo-700 dark:text-indigo-300">Loading circulars...</p>
@@ -556,13 +556,13 @@ export default function Circulars() {
       <div className="flex flex-col gap-4 py-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h1 className="text-xl sm:text-2xl font-bold text-orange-600">Circulars</h1>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <FiFileText className="text-indigo-600" />
             <span>Total Circulars: {circulars.length}</span>
           </div>
         </div>
 
-        <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full">
+        <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] w-full">
           {/* Controls */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -643,7 +643,7 @@ export default function Circulars() {
                 </button>
                 
                 {showExportDropdown && (
-                  <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
+                  <div className="absolute right-0 top-full mt-1 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
                     <button
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
                       onClick={() => {
@@ -693,10 +693,10 @@ export default function Circulars() {
           {/* Table - Desktop View */}
           <div className="hidden lg:block overflow-x-auto">
             <table className="w-full text-sm border-collapse">
-              <thead className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 text-gray-700 dark:text-gray-200 sticky top-0 z-10 shadow-sm">
-                <tr className="border-b-2 border-indigo-200 dark:border-indigo-800">
+              <thead className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-[#1E1E1E] dark:to-[#1E1E1E] text-gray-700 dark:text-gray-200 sticky top-0 z-10 shadow-sm border-b-2 border-gray-400 dark:border-gray-600">
+                <tr className="border-b-2 border-indigo-200 dark:border-gray-600">
                   <th 
-                    className="p-3 font-semibold cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-900 transition-colors border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap text-center"
+                    className="p-3 font-semibold cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border-r border-indigo-200 dark:border-gray-600 whitespace-nowrap text-center"
                     onClick={() => handleSort("id")}
                     style={{ minWidth: '60px', width: '60px' }}
                   >
@@ -709,7 +709,7 @@ export default function Circulars() {
                     </div>
                   </th>
                   <th 
-                    className="p-3 font-semibold cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-900 transition-colors border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap text-center"
+                    className="p-3 font-semibold cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border-r border-indigo-200 dark:border-gray-600 whitespace-nowrap text-center"
                     onClick={() => handleSort("circularNo")}
                     style={{ minWidth: '120px', width: '120px' }}
                   >
@@ -722,7 +722,7 @@ export default function Circulars() {
                     </div>
                   </th>
                   <th 
-                    className="p-3 font-semibold cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-900 transition-colors border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap text-center"
+                    className="p-3 font-semibold cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border-r border-indigo-200 dark:border-gray-600 whitespace-nowrap text-center"
                     onClick={() => handleSort("subject")}
                     style={{ minWidth: '150px', width: '150px' }}
                   >
@@ -735,7 +735,7 @@ export default function Circulars() {
                     </div>
                   </th>
                   <th 
-                    className="p-3 font-semibold cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-900 transition-colors border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap text-center"
+                    className="p-3 font-semibold cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border-r border-indigo-200 dark:border-gray-600 whitespace-nowrap text-center"
                     onClick={() => handleSort("date")}
                     style={{ minWidth: '120px', width: '120px' }}
                   >
@@ -762,8 +762,8 @@ export default function Circulars() {
                   <tr 
                     key={circular.id} 
                     className={`border-b border-gray-200 dark:border-gray-700 transition-colors ${
-                      idx % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-900/50'
-                    } hover:bg-indigo-50 dark:hover:bg-gray-700 hover:shadow-sm`}
+                      idx % 2 === 0 ? 'bg-white dark:bg-[#1E1E1E]' : 'bg-gray-50 dark:bg-[#1E1E1E]'
+                    } hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-sm`}
                   >
                     <td className="p-3 text-center font-semibold text-indigo-700 dark:text-indigo-300 border-r border-gray-200 dark:border-gray-700">
                       {indexOfFirstEntry + idx + 1}
@@ -795,29 +795,42 @@ export default function Circulars() {
             </table>
           </div>
 
-          {/* Mobile/Tablet Card View */}
-          <div className="lg:hidden p-4 space-y-4">
+          {/* Mobile Cards View */}
+          <div className="lg:hidden p-4 sm:p-6 space-y-4">
             {currentEntries.map((circular, idx) => (
-              <div key={circular.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                <div className="flex items-center justify-between mb-3">
+              <div key={circular.id} className="bg-white dark:bg-[#1E1E1E] rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                      {(circular.circularNo || 'C').charAt(0).toUpperCase()}
+                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-medium text-white">
+                        {(circular.circularNo || 'C').charAt(0).toUpperCase()}
+                      </span>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-800 dark:text-gray-100">{circular.circularNo || 'N/A'}</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{circular.subject || 'N/A'}</p>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{circular.circularNo || 'N/A'}</h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Circular #{indexOfFirstEntry + idx + 1}</p>
+                      <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">{circular.subject || 'N/A'}</p>
                     </div>
                   </div>
+                  <button
+                    onClick={() => handleView(circular.id)}
+                    className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                    title="View Details"
+                  >
+                    <FiEye size={16} />
+                  </button>
                 </div>
-                <div className="grid grid-cols-1 gap-3 text-sm">
-                  <div>
-                    <span className="text-gray-600 dark:text-gray-400">Subject:</span>
-                    <p className="font-medium text-gray-800 dark:text-gray-100">{circular.subject || 'N/A'}</p>
+                
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-start gap-2">
+                    <FiFileText className="text-gray-400 flex-shrink-0 mt-0.5" size={14} />
+                    <span className="text-gray-700 dark:text-gray-300 text-xs line-clamp-3">
+                      {circular.subject || 'N/A'}
+                    </span>
                   </div>
-                  <div>
-                    <span className="text-gray-600 dark:text-gray-400">Date:</span>
-                    <p className="font-medium text-gray-800 dark:text-gray-100">{circular.date || 'N/A'}</p>
+                  <div className="flex items-center gap-2">
+                    <FiCalendar className="text-gray-400 flex-shrink-0" size={14} />
+                    <span className="text-gray-700 dark:text-gray-300 truncate">{circular.date || 'N/A'}</span>
                   </div>
                 </div>
               </div>
@@ -878,7 +891,7 @@ export default function Circulars() {
       {/* View Circular Details Modal */}
       {showViewModal && selectedCircular && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Circular Details

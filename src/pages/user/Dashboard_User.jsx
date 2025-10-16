@@ -13,34 +13,34 @@ const DashboardSkeleton = () => (
   <div className="space-y-4 py-2">
     {/* Status Cards Skeleton */}
     <div className="space-y-4">
-      <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-48 animate-pulse"></div>
+      <div className="h-6 bg-gray-200 dark:bg-[#1E1E1E] rounded w-48 animate-pulse"></div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
         {[1, 2, 3].map(i => (
-          <div key={i} className="h-32 bg-gray-200 dark:bg-gray-700 rounded-2xl animate-pulse"></div>
+          <div key={i} className="h-32 bg-gray-200 dark:bg-[#1E1E1E] rounded-2xl animate-pulse"></div>
         ))}
       </div>
     </div>
     
     {/* Event Statistics Skeleton */}
     <div className="space-y-4">
-      <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-40 animate-pulse"></div>
+      <div className="h-6 bg-gray-200 dark:bg-[#1E1E1E] rounded w-40 animate-pulse"></div>
       <div className="grid grid-cols-3 gap-4">
         {[1, 2, 3].map(i => (
-          <div key={i} className="h-32 bg-gray-200 dark:bg-gray-700 rounded-2xl animate-pulse"></div>
+          <div key={i} className="h-32 bg-gray-200 dark:bg-[#1E1E1E] rounded-2xl animate-pulse"></div>
         ))}
       </div>
     </div>
     
     {/* Analytics Skeleton */}
     <div className="space-y-4">
-      <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-36 animate-pulse"></div>
-      <div className="h-80 bg-gray-200 dark:bg-gray-700 rounded-2xl animate-pulse"></div>
+      <div className="h-6 bg-gray-200 dark:bg-[#1E1E1E] rounded w-36 animate-pulse"></div>
+      <div className="h-80 bg-gray-200 dark:bg-[#1E1E1E] rounded-2xl animate-pulse"></div>
     </div>
     
     {/* Contacts Skeleton */}
     <div className="space-y-4">
-      <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-44 animate-pulse"></div>
-      <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded-2xl animate-pulse"></div>
+      <div className="h-6 bg-gray-200 dark:bg-[#1E1E1E] rounded w-44 animate-pulse"></div>
+      <div className="h-96 bg-gray-200 dark:bg-[#1E1E1E] rounded-2xl animate-pulse"></div>
     </div>
   </div>
 );
@@ -55,7 +55,7 @@ function UpcomingEventsCard() {
 
   return (
     <div 
-      className="relative h-32 rounded-2xl shadow-lg flex flex-col items-center justify-center p-3 gap-1 transition-transform duration-200 hover:scale-105 cursor-pointer overflow-hidden bg-gradient-to-br from-indigo-200 via-blue-100 to-white dark:from-indigo-800 dark:via-blue-900 dark:to-gray-800 border border-gray-200 dark:border-gray-700"
+      className="relative h-32 rounded-2xl shadow-lg flex flex-col items-center justify-center p-3 gap-1 transition-transform duration-200 hover:scale-105 cursor-pointer overflow-hidden bg-gradient-to-br from-indigo-200 via-blue-100 to-white dark:from-indigo-800 dark:via-blue-900 dark:to-[#202123] border border-gray-200 dark:border-gray-700"
       onClick={() => navigate("/event-management/upcoming")}
       title="Go to Upcoming Events"
     >
@@ -90,7 +90,7 @@ function DashboardContent() {
   return (
     <>
       {/* Mobile & Tablet Layout (xs to lg) - Image Layout */}
-      <div className="block lg:hidden space-y-4 py-2 bg-transparent dark:bg-gray-800 transition-colors duration-300">
+      <div className="block lg:hidden space-y-4 py-2 bg-transparent dark:bg-[#202123] transition-colors duration-300">
         {/* Dashboard Overview Section */}
         <div>
           <StatusCards />
@@ -119,7 +119,7 @@ function DashboardContent() {
       </div>
 
       {/* Desktop Layout (lg and above) - Aligned Layout */}
-      <div className="hidden lg:block space-y-4 py-2 bg-transparent dark:bg-gray-800 transition-colors duration-300">
+      <div className="hidden lg:block space-y-4 py-2 bg-transparent dark:bg-[#202123] transition-colors duration-300">
         {/* First Row: Status Cards - Full Width */}
         <div>
           <StatusCards />

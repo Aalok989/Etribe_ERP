@@ -123,9 +123,9 @@ export default function ImportantContacts() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 h-full w-full flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
+      <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] h-full w-full flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
         <div className="relative rounded-t-2xl overflow-hidden">
-          <div className="absolute inset-0 bg-white dark:bg-gray-800" />
+          <div className="absolute inset-0 bg-white dark:bg-[#1E1E1E]" />
           <h2 className="relative z-10 text-lg font-bold text-gray-800 dark:text-gray-100 tracking-wide px-5 py-3 border-b border-gray-200 dark:border-gray-700">
             Important Contacts
           </h2>
@@ -143,9 +143,9 @@ export default function ImportantContacts() {
   // Show message if no contacts available
   if (!loading && contactsData.length === 0) {
     return (
-      <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 h-full w-full flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
+      <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] h-full w-full flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
         <div className="relative rounded-t-2xl overflow-hidden">
-          <div className="absolute inset-0 bg-white dark:bg-gray-800" />
+          <div className="absolute inset-0 bg-white dark:bg-[#1E1E1E]" />
           <h2 className="relative z-10 text-lg font-bold text-gray-800 dark:text-gray-100 tracking-wide px-5 py-3 border-b border-gray-200 dark:border-gray-700">
             Important Contacts
           </h2>
@@ -166,9 +166,9 @@ export default function ImportantContacts() {
   }
 
   return (
-    <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 h-full w-full flex flex-col border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] h-full w-full flex flex-col border border-gray-200 dark:border-gray-700 overflow-hidden">
       <div className="relative rounded-t-2xl overflow-visible">
-        <div className="absolute inset-0 bg-white dark:bg-gray-800" />
+        <div className="absolute inset-0 bg-white dark:bg-[#1E1E1E]" />
         <div className="relative z-10 px-5 py-3 overflow-visible">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
             <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 tracking-wide">
@@ -182,7 +182,7 @@ export default function ImportantContacts() {
                 <label htmlFor="dept-filter" className="text-sm font-medium text-gray-700 dark:text-gray-300">Dept:</label>
                 <select
                   id="dept-filter"
-                  className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1 text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-indigo-400"
+                  className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1 text-sm bg-white dark:bg-[#1E1E1E] text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-indigo-400"
                   value={filter}
                   onChange={e => setFilter(e.target.value)}
                 >
@@ -227,7 +227,7 @@ export default function ImportantContacts() {
                 </button>
                 
                 {showExportDropdown && (
-                  <div className="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-[99999] min-w-32 overflow-visible">
+                  <div className="absolute right-0 top-full mt-2 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-[99999] min-w-32 overflow-visible">
                     <button
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
                       onClick={() => {
@@ -268,10 +268,10 @@ export default function ImportantContacts() {
       <div className="px-3 pt-0 pb-3 flex-1 flex flex-col overflow-hidden">
         {/* Table Section */}
         <div className="flex-1 min-h-0 overflow-hidden">
-          <div className="h-full overflow-hidden bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="h-full overflow-hidden bg-white dark:bg-[#1E1E1E] rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="h-full overflow-y-auto custom-scroll scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
-              <table className="min-w-full text-sm bg-white dark:bg-gray-800 whitespace-nowrap">
-                <thead className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 sticky top-0 z-10 border-b-2 border-gray-400 dark:border-gray-600">
+              <table className="min-w-full text-sm bg-white dark:bg-[#1E1E1E] whitespace-nowrap">
+                <thead className="bg-white dark:bg-[#1E1E1E] text-gray-900 dark:text-gray-100 sticky top-0 z-10 border-b-2 border-gray-400 dark:border-gray-600">
                   <tr>
                     <th className="p-3 rounded-l-xl text-left min-w-[60px]">Sr No</th>
                     <th className="p-3 text-left min-w-[120px]">Department</th>
@@ -283,13 +283,13 @@ export default function ImportantContacts() {
                 </thead>
                 <tbody>
                   {filteredContacts.map((c, idx) => (
-                    <tr key={c.id} className="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
+                      <tr key={c.id} className="bg-white dark:bg-[#1E1E1E] border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                       <td className="p-3 text-left font-semibold text-gray-900 dark:text-gray-100 min-w-[60px]">{idx + 1}</td>
                       <td className="p-3 text-gray-900 dark:text-gray-100 min-w-[120px]">{c.dept}</td>
                       <td className="p-3 text-gray-900 dark:text-gray-100 min-w-[120px]">{c.name}</td>
                       <td className="p-3 text-gray-700 dark:text-gray-200 min-w-[100px]">{c.contact}</td>
                       <td className="p-3 text-gray-700 dark:text-gray-200 min-w-[150px]">{c.email}</td>
-                      <td className="p-3 text-gray-500 dark:text-gray-400 min-w-[120px]">{c.address}</td>
+                      <td className="p-3 text-gray-700 dark:text-gray-200 min-w-[120px]">{c.address}</td>
                     </tr>
                   ))}
                 </tbody>

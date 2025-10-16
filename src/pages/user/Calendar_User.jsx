@@ -73,7 +73,7 @@ const SimpleCalendar = ({ selectedDate, onDateSelect, events }) => {
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-1 dark:bg-gray-700 rounded-xl p-2 flex-1 overflow-hidden">
+      <div className="grid grid-cols-7 gap-1 dark:bg-[#1E1E1E] rounded-xl p-2 flex-1 overflow-hidden">
         {days.map((day, index) => {
           if (day === null) {
             return <div key={index} className="h-12 w-full"></div>;
@@ -317,13 +317,13 @@ export default function Calendar() {
       <div className="flex flex-col gap-4 py-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h1 className="text-2xl font-bold text-orange-600">Event Calendar</h1>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <FiCalendar className="text-indigo-600" />
             <span>Total Events: {events.length}</span>
                 </div>
                 </div>
 
-        <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full">
+        <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] w-full">
           {/* Header Controls */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
             <div className="flex items-center gap-4">
@@ -396,7 +396,7 @@ export default function Calendar() {
                           ? 'bg-green-50 dark:bg-green-900/40 border-green-200 dark:border-green-700' 
                           : ev.type === 'upcoming' 
                             ? 'bg-blue-50 dark:bg-blue-900/40 border-blue-200 dark:border-blue-700' 
-                            : 'bg-gray-50 dark:bg-gray-800/40 border-gray-200 dark:border-gray-700'
+                            : 'bg-gray-50 dark:bg-[#1E1E1E]/40 border-gray-200 dark:border-gray-700'
                       }`}>
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-2">
@@ -414,7 +414,7 @@ export default function Calendar() {
                               ? 'bg-green-200 dark:bg-green-800 text-green-700 dark:text-green-200' 
                               : ev.type === 'upcoming' 
                                 ? 'bg-blue-200 dark:bg-blue-800 text-blue-700 dark:text-blue-200' 
-                                : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200'
+                                : 'bg-gray-200 dark:bg-[#1E1E1E] text-gray-700 dark:text-gray-200'
                           }`}>
                                 {ev.type.charAt(0).toUpperCase() + ev.type.slice(1)}
                               </span>
@@ -472,7 +472,7 @@ export default function Calendar() {
         {/* Edit Event Modal */}
         {showEditEventModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 w-full max-w-2xl mx-4 relative max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-xl p-8 w-full max-w-2xl mx-4 relative max-h-[90vh] overflow-y-auto">
               <button
                 className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors"
                 onClick={closeEditEventModal}

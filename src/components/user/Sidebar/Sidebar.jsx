@@ -193,7 +193,7 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
 
       {/* Desktop Sidebar */}
       <aside
-        className={`bg-white dark:bg-gray-800 flex flex-col transition-all duration-200 shadow-lg h-screen max-h-screen ${
+        className={`bg-white dark:bg-[#1E1E1E] flex flex-col transition-all duration-200 shadow-lg h-screen max-h-screen ${
           collapsed ? "w-20" : "w-72"
         } hidden lg:flex ${className}`}
       >
@@ -267,7 +267,7 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
                       ${
                         isParentActive
                           ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 shadow-sm relative before:absolute before:left-0 before:top-1 before:bottom-1 before:w-2 before:bg-gradient-to-b before:from-blue-600 before:to-blue-500 dark:before:from-blue-400 dark:before:to-blue-300 before:rounded-r-xl before:shadow-sm"
-                          : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                          : "text-gray-500 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50"
                       }`}
                   >
                     <span>{item.icon}</span>
@@ -302,7 +302,7 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
                                 ${
                                   shouldBeActive
                                     ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 shadow-sm relative before:absolute before:left-0 before:top-1 before:bottom-1 before:w-2 before:bg-gradient-to-b before:from-blue-600 before:to-blue-500 dark:before:from-blue-400 dark:before:to-blue-300 before:rounded-r-xl before:shadow-sm font-medium"
-                                    : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                                    : "text-gray-500 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50"
                                 }`;
                             }}
                           >
@@ -328,7 +328,7 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
                       ${
                         isActive
                           ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 shadow-sm relative before:absolute before:left-0 before:top-1 before:bottom-1 before:w-2 before:bg-gradient-to-b before:from-blue-600 before:to-blue-500 dark:before:from-blue-400 dark:before:to-blue-300 before:rounded-r-xl before:shadow-sm"
-                          : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                          : "text-gray-500 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50"
                       }`
                   }
                   end={item.path === "/user/dashboard"}
@@ -348,7 +348,7 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
       <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-2 rounded-lg font-medium text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+          className="w-full flex items-center gap-3 px-4 py-2 rounded-lg font-medium text-gray-500 dark:text-gray-200 hover:text-red-600 dark:hover:text-red-400 transition-colors"
         >
           <FiLogOut size={20} />
           {!collapsed && <span className="whitespace-nowrap">Logout</span>}
@@ -358,7 +358,7 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
 
     {/* Mobile/Tablet Sidebar - Full width with icons and text */}
     <aside
-      className={`lg:hidden fixed top-0 left-0 h-screen max-h-screen bg-white dark:bg-gray-800 flex flex-col transition-all duration-200 shadow-lg z-50 ${
+      className={`lg:hidden fixed top-0 left-0 h-screen max-h-screen bg-white dark:bg-[#1E1E1E] flex flex-col transition-all duration-200 shadow-lg z-50 ${
         mobileSidebarOpen ? "w-72 md:w-80" : "-translate-x-full"
       }`}
     >
@@ -403,7 +403,7 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
                       ${
                         isParentActive
                           ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 shadow-sm relative before:absolute before:left-0 before:top-1 before:bottom-1 before:w-2 before:bg-gradient-to-b before:from-blue-600 before:to-blue-500 dark:before:from-blue-400 dark:before:to-blue-300 before:rounded-r-xl before:shadow-sm"
-                          : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                          : "text-gray-500 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50"
                       }`}
                   >
                     <span>{item.icon}</span>
@@ -429,7 +429,7 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
                                 ${
                                   isActive
                                     ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 shadow-sm relative before:absolute before:left-0 before:top-1 before:bottom-1 before:w-2 before:bg-gradient-to-b before:from-blue-600 before:to-blue-500 dark:before:from-blue-400 dark:before:to-blue-300 before:rounded-r-xl before:shadow-sm font-medium"
-                                    : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                                    : "text-gray-500 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50"
                                 }`
                             }
                           >
@@ -453,7 +453,7 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
                       ${
                         isActive
                           ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 shadow-sm relative before:absolute before:left-0 before:top-1 before:bottom-1 before:w-2 before:bg-gradient-to-b before:from-blue-600 before:to-blue-500 dark:before:from-blue-400 dark:before:to-blue-300 before:rounded-r-xl before:shadow-sm"
-                          : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                          : "text-gray-500 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50"
                       }`
                   }
                   end={item.path === "/user/dashboard"}
@@ -468,10 +468,10 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
       </nav>
 
               {/* Mobile Logout */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E1E1E] flex-shrink-0">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg font-medium text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg font-medium text-gray-500 dark:text-gray-200 hover:text-red-600 dark:hover:text-red-400 transition-colors"
           >
             <FiLogOut size={20} />
             <span className="whitespace-nowrap">Logout</span>

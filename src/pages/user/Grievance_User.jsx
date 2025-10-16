@@ -347,7 +347,7 @@ export default function Grievances() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-800">
+        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
           <div className="flex items-center gap-3">
             <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
             <p className="text-indigo-700 dark:text-indigo-300">Loading your grievances...</p>
@@ -402,7 +402,7 @@ export default function Grievances() {
         </div>
 
         {/* Search and Export Controls */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+        <div className="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-lg p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 flex-1">
               <div className="relative flex-1 max-w-md">
@@ -445,7 +445,7 @@ export default function Grievances() {
                 </button>
                 
                 {showExportDropdown && (
-                  <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
+                  <div className="absolute right-0 top-full mt-1 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
                     <button
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
                       onClick={() => {
@@ -466,7 +466,7 @@ export default function Grievances() {
         {/* Grievances Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {currentEntries.map((grievance, idx) => (
-            <div key={grievance.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col h-full">
+            <div key={grievance.id} className="bg-white dark:bg-[#1E1E1E] rounded-lg shadow-md border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col h-full">
               {/* Compact Header */}
               <div className="p-4 flex-1">
                 <div className="flex items-start justify-between mb-3">
@@ -536,7 +536,7 @@ export default function Grievances() {
 
         {/* Pagination Controls */}
         {filteredGrievances.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+          <div className="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-lg p-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Show</span>
@@ -584,7 +584,7 @@ export default function Grievances() {
         {/* Add Grievance Modal */}
         {showAddForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Add New Grievance</h2>
                 <button
@@ -678,7 +678,7 @@ export default function Grievances() {
         {/* View Grievance Modal */}
         {showViewModal && selectedGrievance && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   Grievance Details

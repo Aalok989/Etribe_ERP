@@ -3079,7 +3079,7 @@ export default function MemberDetail() {
     console.log('🔍 Rendering loading state...');
     return (
       <DashboardLayout>
-        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-800">
+        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#202123]">
           <div className="flex items-center gap-3">
             <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
             <p className="text-indigo-700 dark:text-indigo-300">Loading your membership details...</p>
@@ -3093,7 +3093,7 @@ export default function MemberDetail() {
     console.log('🔍 Rendering error state:', { error, member });
     return (
       <DashboardLayout>
-        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-800">
+        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#202123]">
           <div className="text-center">
             <FiAlertCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Member Not Found</h2>
@@ -3119,7 +3119,7 @@ export default function MemberDetail() {
             <img
                               src={`${import.meta.env.VITE_API_BASE_URL}/${member.profile_image || member.user_image || member.avatar}`}
               alt="User Profile"
-              className="w-28 h-28 rounded-full object-cover border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-gray-800"
+              className="w-28 h-28 rounded-full object-cover border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-[#1E1E1E]"
               onError={(e) => {
                 e.target.style.display = 'none';
                 e.target.nextSibling.style.display = 'flex';
@@ -3127,7 +3127,7 @@ export default function MemberDetail() {
             />
           ) : null}
           <div 
-            className="w-28 h-28 rounded-full border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-gray-800 flex items-center justify-center" 
+            className="w-28 h-28 rounded-full border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-[#1E1E1E] flex items-center justify-center" 
             style={{ display: (member.profile_image || member.user_image || member.avatar) ? 'none' : 'flex' }}
           >
             <div className="text-center text-gray-600 dark:text-gray-400">
@@ -3201,7 +3201,7 @@ export default function MemberDetail() {
       {/* Right: Details Table or Edit Form */}
       <div className="flex-1 w-full">
         {editUserMode ? (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <div className="bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Edit User Profile</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -3330,8 +3330,8 @@ export default function MemberDetail() {
                 ].map(({ label, key, value }) => {
                   return (
                     <tr key={key} className="border-b last:border-b-0 border-gray-200 dark:border-gray-700">
-                      <td className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-900/50 w-48 align-top">{label}</td>
-                      <td className="px-6 py-4 bg-white dark:bg-gray-800">
+                      <td className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 w-48 align-top">{label}</td>
+                      <td className="px-6 py-4 bg-white dark:bg-[#1E1E1E]">
                         <span className="text-gray-900 dark:text-gray-100 text-base font-normal">
                           {key === 'state' || key === 'country' ? 
                             (stateCountryLoading ? 
@@ -3365,7 +3365,7 @@ export default function MemberDetail() {
             <img
                               src={`${import.meta.env.VITE_API_BASE_URL}/${member.logo || member.company_logo || member.business_logo}`}
               alt="Business Logo"
-              className="w-28 h-28 rounded-full object-cover border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-gray-800"
+              className="w-28 h-28 rounded-full object-cover border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-[#1E1E1E]"
               onError={(e) => {
                 e.target.style.display = 'none';
                 e.target.nextSibling.style.display = 'flex';
@@ -3373,7 +3373,7 @@ export default function MemberDetail() {
             />
           ) : null}
           <div 
-            className="w-28 h-28 rounded-full border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-gray-800 flex items-center justify-center" 
+            className="w-28 h-28 rounded-full border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-[#1E1E1E] flex items-center justify-center" 
             style={{ display: (member.logo || member.company_logo || member.business_logo) ? 'none' : 'flex' }}
           >
             <div className="text-center text-gray-600 dark:text-gray-400">
@@ -3447,7 +3447,7 @@ export default function MemberDetail() {
       {/* Right: Business Details Table or Edit Form */}
       <div className="flex-1 w-full">
         {editBusinessMode ? (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <div className="bg-white dark:bg-[#1E1E1E] rounded-xl border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Edit Business Profile</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -3595,8 +3595,8 @@ export default function MemberDetail() {
                 ].map(({ label, key, value, fallback }) => {
                   return (
                     <tr key={key} className="border-b last:border-b-0 border-gray-200 dark:border-gray-700">
-                      <td className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-900/50 w-48 align-top">{label}</td>
-                      <td className="px-6 py-4 bg-white dark:bg-gray-800">
+                      <td className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 w-48 align-top">{label}</td>
+                      <td className="px-6 py-4 bg-white dark:bg-[#1E1E1E]">
                         <span className="text-gray-900 dark:text-gray-100 text-base font-normal">
                           {key === 'state' || key === 'country' ? 
                             (stateCountryLoading ? 
@@ -3627,7 +3627,7 @@ export default function MemberDetail() {
       case 'company-documents':
         if (userDocumentsLoading) {
           return (
-            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-800">
+            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#202123]">
               <div className="flex items-center gap-3">
                 <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
                 <p className="text-indigo-700 dark:text-indigo-300">Loading company documents...</p>
@@ -3647,7 +3647,7 @@ export default function MemberDetail() {
 
             </div>
             
-            <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full">
+            <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] w-full">
               {getCompanyDocuments().length === 0 ? (
                 <div className="text-center py-16">
                   <FiFileText className="mx-auto h-20 w-20 text-gray-300 mb-6" />
@@ -3655,10 +3655,9 @@ export default function MemberDetail() {
                   <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">Upload your first company document to get started. Click the "Add Document" button above to begin.</p>
                 </div>
               ) : (
-                <div className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {getCompanyDocuments().map((doc, index) => (
-                      <div key={doc.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 group relative">
+                      <div key={doc.id} className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 group relative">
                         <div className="absolute top-3 right-3 bg-blue-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
                           {index + 1}
                         </div>
@@ -3776,7 +3775,6 @@ export default function MemberDetail() {
                         </div>
                       </div>
                     ))}
-                  </div>
                 </div>
               )}
             </div>
@@ -3785,7 +3783,7 @@ export default function MemberDetail() {
             case 'personal-documents':
         if (userDocumentsLoading) {
           return (
-            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-800">
+            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#202123]">
               <div className="flex items-center gap-3">
                 <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
                 <p className="text-indigo-700 dark:text-indigo-300">Loading personal documents...</p>
@@ -3805,7 +3803,7 @@ export default function MemberDetail() {
 
             </div>
             
-            <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full">
+            <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] w-full">
               {getPersonalDocuments().length === 0 ? (
                 <div className="text-center py-16">
                   <FiFileText className="mx-auto h-20 w-20 text-gray-300 mb-6" />
@@ -3813,10 +3811,9 @@ export default function MemberDetail() {
                   <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">Upload your first personal document to get started. Click the "Add Document" button above to begin.</p>
                 </div>
               ) : (
-                <div className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {getPersonalDocuments().map((doc, index) => (
-                      <div key={doc.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 group relative">
+                      <div key={doc.id} className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 group relative">
                         <div className="absolute top-3 right-3 bg-green-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
                           {index + 1}
                         </div>
@@ -3934,7 +3931,6 @@ export default function MemberDetail() {
                         </div>
                       </div>
                     ))}
-                  </div>
                 </div>
               )}
             </div>
@@ -3944,7 +3940,7 @@ export default function MemberDetail() {
         // --- Payment Details Tab Content ---
         if (paymentsLoading && payments.length === 0) {
           return (
-            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-800">
+            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#202123]">
               <div className="flex items-center gap-3">
                 <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
                 <p className="text-indigo-700 dark:text-indigo-300">Loading payment details...</p>
@@ -3957,7 +3953,7 @@ export default function MemberDetail() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <h1 className="text-xl sm:text-2xl font-bold text-orange-600">Payment Details</h1>
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <FiUsers className="text-indigo-600" />
                   <span>Total Payments: {payments.length}</span>
                 </div>
@@ -3971,7 +3967,7 @@ export default function MemberDetail() {
                 </button>
               </div>
             </div>
-            <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 w-full">
+            <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] w-full">
               {/* Controls */}
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -4037,7 +4033,7 @@ export default function MemberDetail() {
                       <FiChevronDown className={`transition-transform ${showExportDropdown ? 'rotate-180' : ''}`} />
                     </button>
                     {showExportDropdown && (
-                      <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
+                      <div className="absolute right-0 top-full mt-1 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
                         <button
                           className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
                           onClick={() => { copyToClipboard(); setShowExportDropdown(false); }}
@@ -4074,7 +4070,7 @@ export default function MemberDetail() {
               {/* Table - Desktop View */}
               <div className="hidden lg:block overflow-x-auto" key={`payments-table-${payments.length}`}>
                 <table className="w-full text-sm border-collapse">
-                  <thead className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 text-gray-700 dark:text-gray-200 sticky top-0 z-10 shadow-sm">
+                  <thead className="bg-white dark:bg-[#1E1E1E] text-gray-700 dark:text-gray-200 sticky top-0 z-10 shadow-sm border-b-2 border-gray-400 dark:border-gray-600">
                     <tr className="border-b-2 border-indigo-200 dark:border-indigo-800">
                       <th className="p-3 font-semibold border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap" style={{ minWidth: '60px', width: '60px' }}>S.No</th>
                       <th className="p-3 font-semibold border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap" style={{ minWidth: '120px', width: '120px' }}>Company</th>
@@ -4089,7 +4085,7 @@ export default function MemberDetail() {
                   </thead>
                   <tbody>
                     {filteredPayments.slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage).map((payment, idx) => (
-                      <tr key={`${payment.id}-${idx}`} className={`border-b border-gray-200 dark:border-gray-700 transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-900/50'} hover:bg-indigo-50 dark:hover:bg-gray-700 hover:shadow-sm`}>
+                      <tr key={`${payment.id}-${idx}`} className={`border-b border-gray-200 dark:border-gray-700 transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-[#1E1E1E]' : 'bg-gray-50 dark:bg-[#1E1E1E]'} hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-sm`}>
                         <td className="p-3 text-center font-semibold text-indigo-700 dark:text-indigo-300 border-r border-gray-200 dark:border-gray-700">{(currentPage - 1) * entriesPerPage + idx + 1}</td>
                         <td className="p-3 text-left border-r border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100">{payment.company || 'N/A'}</td>
                         <td className="p-3 text-left border-r border-gray-200 dark:border-gray-700"><div className="flex items-center gap-3"><div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">{(payment.name || 'N').charAt(0).toUpperCase()}</div><span className="font-medium text-gray-800 dark:text-gray-100">{payment.name || 'N/A'}</span></div></td>
@@ -4234,7 +4230,7 @@ export default function MemberDetail() {
               {/* Edit Payment Modal */}
               {showEditModal && selectedPayment && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full">
+                  <div className="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-xl max-w-md w-full">
                     <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                         Edit Cheque Details
@@ -4346,7 +4342,7 @@ export default function MemberDetail() {
               {/* View Payment Modal */}
               {showViewModal && selectedPayment && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                  <div className="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                     <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                         Payment Details
@@ -4738,10 +4734,10 @@ export default function MemberDetail() {
         return (
           <div className="flex flex-col gap-6 py-6">
             {/* Header with QR Code in Top Right */}
-            <div className="relative bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-2xl p-8 border border-indigo-200 dark:border-indigo-800">
+            <div className="relative bg-white dark:bg-[#1E1E1E] rounded-2xl p-8 border border-gray-200 dark:border-gray-700">
               {/* QR Code in Top Right */}
               <div className="absolute top-6 right-6">
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700">
+                <div className="bg-white dark:bg-[#1E1E1E] rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700">
                   <img 
                     src="/src/assets/qr-code.png" 
                     alt="PFTI Payment QR Code"
@@ -4771,7 +4767,7 @@ export default function MemberDetail() {
             {/* Bank Details Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Left Column - Account Details */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow">
+              <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow">
                 <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
                   <FiUser className="text-indigo-600" />
                   Account Details
@@ -4793,7 +4789,7 @@ export default function MemberDetail() {
               </div>
 
               {/* Right Column - Bank and Other Details */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow">
+              <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow">
                 <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
                   <FiHome className="text-indigo-600" />
                   Bank & Other Details
@@ -4816,7 +4812,7 @@ export default function MemberDetail() {
             </div>
 
             {/* Payment Instructions */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border border-blue-200 dark:border-blue-800">
+            <div className="bg-white dark:bg-[#1E1E1E] rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
               <h3 className="text-xl font-semibold text-blue-800 dark:text-blue-200 mb-4 flex items-center gap-2">
                 <FiAlertCircle className="text-blue-600" />
                 Payment Instructions
@@ -5059,7 +5055,7 @@ export default function MemberDetail() {
       {/* Document View Modal */}
       {showDocumentViewModal && selectedDocument && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Document Details

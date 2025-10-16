@@ -18,35 +18,35 @@ export default function StatusCards() {
     {
       label: "Active",
       count: activeCount, // Real value
-      gradient: "bg-white dark:bg-gray-800",
+      gradient: "bg-white dark:bg-[#1E1E1E]",
       icon: <FiUserCheck size={32} className="text-blue-600 dark:text-blue-400 opacity-80" />, // Adjust icon color for contrast
       path: "/user/ptfi-members",
     },
     {
       label: "Enquiry Received",
       count: enquiryReceivedCount, // Real value
-      gradient: "bg-white dark:bg-gray-800",
+      gradient: "bg-white dark:bg-[#1E1E1E]",
       icon: <FiMessageSquare size={32} className="text-emerald-600 dark:text-emerald-400 opacity-80" />, // Adjust icon color for contrast
       path: "/user/enquiry-received",
     },
     {
       label: "Enquiry Done",
       count: enquiryDoneCount, // Real value
-      gradient: "bg-white dark:bg-gray-800",
+      gradient: "bg-white dark:bg-[#1E1E1E]",
       icon: <FiCheckCircle size={32} className="text-rose-600 dark:text-rose-400 opacity-80" />, // Adjust icon color for contrast
       path: "/user/enquiries-done",
     },
     {
       label: "Total Event",
       count: totalEventsCount, // Real value
-      gradient: "bg-white dark:bg-gray-800",
+      gradient: "bg-white dark:bg-[#1E1E1E]",
       icon: <FiCalendar size={32} className="text-blue-500 dark:text-blue-400 opacity-80" />,
       path: "/user/all-events",
     },
     {
       label: "Past Event",
       count: pastEventsCount, // Real value
-      gradient: "bg-white dark:bg-gray-800",
+      gradient: "bg-white dark:bg-[#1E1E1E]",
       icon: <FiClock size={32} className="text-violet-500 dark:text-violet-400 opacity-80" />,
       path: "/user/past-events",
     },
@@ -64,7 +64,7 @@ export default function StatusCards() {
           title={`Go to ${status.label === "Active" ? "PTFI" : status.label} Members`}
         >
           {/* Glassmorphism overlay */}
-          <div className="absolute inset-0 bg-white/30 dark:bg-gray-700/40 backdrop-blur-md border border-white/30 dark:border-gray-700 rounded-2xl pointer-events-none" />
+          <div className="absolute inset-0 bg-white/30 dark:bg-[#1E1E1E]/40 backdrop-blur-md border border-white/30 dark:border-gray-700 rounded-2xl pointer-events-none" />
           <div className="relative z-10 flex items-center justify-center gap-3 h-full w-full">
             <div className="flex-shrink-0">{status.icon}</div>
             <div className="flex flex-col items-start text-left">

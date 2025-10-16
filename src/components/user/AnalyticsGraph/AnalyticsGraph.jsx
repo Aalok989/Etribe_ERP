@@ -24,15 +24,15 @@ import { useDashboard } from '../../../context/DashboardContext';
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white/95 backdrop-blur-md border border-gray-200 rounded-lg shadow-xl p-4">
-        <p className="text-gray-600 font-medium mb-2">{label}</p>
+      <div className="bg-white/95 dark:bg-[#1E1E1E]/95 backdrop-blur-md border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl p-4">
+        <p className="text-gray-600 dark:text-gray-200 font-medium mb-2">{label}</p>
         {payload.map((entry, index) => (
           <div key={index} className="flex items-center gap-2 mb-1">
             <div 
               className="w-3 h-3 rounded-full" 
               style={{ backgroundColor: entry.color }}
             />
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
               {entry.name}: <span className="font-bold">{entry.value}</span>
             </span>
           </div>
@@ -53,7 +53,7 @@ const CustomLegend = ({ payload }) => {
             className="w-4 h-4 rounded-full shadow-sm" 
             style={{ backgroundColor: entry.color }}
           />
-          <span className="text-sm font-medium text-gray-700">{entry.value}</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{entry.value}</span>
         </div>
       ))}
     </div>
@@ -141,20 +141,24 @@ export default function AnalyticsGraph() {
                 <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.1}/>
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" className="dark:stroke-gray-600" />
             <XAxis 
               dataKey="month" 
               stroke="#6b7280"
+              className="dark:stroke-gray-300"
               fontSize={12}
               tickLine={false}
               axisLine={false}
+              tick={{ fill: '#6b7280', className: 'dark:fill-gray-300' }}
             />
             <YAxis 
               allowDecimals={false}
               stroke="#6b7280"
+              className="dark:stroke-gray-300"
               fontSize={12}
               tickLine={false}
               axisLine={false}
+              tick={{ fill: '#6b7280', className: 'dark:fill-gray-300' }}
             />
             <Tooltip content={<CustomTooltip />} />
             {selectedMetric === 'all' && (
@@ -178,20 +182,24 @@ export default function AnalyticsGraph() {
       case 'bar':
         return (
           <BarChart data={filteredData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" className="dark:stroke-gray-600" />
             <XAxis 
               dataKey="month" 
               stroke="#6b7280"
+              className="dark:stroke-gray-300"
               fontSize={12}
               tickLine={false}
               axisLine={false}
+              tick={{ fill: '#6b7280', className: 'dark:fill-gray-300' }}
             />
             <YAxis 
               allowDecimals={false}
               stroke="#6b7280"
+              className="dark:stroke-gray-300"
               fontSize={12}
               tickLine={false}
               axisLine={false}
+              tick={{ fill: '#6b7280', className: 'dark:fill-gray-300' }}
             />
             <Tooltip content={<CustomTooltip />} />
             {selectedMetric === 'all' && (
@@ -213,20 +221,24 @@ export default function AnalyticsGraph() {
       default: // line chart
         return (
           <LineChart data={filteredData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" className="dark:stroke-gray-600" />
             <XAxis 
               dataKey="month" 
               stroke="#6b7280"
+              className="dark:stroke-gray-300"
               fontSize={12}
               tickLine={false}
               axisLine={false}
+              tick={{ fill: '#6b7280', className: 'dark:fill-gray-300' }}
             />
             <YAxis 
               allowDecimals={false}
               stroke="#6b7280"
+              className="dark:stroke-gray-300"
               fontSize={12}
               tickLine={false}
               axisLine={false}
+              tick={{ fill: '#6b7280', className: 'dark:fill-gray-300' }}
             />
             <Tooltip content={<CustomTooltip />} />
             {selectedMetric === 'all' && (
@@ -265,10 +277,10 @@ export default function AnalyticsGraph() {
   }, [chartData, selectedMetric, chartType]);
 
   return (
-    <div className="rounded-2xl shadow-lg bg-white dark:bg-gray-800 h-full w-full flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
+    <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] h-full w-full flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
       {/* Header with controls in same row */}
       <div className="relative rounded-t-2xl overflow-hidden">
-        <div className="absolute inset-0 bg-white dark:bg-gray-800" />
+        <div className="absolute inset-0 bg-white dark:bg-[#1E1E1E]" />
         <div className="relative z-10 flex items-center justify-between px-5 py-2 border-b border-gray-200 dark:border-gray-700">
           {/* Left side - Title */}
           <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 tracking-wide">Enquiry Analytics</h2>
@@ -278,7 +290,7 @@ export default function AnalyticsGraph() {
             {/* Chart Type Selector */}
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Chart:</span>
-              <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 border border-gray-200 dark:border-gray-600">
+              <div className="flex bg-gray-100 dark:bg-[#1E1E1E] rounded-lg p-1 border border-gray-200 dark:border-gray-600">
                 {[
                   { key: 'area', icon: FiPieChart, label: 'Area' },
                   { key: 'bar', icon: FiBarChart2, label: 'Bar' },
@@ -290,7 +302,7 @@ export default function AnalyticsGraph() {
                     disabled={chartData.length === 0}
                     className={`px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 border-none outline-none focus:ring-2 focus:ring-indigo-400 ${
                       chartType === key
-                        ? 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-indigo-600 dark:text-indigo-300 shadow-sm'
+                        ? 'bg-white dark:bg-[#1E1E1E] border border-gray-200 dark:border-gray-700 text-indigo-600 dark:text-indigo-300 shadow-sm'
                         : 'bg-transparent text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'
                     } ${chartData.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                     aria-label={label}
@@ -308,7 +320,7 @@ export default function AnalyticsGraph() {
                 value={selectedMetric}
                 onChange={(e) => setSelectedMetric(e.target.value)}
                 disabled={chartData.length === 0}
-                className={`px-3 py-1 text-sm border border-gray-200 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                className={`px-3 py-1 text-sm border border-gray-200 dark:border-gray-600 rounded-md bg-white dark:bg-[#1E1E1E] text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
                   chartData.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
@@ -349,7 +361,7 @@ export default function AnalyticsGraph() {
         ) : chartData.length === 0 ? (
           <div className="flex items-center justify-center h-full w-full">
             <div className="text-center">
-              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-gray-100 dark:bg-[#1E1E1E] rounded-full flex items-center justify-center mx-auto mb-4">
                 <FiBarChart2 className="w-8 h-8 text-gray-400 dark:text-gray-500" />
               </div>
               <p className="text-gray-500 dark:text-gray-400 font-medium mb-2">No Analytics Data Available</p>
