@@ -270,9 +270,7 @@ export default function ImportantContacts() {
                 <FiUser className="text-indigo-600 dark:text-indigo-400 text-base" />
                 Total: {contactsData.length}
               </span>
-            </div>
-            
-            <div className="flex gap-2 items-center flex-shrink-0">
+              
               {/* Copy Button - Icon Only */}
               <button
                 className="flex items-center justify-center text-gray-600 dark:text-gray-400 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 transition"
@@ -337,7 +335,6 @@ export default function ImportantContacts() {
                   </div>
                 )}
               </div>
-
             </div>
           </div>
         </div>
