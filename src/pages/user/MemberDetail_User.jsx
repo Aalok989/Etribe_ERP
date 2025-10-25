@@ -791,11 +791,148 @@ export default function MemberDetail() {
       console.log('🔍 Fetching member details for:', { memberId, uid, urlMemberId });
       let foundMember = null;
 
-      // Skip the non-existent user profile endpoint and go straight to working endpoints
-      console.log('🔍 Skipping non-existent user profile endpoint, using working endpoints...');
+      // First, try to get user profile using get_profile endpoint
+      try {
+        console.log('🔍 Trying get_profile endpoint...');
+        const profileResponse = await api.post('/userDetail/get_profile', {}, {
+          headers: getAuthHeaders(),
+          timeout: 10000
+        });
 
-      // If not found in user profile, try active_members endpoint
+        console.log('🔍 Profile response:', profileResponse.data);
+        if (profileResponse.data.status === true && profileResponse.data.data) {
+          const profileData = profileResponse.data.data;
+          console.log('🔍 Profile data received:', profileData);
+          
+          foundMember = {
+            id: profileData.id,
+            user_detail_id: profileData.id,
+            name: profileData.name,
+            email: profileData.email,
+            phone_num: profileData.phone_num,
+            address: profileData.address,
+            city: profileData.city,
+            district: profileData.district,
+            pincode: profileData.pincode,
+            country: profileData.country,
+            state: profileData.state,
+            area_id: profileData.area_id,
+            user_role_id: profileData.user_role_id,
+            role_name: profileData.role_name,
+            is_active: profileData.is_active,
+            profile_image: profileData.profile_image,
+            // Additional fields
+            ad1: profileData.ad1 || '',
+            ad2: profileData.ad2 || '',
+            ad3: profileData.ad3 || '',
+            ad4: profileData.ad4 || '',
+            ad5: profileData.ad5 || '',
+            ad6: profileData.ad6 || '',
+            ad7: profileData.ad7 || '',
+            ad8: profileData.ad8 || '',
+            ad9: profileData.ad9 || '',
+            ad10: profileData.ad10 || '',
+            lct: profileData.lct
+          };
+        }
+      } catch (err) {
+        console.error('🔍 Error fetching user profile:', err);
+      }
+
+      // Then, try to get company profile using get_company_profile endpoint
+      try {
+        console.log('🔍 Trying get_company_profile endpoint...');
+        const companyProfileResponse = await api.post('/userDetail/get_company_profile', {}, {
+          headers: getAuthHeaders(),
+          timeout: 10000
+        });
+
+        console.log('🔍 Company profile response:', companyProfileResponse.data);
+        if (companyProfileResponse.data.status === true && companyProfileResponse.data.data) {
+          const companyData = companyProfileResponse.data.data;
+          console.log('🔍 Company data received:', companyData);
+          
+          // If we already have user profile data, merge company data
+          if (foundMember) {
+            foundMember = {
+              ...foundMember,
+              // Company profile fields - map directly from API response
+              company_detail_id: companyData.id,
+              company_name: companyData.company_name,
+              company_email: companyData.company_email,
+              company_contact: companyData.company_contact,
+              company_address: companyData.company_address,
+              company_pan: companyData.company_pan,
+              company_gstn: companyData.company_gstn,
+              company_iec: companyData.company_iec,
+              company_logo: companyData.logo,
+              website: companyData.website,
+              phone_code: companyData.phone_code,
+              // Company location fields (these are separate from user location)
+              company_city: companyData.city || '',
+              company_district: companyData.district || '',
+              company_pincode: companyData.pincode || '',
+              company_country: companyData.country || '',
+              company_state: companyData.state || '',
+              company_area_id: companyData.area_id || '',
+              // Company additional fields (cad1-cad10) - map from ad1-ad10
+              cad1: companyData.ad1 || '',
+              cad2: companyData.ad2 || '',
+              cad3: companyData.ad3 || '',
+              cad4: companyData.ad4 || '',
+              cad5: companyData.ad5 || '',
+              cad6: companyData.ad6 || '',
+              cad7: companyData.ad7 || '',
+              cad8: companyData.ad8 || '',
+              cad9: companyData.ad9 || '',
+              cad10: companyData.ad10 || ''
+            };
+          } else {
+            // If no user profile data, create member from company data only
+            foundMember = {
+              id: companyData.user_detail_id,
+              user_detail_id: companyData.user_detail_id,
+              company_detail_id: companyData.id,
+              company_name: companyData.company_name,
+              company_email: companyData.company_email,
+              company_contact: companyData.company_contact,
+              company_address: companyData.company_address,
+              company_pan: companyData.company_pan,
+              company_gstn: companyData.company_gstn,
+              company_iec: companyData.company_iec,
+              company_logo: companyData.logo,
+              website: companyData.website,
+              phone_code: companyData.phone_code,
+              // Company location fields
+              company_city: companyData.city || '',
+              company_district: companyData.district || '',
+              company_pincode: companyData.pincode || '',
+              company_country: companyData.country || '',
+              company_state: companyData.state || '',
+              company_area_id: companyData.area_id || '',
+              // Company additional fields
+              cad1: companyData.ad1 || '',
+              cad2: companyData.ad2 || '',
+              cad3: companyData.ad3 || '',
+              cad4: companyData.ad4 || '',
+              cad5: companyData.ad5 || '',
+              cad6: companyData.ad6 || '',
+              cad7: companyData.ad7 || '',
+              cad8: companyData.ad8 || '',
+              cad9: companyData.ad9 || '',
+              cad10: companyData.ad10 || ''
+            };
+          }
+        }
+      } catch (err) {
+        console.error('🔍 Error fetching company profile:', err);
+      }
+
+      // Fallback to old endpoints if new APIs fail
       if (!foundMember) {
+        console.log('🔍 New APIs failed, trying fallback endpoints...');
+        
+        // Try active_members endpoint
         try {
           console.log('🔍 Trying active_members endpoint...');
           const activeResponse = await api.post('/userDetail/active_members', {}, {
@@ -815,7 +952,7 @@ export default function MemberDetail() {
               const userDetailMatch = String(m.user_detail_id) === String(memberId);
               const userIdMatch = String(m.user_id) === String(memberId);
               
-              console.log('🔍 Comparing:', { 
+              console.log('🔍 Comparing in active_members:', { 
                 memberId, 
                 mId: m.id, 
                 mCompanyId: m.company_detail_id, 
@@ -826,15 +963,12 @@ export default function MemberDetail() {
               
               return idMatch || companyMatch || userDetailMatch || userIdMatch;
             });
-            
-            console.log('🔍 Found member in active members:', foundMember);
           }
         } catch (err) {
           console.error('🔍 Error fetching active members:', err);
-        }
       }
 
-      // If not found in active members, try not_members endpoint
+        // Try not_members endpoint
       if (!foundMember) {
         try {
           console.log('🔍 Trying not_members endpoint...');
@@ -865,10 +999,9 @@ export default function MemberDetail() {
             
             return idMatch || companyMatch || userDetailMatch || userIdMatch;
           });
-          
-          console.log('🔍 Found member in not members:', foundMember);
         } catch (err) {
           console.error('🔍 Error fetching not members:', err);
+          }
         }
       }
       
@@ -1458,7 +1591,7 @@ export default function MemberDetail() {
         temp_password: member.temp_password || "",
         phone_num: finalEditData.phone_num,
         address: finalEditData.address,
-        area_id: finalEditData.state, // Send state ID as area_id
+        area_id: finalEditData.state || member.area_id || '',
         district: finalEditData.district,
         city: finalEditData.city,
         pincode: finalEditData.pincode,
@@ -1493,11 +1626,11 @@ export default function MemberDetail() {
         company_contact: finalEditData.company_contact || "",
         company_email: finalEditData.company_email || "",
         company_address: finalEditData.company_address || "",
-        city: finalEditData.city || "",
-        district: finalEditData.district || "",
-        pincode: finalEditData.pincode || "",
-        country: finalEditData.country || "",
-        area_id: finalEditData.state || member.area_id || "",
+        city: finalEditData.company_city || "",
+        district: finalEditData.company_district || "",
+        pincode: finalEditData.company_pincode || "",
+        country: finalEditData.company_country || "",
+        area_id: finalEditData.company_state || member.company_area_id || "",
         // Use ad1-ad10 for update API (not cad1-cad10)
         ad1: finalEditData.cad1 || "", // Map cad1 to ad1 for update
         ad2: finalEditData.cad2 || "", // Map cad2 to ad2 for update
@@ -3250,6 +3383,15 @@ export default function MemberDetail() {
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pincode</label>
+                <input
+                  type="text"
+                  value={editData.pincode || ''}
+                  onChange={(e) => handleFormChange('pincode', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-gray-100"
+                />
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Country</label>
                 <select
                   value={editData.country || ''}
@@ -3299,7 +3441,7 @@ export default function MemberDetail() {
                       {fieldName}
                     </label>
                     <input
-                      type={fieldKey === 'ad5' ? 'date' : 'text'}
+                      type="text"
                       value={editData[fieldKey] || ''}
                       onChange={(e) => handleFormChange(fieldKey, e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-gray-100"
@@ -3439,8 +3581,8 @@ export default function MemberDetail() {
         )}
         <div className="text-center">
           <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-2">{member.company_name || 'Business'}</h2>
-          <div className="text-sm text-gray-500 dark:text-gray-300 font-medium">{member.company_email || member.email}</div>
-          <div className="text-sm text-gray-400 dark:text-gray-400">{member.company_contact || member.phone_num}</div>
+          <div className="text-sm text-gray-500 dark:text-gray-300 font-medium">{member.company_email || 'No company email'}</div>
+          <div className="text-sm text-gray-400 dark:text-gray-400">{member.company_contact || 'No company contact'}</div>
         </div>
       </div>
 
@@ -3487,29 +3629,38 @@ export default function MemberDetail() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">City</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company City</label>
                 <input
                   type="text"
-                  value={editData.city || ''}
-                  onChange={(e) => handleFormChange('city', e.target.value)}
+                  value={editData.company_city || ''}
+                  onChange={(e) => handleFormChange('company_city', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-gray-100"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">District</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company District</label>
                 <input
                   type="text"
-                  value={editData.district || ''}
-                  onChange={(e) => handleFormChange('district', e.target.value)}
+                  value={editData.company_district || ''}
+                  onChange={(e) => handleFormChange('company_district', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-gray-100"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Country</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company Pincode</label>
+                <input
+                  type="text"
+                  value={editData.company_pincode || ''}
+                  onChange={(e) => handleFormChange('company_pincode', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-gray-100"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company Country</label>
                 <select
-                  value={editData.country || ''}
+                  value={editData.company_country || ''}
                   onChange={(e) => {
-                    handleFormChange('country', e.target.value);
+                    handleFormChange('company_country', e.target.value);
                     if (e.target.value) {
                       fetchStates(e.target.value);
                     } else {
@@ -3525,10 +3676,10 @@ export default function MemberDetail() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">State</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company State</label>
                 <select
-                  value={editData.state || ''}
-                  onChange={(e) => handleFormChange('state', e.target.value)}
+                  value={editData.company_state || ''}
+                  onChange={(e) => handleFormChange('company_state', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-gray-100"
                 >
                   <option value="">Select State</option>
@@ -3543,15 +3694,6 @@ export default function MemberDetail() {
                 value={editData.user_role_id || ''}
                 onChange={(e) => handleFormChange('user_role_id', e.target.value)}
               />
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pincode</label>
-                <input
-                  type="text"
-                  value={editData.pincode || ''}
-                  onChange={(e) => handleFormChange('pincode', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-gray-100"
-                />
-              </div>
               {/* Dynamic Company Additional Fields (all cad fields from API) */}
               {Object.keys(companyAdditionalFields).map((fieldKey, index) => {
                 const fieldName = companyAdditionalFields[fieldKey];
@@ -3579,14 +3721,14 @@ export default function MemberDetail() {
               <tbody>
                 {[
                   { label: 'Name', key: 'company_name' },
-                  { label: 'Email', key: 'company_email', fallback: 'email' },
-                  { label: 'Contact No', key: 'company_contact', fallback: 'phone_num' },
-                  { label: 'Address', key: 'company_address', fallback: 'address' },
-                  { label: 'City', key: 'city' },
-                  { label: 'District', key: 'district' },
-                  { label: 'Country', key: 'country' },
-                  { label: 'State', key: 'state' },
-                  { label: 'Pincode', key: 'pincode' },
+                  { label: 'Email', key: 'company_email' },
+                  { label: 'Contact No', key: 'company_contact' },
+                  { label: 'Address', key: 'company_address' },
+                  { label: 'City', key: 'company_city' },
+                  { label: 'District', key: 'company_district' },
+                  { label: 'Country', key: 'company_country' },
+                  { label: 'State', key: 'company_state' },
+                  { label: 'Pincode', key: 'company_pincode' },
                   // Dynamic Company Additional Fields (all cad fields from API)
                   ...Object.keys(companyAdditionalFields).map(fieldKey => ({
                     label: companyAdditionalFields[fieldKey],
@@ -3598,12 +3740,12 @@ export default function MemberDetail() {
                       <td className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 w-48 align-top">{label}</td>
                       <td className="px-6 py-4 bg-white dark:bg-[#1E1E1E]">
                         <span className="text-gray-900 dark:text-gray-100 text-base font-normal">
-                          {key === 'state' || key === 'country' ? 
+                          {key === 'company_state' || key === 'company_country' ? 
                             (stateCountryLoading ? 
                               <span className="text-gray-500">Loading...</span> : 
-                              (value || member[key] || (fallback ? member[fallback] : null) || '-')
+                              (value || member[key] || '-')
                             ) : 
-                            (value || member[key] || (fallback ? member[fallback] : null) || '-')
+                            (value || member[key] || '-')
                           }
                         </span>
                       </td>

@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "../../components/admin/Layout/DashboardLayout";
-import { FiUser, FiMail, FiPhone, FiMapPin, FiHome, FiCalendar, FiSave, FiX, FiUpload, FiDownload } from "react-icons/fi";
+import {
+  FiUser,
+  FiMail,
+  FiPhone,
+  FiMapPin,
+  FiHome,
+  FiCalendar,
+  FiSave,
+  FiX,
+  FiUpload,
+  FiDownload,
+} from "react-icons/fi";
 import { toast } from "react-toastify";
 import api from "../../api/axiosConfig";
 import { getAuthHeaders } from "../../utils/apiHeaders";
@@ -17,7 +28,7 @@ export default function NewRegistration() {
     city: "",
     pincode: "",
     address: "",
-    
+
     // Company Information Fields
     company_name: "",
     company_email: "",
@@ -28,7 +39,7 @@ export default function NewRegistration() {
     company_city: "",
     company_pincode: "",
     company_address: "",
-    
+
     // Additional User Fields
     ad1: "",
     ad2: "",
@@ -40,7 +51,7 @@ export default function NewRegistration() {
     ad8: "",
     ad9: "",
     ad10: "",
-    
+
     // Additional Company Fields
     company_ad1: "",
     company_ad2: "",
@@ -51,7 +62,7 @@ export default function NewRegistration() {
     company_ad7: "",
     company_ad8: "",
     company_ad9: "",
-    company_ad10: ""
+    company_ad10: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -75,19 +86,23 @@ export default function NewRegistration() {
       setLoadingCountries(true);
       const token = localStorage.getItem("token");
       const uid = localStorage.getItem("uid");
-      
-      const response = await api.post('/common/countries', {}, {
-        headers: getAuthHeaders()
-      });
-      
+
+      const response = await api.post(
+        "/common/countries",
+        {},
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+
       if (response.data && Array.isArray(response.data.data)) {
         setCountries(response.data.data);
       } else {
         setCountries([]);
       }
     } catch (err) {
-      console.error('❌ Failed to fetch countries:', err);
-      console.error('❌ Error details:', err.response?.data);
+      console.error("❌ Failed to fetch countries:", err);
+      console.error("❌ Error details:", err.response?.data);
       setCountries([]);
     } finally {
       setLoadingCountries(false);
@@ -100,19 +115,23 @@ export default function NewRegistration() {
       setLoadingStates(true);
       const token = localStorage.getItem("token");
       const uid = localStorage.getItem("uid");
-      
-      const response = await api.post('/common/states', { country }, {
-        headers: getAuthHeaders()
-      });
-      
+
+      const response = await api.post(
+        "/common/states",
+        { country },
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+
       if (response.data && Array.isArray(response.data.data)) {
         setStates(response.data.data);
       } else {
         setStates([]);
       }
     } catch (err) {
-      console.error('❌ Failed to fetch states:', err);
-      console.error('❌ Error details:', err.response?.data);
+      console.error("❌ Failed to fetch states:", err);
+      console.error("❌ Error details:", err.response?.data);
       setStates([]);
     } finally {
       setLoadingStates(false);
@@ -125,19 +144,23 @@ export default function NewRegistration() {
       setLoadingCompanyStates(true);
       const token = localStorage.getItem("token");
       const uid = localStorage.getItem("uid");
-      
-      const response = await api.post('/common/states', { country }, {
-        headers: getAuthHeaders()
-      });
-      
+
+      const response = await api.post(
+        "/common/states",
+        { country },
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+
       if (response.data && Array.isArray(response.data.data)) {
         setCompanyStates(response.data.data);
       } else {
         setCompanyStates([]);
       }
     } catch (err) {
-      console.error('❌ Failed to fetch company states:', err);
-      console.error('❌ Error details:', err.response?.data);
+      console.error("❌ Failed to fetch company states:", err);
+      console.error("❌ Error details:", err.response?.data);
       setCompanyStates([]);
     } finally {
       setLoadingCompanyStates(false);
@@ -155,28 +178,30 @@ export default function NewRegistration() {
     if (file) {
       // Validate file type
       const allowedTypes = [
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'text/csv'
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "text/csv",
       ];
-      
+
       if (!allowedTypes.includes(file.type)) {
-        toast.error("Please select a valid Excel file (.xls, .xlsx) or CSV file");
+        toast.error(
+          "Please select a valid Excel file (.xls, .xlsx) or CSV file"
+        );
         return;
       }
-      
+
       // Validate file size (max 5MB)
       const maxSize = 5 * 1024 * 1024; // 5MB
       if (file.size > maxSize) {
         toast.error("File size should be less than 5MB");
         return;
       }
-      
+
       setSelectedFile(file);
       toast.success(`File selected: ${file.name}`);
-      
+
       // Auto-fill form data from Excel file
-      if (file.type === 'text/csv') {
+      if (file.type === "text/csv") {
         readCSVFile(file);
       } else {
         readExcelFile(file);
@@ -190,23 +215,25 @@ export default function NewRegistration() {
     reader.onload = (e) => {
       try {
         const csv = e.target.result;
-        const lines = csv.split('\n');
-        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-        const data = lines[1].split(',').map(d => d.trim().replace(/"/g, ''));
-        
+        const lines = csv.split("\n");
+        const headers = lines[0]
+          .split(",")
+          .map((h) => h.trim().replace(/"/g, ""));
+        const data = lines[1].split(",").map((d) => d.trim().replace(/"/g, ""));
+
         const formDataFromCSV = {};
         headers.forEach((header, index) => {
           if (data[index]) {
             formDataFromCSV[header] = data[index];
           }
         });
-        
+
         // Map CSV data to form fields
         const mappedData = mapExcelDataToForm(formDataFromCSV);
-        setFormData(prev => ({ ...prev, ...mappedData }));
+        setFormData((prev) => ({ ...prev, ...mappedData }));
         toast.success("Form data auto-filled from CSV file!");
       } catch (error) {
-        console.error('Error reading CSV file:', error);
+        console.error("Error reading CSV file:", error);
         toast.error("Error reading CSV file. Please check the format.");
       }
     };
@@ -221,7 +248,7 @@ export default function NewRegistration() {
         // For Excel files, we'll use a simple approach
         // In a real implementation, you might want to use a library like xlsx
         const arrayBuffer = e.target.result;
-        
+
         // For now, we'll show a message that Excel auto-fill is available
         // and use the sample data structure
         const sampleData = {
@@ -260,14 +287,14 @@ export default function NewRegistration() {
           company_ad7: "Sample Aadhar",
           company_ad8: "",
           company_ad9: "",
-          company_ad10: ""
+          company_ad10: "",
         };
-        
+
         const mappedData = mapExcelDataToForm(sampleData);
-        setFormData(prev => ({ ...prev, ...mappedData }));
+        setFormData((prev) => ({ ...prev, ...mappedData }));
         toast.success("Form data auto-filled from Excel file!");
       } catch (error) {
-        console.error('Error reading Excel file:', error);
+        console.error("Error reading Excel file:", error);
         toast.error("Error reading Excel file. Please check the format.");
       }
     };
@@ -286,7 +313,7 @@ export default function NewRegistration() {
       city: excelData.city || "",
       pincode: excelData.pincode || "",
       state: excelData.area_id || "",
-      
+
       // Company Information
       company_name: excelData.company_name || "",
       company_email: excelData.company_email || "",
@@ -296,7 +323,7 @@ export default function NewRegistration() {
       company_city: excelData.company_city || "",
       company_pincode: excelData.company_pincode || "",
       company_state: excelData.carea_id || "",
-      
+
       // Additional User Fields
       ad1: excelData.ad1 || "",
       ad2: excelData.ad2 || "",
@@ -308,7 +335,7 @@ export default function NewRegistration() {
       ad8: excelData.ad8 || "",
       ad9: excelData.ad9 || "",
       ad10: excelData.ad10 || "",
-      
+
       // Additional Company Fields
       company_ad1: excelData.company_ad1 || "",
       company_ad2: excelData.company_ad2 || "",
@@ -319,7 +346,7 @@ export default function NewRegistration() {
       company_ad7: excelData.company_ad7 || "",
       company_ad8: excelData.company_ad8 || "",
       company_ad9: excelData.company_ad9 || "",
-      company_ad10: excelData.company_ad10 || ""
+      company_ad10: excelData.company_ad10 || "",
     };
   };
 
@@ -334,48 +361,55 @@ export default function NewRegistration() {
       setUploadingExcel(true);
       const token = localStorage.getItem("token");
       const uid = localStorage.getItem("uid");
-      
+
       if (!token || !uid) {
         toast.error("Please log in to upload Excel file");
         return;
       }
 
       const formData = new FormData();
-      formData.append('excel_file', selectedFile);
-      formData.append('uid', uid);
+      formData.append("excel_file", selectedFile);
+      formData.append("uid", uid);
 
-      const response = await api.post("/common/upload_excel_registration", formData, {
-        headers: {
-          ...getAuthHeaders(),
-          "Authorization": `Bearer ${token}`,
-        },
-        withCredentials: true,
-      });
+      const response = await api.post(
+        "/common/upload_excel_registration",
+        formData,
+        {
+          headers: {
+            ...getAuthHeaders(),
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
+        }
+      );
 
-      console.log('Excel upload response:', response.data);
+      console.log("Excel upload response:", response.data);
 
-      if (response.data?.status === 'success' || response.data?.message) {
+      if (response.data?.status === "success" || response.data?.message) {
         toast.success("Excel file uploaded successfully!");
         setSelectedFile(null);
         setShowUploadModal(false);
         // Reset file input
-        const fileInput = document.getElementById('modal-excel-file-input');
+        const fileInput = document.getElementById("modal-excel-file-input");
         if (fileInput) {
-          fileInput.value = '';
+          fileInput.value = "";
         }
       } else {
         toast.error(response.data?.message || "Failed to upload Excel file");
       }
     } catch (err) {
-      console.error('Excel upload error:', err);
-      console.error('Error response:', err.response?.data);
-      
+      console.error("Excel upload error:", err);
+      console.error("Error response:", err.response?.data);
+
       if (err.response?.status === 401) {
         toast.error("Session expired. Please log in again.");
       } else if (err.response?.status === 413) {
         toast.error("File too large. Please select a smaller file.");
       } else {
-        toast.error(err.response?.data?.message || "Failed to upload Excel file. Please try again.");
+        toast.error(
+          err.response?.data?.message ||
+            "Failed to upload Excel file. Please try again."
+        );
       }
     } finally {
       setUploadingExcel(false);
@@ -422,28 +456,30 @@ export default function NewRegistration() {
         company_ad7: "AADHAR123456789",
         company_ad8: "",
         company_ad9: "",
-        company_ad10: ""
-      }
+        company_ad10: "",
+      },
     ];
 
     // Convert to CSV
     const headers = Object.keys(sampleData[0]);
     const csvContent = [
-      headers.join(','),
-      ...sampleData.map(row => headers.map(header => `"${row[header]}"`).join(','))
-    ].join('\n');
+      headers.join(","),
+      ...sampleData.map((row) =>
+        headers.map((header) => `"${row[header]}"`).join(",")
+      ),
+    ].join("\n");
 
     // Create and download file
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = 'registration_sample.csv';
+    a.download = "registration_sample.csv";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
-    
+
     toast.success("Sample file downloaded successfully!");
   };
 
@@ -453,47 +489,52 @@ export default function NewRegistration() {
       try {
         const token = localStorage.getItem("token");
         const uid = localStorage.getItem("uid");
-        
+
         if (!token || !uid) {
           setLoadingUserFields(false);
           return;
         }
 
-        const response = await api.get("/groupSettings/get_user_additional_fields", {
-          headers: {
-            ...getAuthHeaders(),
-            "Authorization": `Bearer ${token}`,
-          },
-          withCredentials: true,
-        });
+        const response = await api.get(
+          "/groupSettings/get_user_additional_fields",
+          {
+            headers: {
+              ...getAuthHeaders(),
+              Authorization: `Bearer ${token}`,
+            },
+            withCredentials: true,
+          }
+        );
 
-        console.log('User additional fields response:', response.data);
+        console.log("User additional fields response:", response.data);
 
         if (response.data?.status === true && response.data?.data) {
           // Convert the ad1, ad2, etc. structure to array format
           const fields = [];
           const data = response.data.data;
-          
+
           for (let i = 1; i <= 10; i++) {
             const fieldName = `ad${i}`;
-            if (data[fieldName] && data[fieldName].trim() !== '') {
+            if (data[fieldName] && data[fieldName].trim() !== "") {
               fields.push({
                 id: i,
                 field_name: fieldName,
                 field_label: data[fieldName],
-                field_type: 'text',
-                required: false
+                field_type: "text",
+                required: false,
               });
             }
           }
-          
-          console.log('Processed user additional fields:', fields);
+
+          console.log("Processed user additional fields:", fields);
           setUserAdditionalFields(fields);
         } else {
-          console.log('No user additional fields found or different response structure');
+          console.log(
+            "No user additional fields found or different response structure"
+          );
         }
       } catch (err) {
-        console.error('Error fetching user additional fields:', err);
+        console.error("Error fetching user additional fields:", err);
         // Don't show error toast as this might be expected if no fields are configured
       } finally {
         setLoadingUserFields(false);
@@ -509,47 +550,53 @@ export default function NewRegistration() {
       try {
         const token = localStorage.getItem("token");
         const uid = localStorage.getItem("uid");
-        
+
         if (!token || !uid) {
           setLoadingCompanyFields(false);
           return;
         }
 
-        const response = await api.post("/groupSettings/get_company_additional_fields", {}, {
-          headers: {
-            ...getAuthHeaders(),
-            "Authorization": `Bearer ${token}`,
-          },
-          withCredentials: true,
-        });
+        const response = await api.post(
+          "/groupSettings/get_company_additional_fields",
+          {},
+          {
+            headers: {
+              ...getAuthHeaders(),
+              Authorization: `Bearer ${token}`,
+            },
+            withCredentials: true,
+          }
+        );
 
-        console.log('Company additional fields response:', response.data);
+        console.log("Company additional fields response:", response.data);
 
         if (response.data?.status === true && response.data?.data) {
           // Convert the ad1, ad2, etc. structure to array format
           const fields = [];
           const data = response.data.data;
-          
+
           for (let i = 1; i <= 10; i++) {
             const fieldName = `ad${i}`;
-            if (data[fieldName] && data[fieldName].trim() !== '') {
+            if (data[fieldName] && data[fieldName].trim() !== "") {
               fields.push({
                 id: i,
                 field_name: fieldName,
                 field_label: data[fieldName],
-                field_type: 'text',
-                required: false
+                field_type: "text",
+                required: false,
               });
             }
           }
-          
-          console.log('Processed company additional fields:', fields);
+
+          console.log("Processed company additional fields:", fields);
           setCompanyAdditionalFields(fields);
         } else {
-          console.log('No company additional fields found or different response structure');
+          console.log(
+            "No company additional fields found or different response structure"
+          );
         }
       } catch (err) {
-        console.error('Error fetching company additional fields:', err);
+        console.error("Error fetching company additional fields:", err);
         // Don't show error toast as this might be expected if no fields are configured
       } finally {
         setLoadingCompanyFields(false);
@@ -561,21 +608,30 @@ export default function NewRegistration() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validate required fields
-    const requiredFields = ['name', 'email', 'contact_no', 'company_name', 'company_email', 'company_contact_no'];
-    const missingFields = requiredFields.filter(field => !formData[field]);
-    
+    const requiredFields = [
+      "name",
+      "email",
+      "contact_no",
+      "company_name",
+      "company_email",
+      "company_contact_no",
+    ];
+    const missingFields = requiredFields.filter((field) => !formData[field]);
+
     if (missingFields.length > 0) {
-      toast.error(`Please fill in all required fields: ${missingFields.join(', ')}`);
+      toast.error(
+        `Please fill in all required fields: ${missingFields.join(", ")}`
+      );
       return;
     }
 
@@ -595,13 +651,20 @@ export default function NewRegistration() {
     // Phone validation - more flexible regex
     const phoneRegex = /^[\+]?[0-9\s\-\(\)]{10,15}$/;
     if (!phoneRegex.test(formData.contact_no)) {
-      toast.error("Please enter a valid phone number (10-15 digits, can include spaces, dashes, or parentheses)");
+      toast.error(
+        "Please enter a valid phone number (10-15 digits, can include spaces, dashes, or parentheses)"
+      );
       return;
     }
 
     // Company phone validation - more flexible regex
-    if (formData.company_contact_no && !phoneRegex.test(formData.company_contact_no)) {
-      toast.error("Please enter a valid company phone number (10-15 digits, can include spaces, dashes, or parentheses)");
+    if (
+      formData.company_contact_no &&
+      !phoneRegex.test(formData.company_contact_no)
+    ) {
+      toast.error(
+        "Please enter a valid company phone number (10-15 digits, can include spaces, dashes, or parentheses)"
+      );
       return;
     }
 
@@ -609,7 +672,7 @@ export default function NewRegistration() {
       setLoading(true);
       const token = localStorage.getItem("token");
       const uid = localStorage.getItem("uid");
-      
+
       if (!token || !uid) {
         toast.error("Please log in to submit registration");
         return;
@@ -626,7 +689,7 @@ export default function NewRegistration() {
         city: formData.city,
         pincode: formData.pincode,
         area_id: formData.state || "", // Use state ID as area_id
-        
+
         // Company Information
         company_name: formData.company_name,
         company_email: formData.company_email,
@@ -636,7 +699,7 @@ export default function NewRegistration() {
         company_city: formData.company_city,
         company_pincode: formData.company_pincode,
         carea_id: formData.company_state || "", // Use company_state ID as carea_id
-        
+
         // Additional User Fields (ad1 to ad10)
         ad1: formData.ad1 || "",
         ad2: formData.ad2 || "",
@@ -648,7 +711,7 @@ export default function NewRegistration() {
         ad8: formData.ad8 || "",
         ad9: formData.ad9 || "",
         ad10: formData.ad10 || "",
-        
+
         // Additional Company Fields (company_ad1 to company_ad10)
         company_ad1: formData.company_ad1 || "",
         company_ad2: formData.company_ad2 || "",
@@ -659,24 +722,27 @@ export default function NewRegistration() {
         company_ad7: formData.company_ad7 || "",
         company_ad8: formData.company_ad8 || "",
         company_ad9: formData.company_ad9 || "",
-        company_ad10: formData.company_ad10 || ""
+        company_ad10: formData.company_ad10 || "",
       };
 
-      console.log('Submitting registration with data:', submissionData);
+      console.log("Submitting registration with data:", submissionData);
+      console.log("User state (area_id):", formData.state, "->", submissionData.area_id);
+      console.log("Company state (carea_id):", formData.company_state, "->", submissionData.carea_id);
 
       const response = await api.post("/common/registration", submissionData, {
         headers: {
           ...getAuthHeaders(),
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         withCredentials: true,
       });
 
-      console.log('Registration response:', response.data);
+      console.log("Registration response:", response.data);
+      console.log("Response status:", response.status);
 
-      if (response.data?.status === 'success' || response.data?.message) {
+      if (response.data?.status === "success" || response.data?.message) {
         toast.success("Registration submitted successfully!");
-        
+
         // Reset form
         setFormData({
           // User Information Fields
@@ -689,7 +755,7 @@ export default function NewRegistration() {
           city: "",
           pincode: "",
           address: "",
-          
+
           // Company Information Fields
           company_name: "",
           company_email: "",
@@ -700,7 +766,7 @@ export default function NewRegistration() {
           company_city: "",
           company_pincode: "",
           company_address: "",
-          
+
           // Additional User Fields
           ad1: "",
           ad2: "",
@@ -712,7 +778,7 @@ export default function NewRegistration() {
           ad8: "",
           ad9: "",
           ad10: "",
-          
+
           // Additional Company Fields
           company_ad1: "",
           company_ad2: "",
@@ -723,19 +789,22 @@ export default function NewRegistration() {
           company_ad7: "",
           company_ad8: "",
           company_ad9: "",
-          company_ad10: ""
+          company_ad10: "",
         });
       } else {
         toast.error(response.data?.message || "Failed to submit registration");
       }
     } catch (err) {
-      console.error('Registration error:', err);
-      console.error('Error response:', err.response?.data);
-      
+      console.error("Registration error:", err);
+      console.error("Error response:", err.response?.data);
+
       if (err.response?.status === 401) {
         toast.error("Session expired. Please log in again.");
       } else {
-        toast.error(err.response?.data?.message || "Failed to submit registration. Please try again.");
+        toast.error(
+          err.response?.data?.message ||
+            "Failed to submit registration. Please try again."
+        );
       }
     } finally {
       setLoading(false);
@@ -754,7 +823,7 @@ export default function NewRegistration() {
       city: "",
       pincode: "",
       address: "",
-      
+
       // Company Information Fields
       company_name: "",
       company_email: "",
@@ -765,7 +834,7 @@ export default function NewRegistration() {
       company_city: "",
       company_pincode: "",
       company_address: "",
-      
+
       // Additional User Fields
       ad1: "",
       ad2: "",
@@ -777,7 +846,7 @@ export default function NewRegistration() {
       ad8: "",
       ad9: "",
       ad10: "",
-      
+
       // Additional Company Fields
       company_ad1: "",
       company_ad2: "",
@@ -788,9 +857,9 @@ export default function NewRegistration() {
       company_ad7: "",
       company_ad8: "",
       company_ad9: "",
-      company_ad10: ""
+      company_ad10: "",
     });
-    
+
     toast.info("Form has been reset");
   };
 
@@ -799,14 +868,14 @@ export default function NewRegistration() {
     // For user fields: ad1, ad2, etc.
     // For company fields: company_ad1, company_ad2, etc.
     const fieldName = prefix ? `company_${field.field_name}` : field.field_name;
-    
+
     return (
       <div key={field.id || field.field_name}>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           {field.field_label || field.field_name}
           {field.required && <span className="text-red-500 ml-1">*</span>}
         </label>
-        {field.field_type === 'textarea' ? (
+        {field.field_type === "textarea" ? (
           <textarea
             name={fieldName}
             value={formData[fieldName] || ""}
@@ -818,7 +887,13 @@ export default function NewRegistration() {
           />
         ) : (
           <input
-            type={field.field_type === 'email' ? 'email' : field.field_type === 'number' ? 'number' : 'text'}
+            type={
+              field.field_type === "email"
+                ? "email"
+                : field.field_type === "number"
+                ? "number"
+                : "text"
+            }
             name={fieldName}
             value={formData[fieldName] || ""}
             onChange={handleInputChange}
@@ -837,8 +912,12 @@ export default function NewRegistration() {
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-blue-600">New Registration</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">Register new members to the system</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-blue-600">
+              New Registration
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              Register new members to the system
+            </p>
           </div>
           <div className="flex gap-2">
             {/* Hidden file input */}
@@ -879,7 +958,7 @@ export default function NewRegistration() {
                 type="button"
                 onClick={() => {
                   setSelectedFile(null);
-                  document.getElementById('excel-file-input').value = '';
+                  document.getElementById("excel-file-input").value = "";
                 }}
                 className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
               >
@@ -908,12 +987,12 @@ export default function NewRegistration() {
             {/* Main Information Sections - Side by Side */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               {/* Section 1: User Information */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                   <FiUser className="text-blue-600" />
                   User Information
                 </h3>
-                
+
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -929,7 +1008,7 @@ export default function NewRegistration() {
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       *Email Address
@@ -944,7 +1023,7 @@ export default function NewRegistration() {
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       *Contact Number
@@ -959,7 +1038,7 @@ export default function NewRegistration() {
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Country
@@ -970,7 +1049,7 @@ export default function NewRegistration() {
                       onChange={(e) => {
                         handleInputChange(e);
                         // Clear state when country changes
-                        setFormData(prev => ({ ...prev, state: "" }));
+                        setFormData((prev) => ({ ...prev, state: "" }));
                         // Fetch states for the selected country
                         if (e.target.value) {
                           fetchStates(e.target.value);
@@ -982,7 +1061,9 @@ export default function NewRegistration() {
                     >
                       <option value="">Select Country</option>
                       {loadingCountries ? (
-                        <option value="" disabled>Loading countries...</option>
+                        <option value="" disabled>
+                          Loading countries...
+                        </option>
                       ) : (
                         countries.map((country, index) => (
                           <option key={index} value={country.country}>
@@ -992,7 +1073,7 @@ export default function NewRegistration() {
                       )}
                     </select>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       State
@@ -1005,9 +1086,11 @@ export default function NewRegistration() {
                     >
                       <option value="">Select State</option>
                       {loadingStates ? (
-                        <option value="" disabled>Loading states...</option>
+                        <option value="" disabled>
+                          Loading states...
+                        </option>
                       ) : (
-                        states.map(state => (
+                        states.map((state) => (
                           <option key={state.id} value={state.id}>
                             {state.state}
                           </option>
@@ -1015,7 +1098,7 @@ export default function NewRegistration() {
                       )}
                     </select>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       District
@@ -1029,7 +1112,7 @@ export default function NewRegistration() {
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       City
@@ -1043,7 +1126,7 @@ export default function NewRegistration() {
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Pincode
@@ -1057,7 +1140,7 @@ export default function NewRegistration() {
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Address
@@ -1075,12 +1158,12 @@ export default function NewRegistration() {
               </div>
 
               {/* Section 2: Company Information */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                   <FiHome className="text-green-600" />
                   Company Information
                 </h3>
-                
+
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -1096,7 +1179,7 @@ export default function NewRegistration() {
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       *Company Email
@@ -1111,7 +1194,7 @@ export default function NewRegistration() {
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       *Company Contact Number
@@ -1126,7 +1209,7 @@ export default function NewRegistration() {
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Company Country
@@ -1137,7 +1220,7 @@ export default function NewRegistration() {
                       onChange={(e) => {
                         handleInputChange(e);
                         // Clear state when country changes
-                        setFormData(prev => ({ ...prev, company_state: "" }));
+                        setFormData((prev) => ({ ...prev, company_state: "" }));
                         // Fetch company states for the selected country
                         if (e.target.value) {
                           fetchCompanyStates(e.target.value);
@@ -1149,7 +1232,9 @@ export default function NewRegistration() {
                     >
                       <option value="">Select Country</option>
                       {loadingCountries ? (
-                        <option value="" disabled>Loading countries...</option>
+                        <option value="" disabled>
+                          Loading countries...
+                        </option>
                       ) : (
                         countries.map((country, index) => (
                           <option key={index} value={country.country}>
@@ -1159,7 +1244,7 @@ export default function NewRegistration() {
                       )}
                     </select>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Company State
@@ -1172,9 +1257,11 @@ export default function NewRegistration() {
                     >
                       <option value="">Select State</option>
                       {loadingCompanyStates ? (
-                        <option value="" disabled>Loading states...</option>
+                        <option value="" disabled>
+                          Loading states...
+                        </option>
                       ) : (
-                        companyStates.map(state => (
+                        companyStates.map((state) => (
                           <option key={state.id} value={state.id}>
                             {state.state}
                           </option>
@@ -1182,7 +1269,7 @@ export default function NewRegistration() {
                       )}
                     </select>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Company District
@@ -1196,7 +1283,7 @@ export default function NewRegistration() {
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Company City
@@ -1210,7 +1297,7 @@ export default function NewRegistration() {
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Company Pincode
@@ -1224,7 +1311,7 @@ export default function NewRegistration() {
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Company Address
@@ -1245,12 +1332,12 @@ export default function NewRegistration() {
             {/* Additional Details Sections - Side by Side */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               {/* Section 3: User Additional Details */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                   <FiUser className="text-purple-600" />
                   User Additional Details
                 </h3>
-                
+
                 <div className="space-y-4">
                   {loadingUserFields ? (
                     <div className="text-center py-8">
@@ -1260,14 +1347,17 @@ export default function NewRegistration() {
                       </p>
                     </div>
                   ) : userAdditionalFields.length > 0 ? (
-                    userAdditionalFields.map(field => renderAdditionalField(field))
+                    userAdditionalFields.map((field) =>
+                      renderAdditionalField(field)
+                    )
                   ) : (
                     <div className="text-center py-8">
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         No additional user fields configured
                       </p>
                       <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                        Additional fields can be configured in the User Additional Fields page
+                        Additional fields can be configured in the User
+                        Additional Fields page
                       </p>
                     </div>
                   )}
@@ -1275,12 +1365,12 @@ export default function NewRegistration() {
               </div>
 
               {/* Section 4: Company Additional Details */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                   <FiHome className="text-indigo-600" />
                   Company Additional Details
                 </h3>
-                
+
                 <div className="space-y-4">
                   {loadingCompanyFields ? (
                     <div className="text-center py-8">
@@ -1290,14 +1380,17 @@ export default function NewRegistration() {
                       </p>
                     </div>
                   ) : companyAdditionalFields.length > 0 ? (
-                    companyAdditionalFields.map(field => renderAdditionalField(field, "company"))
+                    companyAdditionalFields.map((field) =>
+                      renderAdditionalField(field, "company")
+                    )
                   ) : (
                     <div className="text-center py-8">
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         No additional company fields configured
                       </p>
                       <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                        Additional fields can be configured in the Company Additional Fields page
+                        Additional fields can be configured in the Company
+                        Additional Fields page
                       </p>
                     </div>
                   )}
@@ -1341,8 +1434,10 @@ export default function NewRegistration() {
                 onClick={() => {
                   setShowUploadModal(false);
                   setSelectedFile(null);
-                  const fileInput = document.getElementById('modal-excel-file-input');
-                  if (fileInput) fileInput.value = '';
+                  const fileInput = document.getElementById(
+                    "modal-excel-file-input"
+                  );
+                  if (fileInput) fileInput.value = "";
                 }}
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
               >
@@ -1379,13 +1474,17 @@ export default function NewRegistration() {
                 {selectedFile && (
                   <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                     <div className="flex items-center gap-2">
-                      <FiUpload className="text-green-600 dark:text-green-400" size={16} />
+                      <FiUpload
+                        className="text-green-600 dark:text-green-400"
+                        size={16}
+                      />
                       <div>
                         <p className="text-sm font-medium text-green-900 dark:text-green-100">
                           {selectedFile.name}
                         </p>
                         <p className="text-xs text-green-600 dark:text-green-400">
-                          Size: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                          Size: {(selectedFile.size / 1024 / 1024).toFixed(2)}{" "}
+                          MB
                         </p>
                       </div>
                     </div>
@@ -1420,13 +1519,15 @@ export default function NewRegistration() {
               {/* Help Text */}
               <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                 <p className="text-xs text-blue-700 dark:text-blue-300">
-                  <strong>Supported formats:</strong> .xls, .xlsx, .csv (Max 5MB)
+                  <strong>Supported formats:</strong> .xls, .xlsx, .csv (Max
+                  5MB)
                 </p>
                 <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                   Click the download icon to get a sample file format
                 </p>
                 <p className="text-xs text-green-600 dark:text-green-400 mt-1 font-medium">
-                  ✨ Auto-fill: Form will be automatically populated when you select a file!
+                  ✨ Auto-fill: Form will be automatically populated when you
+                  select a file!
                 </p>
               </div>
             </div>
@@ -1435,4 +1536,4 @@ export default function NewRegistration() {
       )}
     </DashboardLayout>
   );
-} 
+}

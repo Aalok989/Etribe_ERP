@@ -10,26 +10,6 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import RichTextEditor from '../../components/shared/RichTextEditor';
 
-/**
- * MemberDetail Component
- * 
- * Features:
- * - User and Business Profile Management
- * - Document Management with Status Control (Pending/Approved/Rejected)
- * - Payment Details
- * - Product Management
- * 
- * Document Status Functionality:
- * - Small icon buttons (tick/cross) for approve/reject actions at bottom of cards
- * - Status indicators shown only at bottom: Pending (buttons), Approved (green indicator)
- * - Rejected documents are automatically removed from display
- * - Clean card design with single status location
- * - Status updates use real APIs: 
- *   - Approve: POST /UserDetail/update_docs_status
- *   - Reject: POST /userDetail/reject_document
- * - Sample documents are provided for demonstration
- */
-
 export default function MemberDetail_Admin() {
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const { memberId: urlMemberId } = useParams();
@@ -113,6 +93,10 @@ export default function MemberDetail_Admin() {
     productDescription: ''
   });
   const [productSaving, setProductSaving] = useState(false);
+  const [isEditingProduct, setIsEditingProduct] = useState(false);
+  const [editingProductId, setEditingProductId] = useState(null);
+  const [showProductViewModal, setShowProductViewModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   // --- Image Upload State ---
   const [userProfileImage, setUserProfileImage] = useState(null);
@@ -783,43 +767,206 @@ export default function MemberDetail_Admin() {
 
       let foundMember = null;
 
-      // First try to fetch from active_members endpoint
+      // First try to fetch user profile using get_profile endpoint
       try {
-        const activeResponse = await api.post('/userDetail/active_members', {}, {
+        console.log('🔍 Fetching user profile for member ID:', memberId);
+        
+        const profileResponse = await api.get(`/userDetail/get_user_profile/${memberId}`, {
           headers: getAuthHeaders(),
           timeout: 10000 // 10 second timeout
         });
 
-        if (activeResponse.data.success || activeResponse.data) {
-          const activeMembers = Array.isArray(activeResponse.data) ? activeResponse.data : activeResponse.data.data || [];
-          foundMember = activeMembers.find(m => m.id === memberId || m.company_detail_id === memberId || m.user_detail_id === memberId);
+        console.log('🔍 Profile response:', profileResponse.data);
+
+        if (profileResponse.data.status === true && profileResponse.data.data) {
+          const profileData = profileResponse.data.data;
+          console.log('🔍 Profile data received:', profileData);
+          
+          // Map the profile data to match the expected member structure
+          foundMember = {
+            id: profileData.id,
+            user_detail_id: profileData.id,
+            name: profileData.name,
+            email: profileData.email,
+            phone_num: profileData.phone_num,
+            address: profileData.address,
+            city: profileData.city,
+            district: profileData.district,
+            pincode: profileData.pincode,
+            country: profileData.country,
+            state: profileData.state,
+            area_id: profileData.area_id,
+            user_role_id: profileData.user_role_id,
+            role_name: profileData.role_name,
+            is_active: profileData.is_active,
+            profile_image: profileData.profile_image,
+            // Additional fields
+            ad1: profileData.ad1 || '',
+            ad2: profileData.ad2 || '',
+            ad3: profileData.ad3 || '',
+            ad4: profileData.ad4 || '',
+            ad5: profileData.ad5 || '',
+            ad6: profileData.ad6 || '',
+            ad7: profileData.ad7 || '',
+            ad8: profileData.ad8 || '',
+            ad9: profileData.ad9 || '',
+            ad10: profileData.ad10 || '',
+            lct: profileData.lct
+          };
+          
+          console.log('🔍 Mapped member data:', foundMember);
         }
       } catch (err) {
+        console.error('🔍 Error fetching profile:', err);
         if (err.code === 'ECONNRESET' || err.code === 'ECONNREFUSED') {
           // Network connection issue
         }
       }
 
-      // If not found in active members, try not_members endpoint
-      if (!foundMember) {
-        try {
-                  const pendingResponse = await api.post('/userDetail/not_members', { uid }, {
+      // Fetch company profile data using get_company_profile endpoint
+      try {
+        console.log('🔍 Fetching company profile for member ID:', memberId);
+        
+        const companyProfileResponse = await api.get(`/userDetail/get_user_company_profile/${memberId}`, {
           headers: getAuthHeaders(),
           timeout: 10000 // 10 second timeout
         });
+
+        console.log('🔍 Company profile response:', companyProfileResponse.data);
+
+        if (companyProfileResponse.data.status === true && companyProfileResponse.data.data) {
+          const companyData = companyProfileResponse.data.data;
+          console.log('🔍 Company data received:', companyData);
           
-          const pendingMembers = Array.isArray(pendingResponse.data) ? pendingResponse.data : pendingResponse.data.data || [];
-          foundMember = pendingMembers.find(m => m.id === memberId || m.company_detail_id === memberId || m.user_detail_id === memberId);
+          // If we already have user profile data, merge company data
+          if (foundMember) {
+            foundMember = {
+              ...foundMember,
+              // Company profile fields - map directly from API response
+              company_detail_id: companyData.id,
+              company_name: companyData.company_name,
+              company_email: companyData.company_email,
+              company_contact: companyData.company_contact,
+              company_address: companyData.company_address,
+              company_pan: companyData.company_pan,
+              company_gstn: companyData.company_gstn,
+              company_iec: companyData.company_iec,
+              company_logo: companyData.logo,
+              website: companyData.website,
+              phone_code: companyData.phone_code,
+              // Company location fields (these are separate from user location)
+              company_city: companyData.city || '',
+              company_district: companyData.district || '',
+              company_pincode: companyData.pincode || '',
+              company_country: companyData.country || '',
+              company_state: companyData.state || '',
+              company_area_id: companyData.area_id || '',
+              // Company additional fields (cad1-cad10) - map from ad1-ad10
+              cad1: companyData.ad1 || '',
+              cad2: companyData.ad2 || '',
+              cad3: companyData.ad3 || '',
+              cad4: companyData.ad4 || '',
+              cad5: companyData.ad5 || '',
+              cad6: companyData.ad6 || '',
+              cad7: companyData.ad7 || '',
+              cad8: companyData.ad8 || '',
+              cad9: companyData.ad9 || '',
+              cad10: companyData.ad10 || ''
+            };
+          } else {
+            // If no user profile data, create member from company data only
+            foundMember = {
+              id: companyData.id,
+              company_detail_id: companyData.id,
+              user_detail_id: companyData.user_detail_id,
+              company_name: companyData.company_name,
+              company_email: companyData.company_email,
+              company_contact: companyData.company_contact,
+              company_address: companyData.company_address,
+              company_pan: companyData.company_pan,
+              company_gstn: companyData.company_gstn,
+              company_iec: companyData.company_iec,
+              company_logo: companyData.logo,
+              website: companyData.website,
+              phone_code: companyData.phone_code,
+              // Company location fields
+              company_city: companyData.city || '',
+              company_district: companyData.district || '',
+              company_pincode: companyData.pincode || '',
+              company_country: companyData.country || '',
+              company_state: companyData.state || '',
+              company_area_id: companyData.area_id || '',
+              // Company additional fields
+              cad1: companyData.ad1 || '',
+              cad2: companyData.ad2 || '',
+              cad3: companyData.ad3 || '',
+              cad4: companyData.ad4 || '',
+              cad5: companyData.ad5 || '',
+              cad6: companyData.ad6 || '',
+              cad7: companyData.ad7 || '',
+              cad8: companyData.ad8 || '',
+              cad9: companyData.ad9 || '',
+              cad10: companyData.ad10 || ''
+            };
+          }
+          
+          console.log('🔍 Updated member data with company profile:', foundMember);
+        }
+      } catch (err) {
+        console.error('🔍 Error fetching company profile:', err);
+        if (err.code === 'ECONNRESET' || err.code === 'ECONNREFUSED') {
+          // Network connection issue
+        }
+      }
+
+      // If profile fetch failed, fallback to original method
+      if (!foundMember) {
+        console.log('🔍 Profile fetch failed, trying fallback methods...');
+        
+        // First try to fetch from active_members endpoint
+        try {
+          const activeResponse = await api.post('/userDetail/active_members', {}, {
+            headers: getAuthHeaders(),
+            timeout: 10000 // 10 second timeout
+          });
+
+          if (activeResponse.data.success || activeResponse.data) {
+            const activeMembers = Array.isArray(activeResponse.data) ? activeResponse.data : activeResponse.data.data || [];
+            foundMember = activeMembers.find(m => m.id === memberId || m.company_detail_id === memberId || m.user_detail_id === memberId);
+          }
         } catch (err) {
           if (err.code === 'ECONNRESET' || err.code === 'ECONNREFUSED') {
             // Network connection issue
           }
         }
+
+        // If not found in active members, try not_members endpoint
+        if (!foundMember) {
+          try {
+            const pendingResponse = await api.post('/userDetail/not_members', { uid }, {
+              headers: getAuthHeaders(),
+              timeout: 10000 // 10 second timeout
+            });
+            
+            const pendingMembers = Array.isArray(pendingResponse.data) ? pendingResponse.data : pendingResponse.data.data || [];
+            foundMember = pendingMembers.find(m => m.id === memberId || m.company_detail_id === memberId || m.user_detail_id === memberId);
+          } catch (err) {
+            if (err.code === 'ECONNRESET' || err.code === 'ECONNREFUSED') {
+              // Network connection issue
+            }
+          }
+        }
       }
       
       if (foundMember) {
+        console.log('🔍 Final member data being set:', foundMember);
+        console.log('🔍 Member name:', foundMember.name);
+        console.log('🔍 Member email:', foundMember.email);
+        console.log('🔍 Company name:', foundMember.company_name);
+        console.log('🔍 Company email:', foundMember.company_email);
         setMember(foundMember);
       } else {
+        console.log('🔍 Member not found in any endpoint');
         setError('Member not found');
       }
     } catch (err) {
@@ -1390,7 +1537,7 @@ export default function MemberDetail_Admin() {
         temp_password: member.temp_password || "",
         phone_num: finalEditData.phone_num,
         address: finalEditData.address,
-        area_id: finalEditData.state, // Send state ID as area_id
+        area_id: finalEditData.state || member.area_id || '',
         district: finalEditData.district,
         city: finalEditData.city,
         pincode: finalEditData.pincode,
@@ -1425,11 +1572,11 @@ export default function MemberDetail_Admin() {
         company_contact: finalEditData.company_contact || "",
         company_email: finalEditData.company_email || "",
         company_address: finalEditData.company_address || "",
-        city: finalEditData.city || "",
-        district: finalEditData.district || "",
-        pincode: finalEditData.pincode || "",
-        country: finalEditData.country || "",
-        area_id: finalEditData.state || member.area_id || "",
+        city: finalEditData.company_city || "",
+        district: finalEditData.company_district || "",
+        pincode: finalEditData.company_pincode || "",
+        country: finalEditData.company_country || "",
+        area_id: finalEditData.company_state || member.company_area_id || "",
         // Use ad1-ad10 for update API (not cad1-cad10)
         ad1: finalEditData.cad1 || "", // Map cad1 to ad1 for update
         ad2: finalEditData.cad2 || "", // Map cad2 to ad2 for update
@@ -1887,6 +2034,8 @@ export default function MemberDetail_Admin() {
 
   // --- Product Modal Functions ---
   const openProductModal = () => {
+    setIsEditingProduct(false);
+    setEditingProductId(null);
     setShowProductModal(true);
     setProductForm({
       hsnCode: '',
@@ -1898,11 +2047,30 @@ export default function MemberDetail_Admin() {
 
   const closeProductModal = () => {
     setShowProductModal(false);
+    setIsEditingProduct(false);
+    setEditingProductId(null);
     setProductForm({
       hsnCode: '',
       productName: '',
       productImage: null,
       productDescription: ''
+    });
+  };
+
+  const handleProductView = (product) => {
+    setSelectedProduct(product);
+    setShowProductViewModal(true);
+  };
+
+  const handleProductEdit = (product) => {
+    setIsEditingProduct(true);
+    setEditingProductId(product.id);
+    setShowProductModal(true);
+    setProductForm({
+      hsnCode: product.hsnCode || '',
+      productName: product.product || '',
+      productImage: null,
+      productDescription: product.description || ''
     });
   };
 
@@ -1924,7 +2092,36 @@ export default function MemberDetail_Admin() {
       const token = localStorage.getItem('token');
       const uid = localStorage.getItem('uid');
       
-      // Use the correct API endpoint with member ID in URL
+      if (isEditingProduct && editingProductId) {
+        // Edit existing product
+        const editForm = new FormData();
+        editForm.append('id', String(editingProductId));
+        editForm.append('hsn_code', productForm.hsnCode);
+        editForm.append('product_name', productForm.productName);
+        editForm.append('product_description', productForm.productDescription);
+        if (productForm.productImage) {
+          editForm.append('file', productForm.productImage);
+        }
+
+        const editResponse = await api.post(`/product/edit/${editingProductId}`, editForm, {
+          headers: {
+            ...getAuthHeaders(),
+            'Authorization': `Bearer ${token}`,
+          },
+          withCredentials: true,
+        });
+
+        console.log('Product edit response:', editResponse.data);
+
+        if (editResponse.data?.status === 'success' || editResponse.data?.message || editResponse.status === 200) {
+          toast.success('Product updated successfully!');
+          await fetchProducts();
+          closeProductModal();
+        } else {
+          toast.error(editResponse.data?.message || 'Failed to update product');
+        }
+      } else {
+        // Add new product
       const formData = new FormData();
       formData.append('hsn_code', productForm.hsnCode);
       formData.append('product_name', productForm.productName);
@@ -1950,11 +2147,12 @@ export default function MemberDetail_Admin() {
         closeProductModal();
       } else {
         toast.error(response.data?.message || 'Failed to add product');
+        }
       }
     } catch (error) {
-      console.error('Error adding product:', error);
+      console.error('Error saving product:', error);
       console.error('Error response:', error.response?.data);
-      toast.error(`Failed to add product: ${error.response?.data?.message || error.message}`);
+      toast.error(`Failed to save product: ${error.response?.data?.message || error.message}`);
     } finally {
       setProductSaving(false);
     }
@@ -2930,6 +3128,15 @@ export default function MemberDetail_Admin() {
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pincode</label>
+                <input
+                  type="text"
+                  value={editData.pincode || ''}
+                  onChange={(e) => handleFormChange('pincode', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-gray-100"
+                />
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Country</label>
                 <select
                   value={editData.country || ''}
@@ -2979,7 +3186,7 @@ export default function MemberDetail_Admin() {
                       {fieldName}
                     </label>
                     <input
-                      type={fieldKey === 'ad5' ? 'date' : 'text'}
+                      type="text"
                       value={editData[fieldKey] || ''}
                       onChange={(e) => handleFormChange(fieldKey, e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-gray-100"
@@ -3000,6 +3207,7 @@ export default function MemberDetail_Admin() {
                   { label: 'Address', key: 'address' },
                   { label: 'City', key: 'city' },
                   { label: 'District', key: 'district' },
+                  { label: 'Pincode', key: 'pincode' },
                   { label: 'Country', key: 'country' },
                   { label: 'State', key: 'state' },
                   // Dynamic User Additional Fields (all ad fields from API)
@@ -3116,8 +3324,8 @@ export default function MemberDetail_Admin() {
         )}
         <div className="text-center">
           <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-2">{member.company_name || 'Business'}</h2>
-          <div className="text-sm text-gray-500 dark:text-gray-300 font-medium">{member.company_email || member.email}</div>
-          <div className="text-sm text-gray-400 dark:text-gray-400">{member.company_contact || member.phone_num}</div>
+          <div className="text-sm text-gray-500 dark:text-gray-300 font-medium">{member.company_email || 'No company email'}</div>
+          <div className="text-sm text-gray-400 dark:text-gray-400">{member.company_contact || 'No company contact'}</div>
         </div>
       </div>
 
@@ -3164,29 +3372,38 @@ export default function MemberDetail_Admin() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">City</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company City</label>
                 <input
                   type="text"
-                  value={editData.city || ''}
-                  onChange={(e) => handleFormChange('city', e.target.value)}
+                  value={editData.company_city || ''}
+                  onChange={(e) => handleFormChange('company_city', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-gray-100"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">District</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company District</label>
                 <input
                   type="text"
-                  value={editData.district || ''}
-                  onChange={(e) => handleFormChange('district', e.target.value)}
+                  value={editData.company_district || ''}
+                  onChange={(e) => handleFormChange('company_district', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-gray-100"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Country</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company Pincode</label>
+                <input
+                  type="text"
+                  value={editData.company_pincode || ''}
+                  onChange={(e) => handleFormChange('company_pincode', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-gray-100"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company Country</label>
                 <select
-                  value={editData.country || ''}
+                  value={editData.company_country || ''}
                   onChange={(e) => {
-                    handleFormChange('country', e.target.value);
+                    handleFormChange('company_country', e.target.value);
                     if (e.target.value) {
                       fetchStates(e.target.value);
                     } else {
@@ -3202,10 +3419,10 @@ export default function MemberDetail_Admin() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">State</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company State</label>
                 <select
-                  value={editData.state || ''}
-                  onChange={(e) => handleFormChange('state', e.target.value)}
+                  value={editData.company_state || ''}
+                  onChange={(e) => handleFormChange('company_state', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-gray-100"
                 >
                   <option value="">Select State</option>
@@ -3256,14 +3473,14 @@ export default function MemberDetail_Admin() {
               <tbody>
                 {[
                   { label: 'Name', key: 'company_name' },
-                  { label: 'Email', key: 'company_email', fallback: 'email' },
-                  { label: 'Contact No', key: 'company_contact', fallback: 'phone_num' },
-                  { label: 'Address', key: 'company_address', fallback: 'address' },
-                  { label: 'City', key: 'city' },
-                  { label: 'District', key: 'district' },
-                  { label: 'Country', key: 'country' },
-                  { label: 'State', key: 'state' },
-                  { label: 'Pincode', key: 'pincode' },
+                  { label: 'Email', key: 'company_email' },
+                  { label: 'Contact No', key: 'company_contact' },
+                  { label: 'Address', key: 'company_address' },
+                  { label: 'City', key: 'company_city' },
+                  { label: 'District', key: 'company_district' },
+                  { label: 'Country', key: 'company_country' },
+                  { label: 'State', key: 'company_state' },
+                  { label: 'Pincode', key: 'company_pincode' },
                   // Dynamic Company Additional Fields (all cad fields from API)
                   ...Object.keys(companyAdditionalFields).map(fieldKey => ({
                     label: companyAdditionalFields[fieldKey],
@@ -3275,12 +3492,12 @@ export default function MemberDetail_Admin() {
                       <td className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-[#202123]/50 w-48 align-top">{label}</td>
                       <td className="px-6 py-4 bg-white dark:bg-[#1E1E1E]">
                         <span className="text-gray-900 dark:text-gray-100 text-base font-normal">
-                          {key === 'state' || key === 'country' ? 
+                          {key === 'company_state' || key === 'company_country' ? 
                             (stateCountryLoading ? 
                               <span className="text-gray-500">Loading...</span> : 
-                              (value || member[key] || (fallback ? member[fallback] : null) || '-')
+                              (value || member[key] || '-')
                             ) : 
-                            (value || member[key] || (fallback ? member[fallback] : null) || '-')
+                            (value || member[key] || '-')
                           }
                         </span>
                       </td>
@@ -4469,6 +4686,12 @@ export default function MemberDetail_Admin() {
                       >
                         Product Description {renderSortIcon('description')}
                       </th>
+                      <th
+                        className="p-3 font-semibold border-r border-indigo-200 dark:border-indigo-800 whitespace-nowrap"
+                        style={{ minWidth: '120px', width: '120px' }}
+                      >
+                        Action
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -4498,6 +4721,24 @@ export default function MemberDetail_Admin() {
                             className="max-h-20 overflow-y-auto"
                             dangerouslySetInnerHTML={{ __html: product.description || 'N/A' }}
                           />
+                        </td>
+                        <td className="p-3 text-center border-r border-gray-200 dark:border-gray-700">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleProductView(product)}
+                              className="p-2 text-indigo-600 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-indigo-100 rounded-full hover:bg-indigo-100 dark:hover:bg-gray-700 transition-colors"
+                              title="View"
+                            >
+                              <FiEye size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleProductEdit(product)}
+                              className="p-2 text-indigo-600 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-indigo-100 rounded-full hover:bg-indigo-100 dark:hover:bg-gray-700 transition-colors"
+                              title="Edit"
+                            >
+                              <FiEdit2 size={16} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -4531,6 +4772,22 @@ export default function MemberDetail_Admin() {
                           <div><span className="text-gray-600 dark:text-gray-400">HSN Code:</span><p className="font-medium text-gray-800 dark:text-gray-100">{product.hsnCode || 'N/A'}</p></div>
                           <div className="col-span-2"><span className="text-gray-600 dark:text-gray-400">Product Name:</span><p className="font-medium text-gray-800 dark:text-gray-100">{product.product || 'N/A'}</p></div>
                           <div className="col-span-2"><span className="text-gray-600 dark:text-gray-400">Description:</span><div className="mt-1 max-h-20 overflow-y-auto" dangerouslySetInnerHTML={{ __html: product.description || 'N/A' }} /></div>
+                        </div>
+                        <div className="mt-3 flex items-center gap-2">
+                          <button
+                            onClick={() => handleProductView(product)}
+                            className="p-2 text-indigo-600 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-indigo-100 rounded-full hover:bg-indigo-100 dark:hover:bg-gray-700 transition-colors"
+                            title="View"
+                          >
+                            <FiEye size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleProductEdit(product)}
+                            className="p-2 text-indigo-600 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-indigo-100 rounded-full hover:bg-indigo-100 dark:hover:bg-gray-700 transition-colors"
+                            title="Edit"
+                          >
+                            <FiEdit2 size={16} />
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -4929,7 +5186,7 @@ export default function MemberDetail_Admin() {
             >
               <FiX size={24} />
             </button>
-            <h2 className="text-xl font-bold mb-6 text-gray-800">Add Product</h2>
+            <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-gray-100">{isEditingProduct ? 'Edit Product' : 'Add Product'}</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               {/* HSN/SAC Code */}
@@ -5005,12 +5262,12 @@ export default function MemberDetail_Admin() {
                 {productSaving ? (
                   <>
                     <FiRefreshCw className="animate-spin" size={16} />
-                    Saving...
+                    {isEditingProduct ? 'Updating...' : 'Saving...'}
                   </>
                 ) : (
                   <>
                     <FiPlus size={16} />
-                    Save Product
+                    {isEditingProduct ? 'Update Product' : 'Save Product'}
                   </>
                 )}
               </button>
@@ -5019,7 +5276,105 @@ export default function MemberDetail_Admin() {
         </div>
       )}
 
+      {/* Product View Modal */}
+      {showProductViewModal && selectedProduct && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Product Details</h3>
+              <button
+                onClick={() => { setShowProductViewModal(false); setSelectedProduct(null); }}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <FiX size={24} />
+              </button>
+            </div>
 
+            <div className="p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h4 className="text-md font-semibold text-gray-900 dark:text-gray-100 mb-4">Product Information</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">HSN/SAC Code:</span>
+                      <span className="text-sm text-gray-900 dark:text-gray-100 break-words max-w-xs text-right">{selectedProduct.hsnCode || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Product Name:</span>
+                      <span className="text-sm text-gray-900 dark:text-gray-100 break-words max-w-xs text-right">{selectedProduct.product || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Company:</span>
+                      <span className="text-sm text-gray-900 dark:text-gray-100 break-words max-w-xs text-right">{selectedProduct.company || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Date:</span>
+                      <span className="text-sm text-gray-900 dark:text-gray-100">
+                        {selectedProduct.dtime ? new Date(selectedProduct.dtime).toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="text-md font-semibold text-gray-900 dark:text-gray-100 mb-4">Product Image</h4>
+                  {selectedProduct.image ? (
+                    <div className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
+                      <img
+                        src={`${BASE_URL}/${selectedProduct.image}`}
+                        alt="Product Image"
+                        className="w-full h-auto max-h-96 object-contain bg-gray-50 dark:bg-gray-700"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                      <div className="items-center justify-center h-48 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400" style={{ display: 'none' }}>
+                        <div className="text-center">
+                          <FiFile className="mx-auto text-4xl mb-2" />
+                          <p>Image not available</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center h-48 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                      <div className="text-center text-gray-500 dark:text-gray-400">
+                        <FiFile className="mx-auto text-4xl mb-2" />
+                        <p>No image available</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <h4 className="text-md font-semibold text-gray-900 dark:text-gray-100 mb-4">Description</h4>
+                <div className="text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg max-h-60 overflow-y-auto">
+                  {(() => {
+                    const description = selectedProduct.description || 'No description available';
+                    return description
+                      .replace(/<[^>]*>/g, '')
+                      .replace(/\n/g, '<br />')
+                      .split('<br />')
+                      .map((line, index) => (
+                        <p key={index} className="mb-2 last:mb-0">{line.trim() || '\u00A0'}</p>
+                      ));
+                  })()}
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => { setShowProductViewModal(false); setSelectedProduct(null); }}
+                  className="flex-1 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors font-medium"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit Payment Modal */}
       {showEditPaymentModal && selectedPayment && (

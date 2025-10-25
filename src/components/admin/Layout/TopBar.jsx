@@ -5,7 +5,6 @@ import api from "../../../api/axiosConfig";
 import { getAuthHeaders } from "../../../utils/apiHeaders";
 import { useDashboard } from "../../../context/DashboardContext";
 import { useGroupData } from "../../../context/GroupDataContext";
-import GlobalSearch from "../../common/GlobalSearch/GlobalSearch";
 
 export default function TopBar() {
   const [profile, setProfile] = useState({ name: "", email: "" });
@@ -168,9 +167,6 @@ export default function TopBar() {
     <header className="flex items-center justify-between bg-white dark:bg-[#1E1E1E] border-b border-gray-200 dark:border-gray-700 shadow px-3 sm:px-6 py-2 mb-2 rounded-xl min-h-[45px]">
       <div className="font-bold text-lg sm:text-xl text-gray-800 dark:text-gray-100 truncate">Dashboard Overview</div>
       <div className="flex items-center gap-2 sm:gap-4">
-        {/* Global Search */}
-        <GlobalSearch userType="admin" />
-        
         <button
           className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none flex items-center justify-center"
           title="Toggle theme"

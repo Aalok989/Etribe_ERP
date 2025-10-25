@@ -64,6 +64,7 @@ import ImportantContacts_User from "./pages/user/ImportantContacts_User";
 import GroupData_User from "./pages/user/GroupData_User";
 import UserAdditionalFields_User from "./pages/user/UserAdditionalFields_User";
 import Resume_User from "./pages/user/Resume_User";
+import SearchResult_User from "./pages/user/SearchResult_User";
 
 // Context Providers
 import { DashboardProvider } from "./context/DashboardContext";
@@ -247,6 +248,7 @@ function App() {
                   <Route path="group-data" element={<GroupData_User />} />
                   <Route path="user-additional-fields" element={<UserAdditionalFields_User />} />
                   <Route path="resume" element={<Resume_User />} />
+                  <Route path="search-results" element={<SearchResult_User />} />
                 </Routes>
               </ProtectedRoute>
             }
