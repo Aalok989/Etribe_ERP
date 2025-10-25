@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { FiSun, FiMoon, FiUser, FiBell, FiClock, FiCalendar, FiCheckCircle, FiRefreshCw, FiSearch } from "react-icons/fi";
+import { FiSun, FiMoon, FiUser, FiBell, FiClock, FiCalendar, FiCheckCircle, FiRefreshCw, FiSearch, FiMessageSquare } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import api from "../../../api/axiosConfig";
 import { getAuthHeaders } from "../../../utils/apiHeaders";
@@ -69,37 +69,80 @@ export default function TopBar() {
         setUnreadCount(0);
         return;
       }
-      const { data } = await api.post('/event/future', {}, {
-        headers: getAuthHeaders()
-      });
+
+      // Fetch both events and enquiries in parallel
+      const [eventsResponse, enquiriesResponse] = await Promise.all([
+        api.post('/event/future', {}, { headers: getAuthHeaders() }).catch(err => {
+          console.error('Error fetching events:', err);
+          return { data: { events: [] } };
+        }),
+        api.post('/product/view_enquiry', {}, { headers: getAuthHeaders() }).catch(err => {
+          console.error('Error fetching enquiries:', err);
+          return { data: { data: { view_enquiry: [] } } };
+        })
+      ]);
+
+      // Process events
       let backendEvents = [];
-      if (data && data.events) {
-        backendEvents = data.events;
-      } else if (data && data.data && Array.isArray(data.data.events)) {
-        backendEvents = data.data.events;
-      } else if (data && data.data && Array.isArray(data.data.event)) {
-        backendEvents = data.data.event;
-      } else if (data && Array.isArray(data.data)) {
-        backendEvents = data.data;
+      const eventsData = eventsResponse.data;
+      if (eventsData && eventsData.events) {
+        backendEvents = eventsData.events;
+      } else if (eventsData && eventsData.data && Array.isArray(eventsData.data.events)) {
+        backendEvents = eventsData.data.events;
+      } else if (eventsData && eventsData.data && Array.isArray(eventsData.data.event)) {
+        backendEvents = eventsData.data.event;
+      } else if (eventsData && Array.isArray(eventsData.data)) {
+        backendEvents = eventsData.data;
+      }
+
+      // Process enquiries
+      let backendEnquiries = [];
+      const enquiriesData = enquiriesResponse.data;
+      if (enquiriesData?.data?.view_enquiry) {
+        backendEnquiries = enquiriesData.data.view_enquiry;
+      } else if (enquiriesData?.data?.enquiry) {
+        backendEnquiries = enquiriesData.data.enquiry;
+      } else if (Array.isArray(enquiriesData?.data)) {
+        backendEnquiries = enquiriesData.data;
+      } else if (Array.isArray(enquiriesData)) {
+        backendEnquiries = enquiriesData;
       }
       
       const readNotificationIds = JSON.parse(localStorage.getItem('userReadNotifications') || '[]');
 
-      // Map events to notification objects, preserve read state if possible
-      setNotifications(prev => {
-        const mapped = backendEvents.map((e, idx) => {
-          const id = e.id || `event-${idx}`;
-          return {
-            id,
-            name: e.event_title || e.event || e.title || e.name || "Untitled Event",
-            date: e.event_date && e.event_time ? `${e.event_date}T${e.event_time}` : e.event_date || e.datetime || e.date_time || e.date,
-            read: readNotificationIds.includes(id),
-          };
-        });
-        setUnreadCount(mapped.filter(n => !n.read).length);
-        return mapped;
+      // Map events to notification objects
+      const eventNotifications = backendEvents.map((e, idx) => {
+        const id = e.id || `event-${idx}`;
+        return {
+          id,
+          type: 'event',
+          name: e.event_title || e.event || e.title || e.name || "Untitled Event",
+          date: e.event_date && e.event_time ? `${e.event_date}T${e.event_time}` : e.event_date || e.datetime || e.date_time || e.date,
+          read: readNotificationIds.includes(id),
+        };
       });
+
+      // Map enquiries to notification objects
+      const enquiryNotifications = backendEnquiries.map((e, idx) => {
+        const id = e.id || `enquiry-${idx}`;
+        return {
+          id,
+          type: 'enquiry',
+          name: `New enquiry for ${e.product_name || e.product || 'your product'}`,
+          date: e.dtime || e.posted_on || e.created_at || e.date || new Date().toISOString(),
+          companyName: e.company_name || e.company || e.business_name || 'Unknown Company',
+          enquiry: e.enquiry || e.message || e.description || '',
+          read: readNotificationIds.includes(id),
+        };
+      });
+
+      // Combine all notifications
+      const allNotifications = [...eventNotifications, ...enquiryNotifications];
+      
+      setNotifications(allNotifications);
+      setUnreadCount(allNotifications.filter(n => !n.read).length);
     } catch (error) {
+      console.error('Error fetching notifications:', error);
       setNotifications([]);
       setUnreadCount(0);
     }
@@ -286,26 +329,39 @@ export default function TopBar() {
               {/* Notification List */}
               <div className="max-h-64 sm:max-h-80 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800">
                 {notifications.filter(n => !n.read).length > 0 ? (
-                  notifications.filter(n => !n.read).map((event) => (
-                    <div key={event.id} className="flex items-start gap-2 sm:gap-3 px-3 sm:px-4 md:px-6 py-3 sm:py-4 group bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800 transition">
-                      <div className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                        <FiCalendar className="text-blue-500 dark:text-blue-300 text-sm sm:text-xl" />
+                  notifications.filter(n => !n.read).map((notification) => (
+                    <div key={notification.id} className="flex items-start gap-2 sm:gap-3 px-3 sm:px-4 md:px-6 py-3 sm:py-4 group bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                      <div className={`flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10 rounded-full flex items-center justify-center ${
+                        notification.type === 'enquiry' 
+                          ? 'bg-green-100 dark:bg-green-900' 
+                          : 'bg-blue-100 dark:bg-blue-900'
+                      }`}>
+                        {notification.type === 'enquiry' ? (
+                          <FiMessageSquare className="text-green-500 dark:text-green-300 text-sm sm:text-xl" />
+                        ) : (
+                          <FiCalendar className="text-blue-500 dark:text-blue-300 text-sm sm:text-xl" />
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-semibold text-gray-900 dark:text-white truncate text-sm sm:text-base">
-                          {event.name}
+                          {notification.name}
                         </div>
+                        {notification.type === 'enquiry' && notification.companyName && (
+                          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                            From: {notification.companyName}
+                          </div>
+                        )}
                         <div className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 mt-1">
                           <FiClock />
-                          {formatEventTime(event.date)}
+                          {formatEventTime(notification.date)}
                         </div>
                       </div>
                       <button
-                        onClick={() => markAsRead(event.id)}
+                        onClick={() => markAsRead(notification.id)}
                         className="ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs rounded bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 font-medium hover:bg-emerald-200 dark:hover:bg-emerald-800 transition flex-shrink-0"
                       >
                         Mark as read
-        </button>
+                      </button>
                     </div>
                   ))
                 ) : (
@@ -317,13 +373,20 @@ export default function TopBar() {
                 )}
               </div>
               {/* Footer */}
-              <div className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 border-t border-gray-100 dark:border-gray-800 flex justify-center">
+              <div className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 border-t border-gray-100 dark:border-gray-800 flex justify-center gap-2">
                 <Link
-                                     to="/user/all-events"
+                  to="/user/all-events"
                   onClick={() => setNotificationsOpen(false)}
                   className="inline-block px-3 sm:px-4 md:px-5 py-1.5 sm:py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow transition text-sm"
                 >
                   View All Events
+                </Link>
+                <Link
+                  to="/user/enquiry-received"
+                  onClick={() => setNotificationsOpen(false)}
+                  className="inline-block px-3 sm:px-4 md:px-5 py-1.5 sm:py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow transition text-sm"
+                >
+                  View Enquiries
                 </Link>
               </div>
             </div>

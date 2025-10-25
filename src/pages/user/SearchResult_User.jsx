@@ -21,6 +21,14 @@ export default function SearchResult() {
   const [enquiryMessage, setEnquiryMessage] = useState("");
   const [enquiryLoading, setEnquiryLoading] = useState(false);
 
+  // Get current user ID
+  const currentUserId = localStorage.getItem("uid");
+
+  // Helper function to check if current user owns the product
+  const isOwnProduct = (product) => {
+    return product.userDetailId === currentUserId || product.user_detail_id === currentUserId;
+  };
+
   // Initialize search query from localStorage (set by TopBar search)
   useEffect(() => {
     const savedQuery = localStorage.getItem('globalSearchQuery');
@@ -576,14 +584,16 @@ export default function SearchResult() {
                 Product Details
               </h2>
               <div className="flex items-center gap-2">
-                <button
-                  onClick={openEnquiryModal}
-                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-                  title="Send Enquiry"
-                >
-                  <FiSend size={16} />
-                  Enquiry
-                </button>
+                {!isOwnProduct(selectedItem) && (
+                  <button
+                    onClick={openEnquiryModal}
+                    className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                    title="Send Enquiry"
+                  >
+                    <FiSend size={16} />
+                    Enquiry
+                  </button>
+                )}
                 <button
                   onClick={closeViewModal}
                   className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
@@ -600,6 +610,11 @@ export default function SearchResult() {
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
                   <FiFile className="text-indigo-600" />
                   Product Information
+                  {isOwnProduct(selectedItem) && (
+                    <span className="ml-auto px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-sm font-medium rounded-full">
+                      Your Product
+                    </span>
+                  )}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
