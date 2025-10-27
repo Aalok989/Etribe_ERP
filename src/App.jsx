@@ -10,6 +10,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 // Shared Components
 import Login from "./pages/shared/Login";
+import FastPreloader from "./components/user/FastPreloader/FastPreloader";
 
 // Admin Pages
 import Dashboard_Admin from "./pages/admin/Dashboard_Admin";
@@ -71,21 +72,31 @@ import { DashboardProvider } from "./context/DashboardContext";
 
 // Authentication hook
 function useAuth() {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return !!localStorage.getItem("token");
-  });
-
-  const [userRole, setUserRole] = useState(() => {
-    return localStorage.getItem("userRole") || "user";
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState("user");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = () => {
+    const checkAuth = async () => {
+      setIsLoading(true);
       const token = localStorage.getItem("token");
       const role = localStorage.getItem("userRole") || "user";
+      
       console.log('Auth check - Token:', !!token, 'Role:', role);
-      setIsAuthenticated(!!token);
+      
+      if (!token) {
+        console.log('No token found, user not authenticated');
+        setIsAuthenticated(false);
+        setUserRole("user");
+        setIsLoading(false);
+        return;
+      }
+
+      // For now, assume token is valid if it exists
+      // In a production app, you might want to validate the token with the server
+      setIsAuthenticated(true);
       setUserRole(role);
+      setIsLoading(false);
     };
 
     // Check auth on mount
@@ -106,14 +117,19 @@ function useAuth() {
     };
   }, []);
 
-  return { isAuthenticated, userRole };
+  return { isAuthenticated, userRole, isLoading };
 }
 
 // Protected Route Component
 function ProtectedRoute({ children, requiredRole = "user" }) {
-  const { isAuthenticated, userRole } = useAuth();
+  const { isAuthenticated, userRole, isLoading } = useAuth();
   
-  console.log('ProtectedRoute - Required role:', requiredRole, 'User role:', userRole, 'Authenticated:', isAuthenticated);
+  console.log('ProtectedRoute - Required role:', requiredRole, 'User role:', userRole, 'Authenticated:', isAuthenticated, 'Loading:', isLoading);
+  
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return <FastPreloader />;
+  }
   
   if (!isAuthenticated) {
     console.log('Redirecting to login - not authenticated');
@@ -140,7 +156,12 @@ function ProtectedRoute({ children, requiredRole = "user" }) {
 
 
 function App() {
-  const { isAuthenticated, userRole } = useAuth();
+  const { isAuthenticated, userRole, isLoading } = useAuth();
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return <FastPreloader />;
+  }
 
   return (
     <DashboardProvider>

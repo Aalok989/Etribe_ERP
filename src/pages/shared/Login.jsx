@@ -33,13 +33,14 @@ const Login = () => {
   const [loadingStates, setLoadingStates] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // If token exists, redirect to dashboard
-    const token = localStorage.getItem('token');
-    if (token) {
-      navigate('/dashboard', { replace: true });
-    }
-  }, [navigate]);
+  // Remove automatic redirect - let App.jsx handle authentication flow
+  // useEffect(() => {
+  //   // If token exists, redirect to dashboard
+  //   const token = localStorage.getItem('token');
+  //   if (token) {
+  //     navigate('/dashboard', { replace: true });
+  //   }
+  // }, [navigate]);
 
   // Fetch countries
   const fetchCountries = async () => {
