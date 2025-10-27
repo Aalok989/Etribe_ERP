@@ -1,6 +1,15 @@
+// ============================================================================
+// IMPORTS AND DEPENDENCIES
+// ============================================================================
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { FiEdit2, FiArrowUp, FiUser, FiMail, FiPhone, FiMapPin, FiHome, FiCalendar, FiShield, FiFileText, FiGlobe, FiAlertCircle, FiChevronLeft, FiRefreshCw, FiBriefcase, FiX, FiSearch, FiUsers, FiCopy, FiDownload, FiFile, FiChevronDown, FiEye, FiEdit, FiTrash2, FiChevronRight, FiChevronUp, FiImage, FiFolder, FiPlus, FiUpload } from "react-icons/fi";
+import { 
+  FiEdit2, FiArrowUp, FiUser, FiMail, FiPhone, FiMapPin, FiHome, FiCalendar, 
+  FiShield, FiFileText, FiGlobe, FiAlertCircle, FiChevronLeft, FiRefreshCw, 
+  FiBriefcase, FiX, FiSearch, FiUsers, FiCopy, FiDownload, FiFile, FiChevronDown, 
+  FiEye, FiEdit, FiTrash2, FiChevronRight, FiChevronUp, FiImage, FiFolder, 
+  FiPlus, FiUpload 
+} from "react-icons/fi";
 import DashboardLayout from "../../components/user/Layout/DashboardLayout";
 import api from "../../api/axiosConfig";
 import { getAuthHeaders } from "../../utils/apiHeaders";
@@ -9,27 +18,14 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-/**
- * MemberDetail Component
- * 
- * Features:
- * - User and Business Profile Management
- * - Document Management with Status Control (Pending/Approved/Rejected)
- * - Payment Details
- * - Product Management
- * 
- * Document Status Functionality:
- * - Small icon buttons (tick/cross) for approve/reject actions at bottom of cards
- * - Status indicators shown only at bottom: Pending (buttons), Approved (green indicator)
- * - Rejected documents are automatically removed from display
- * - Clean card design with single status location
- * - Status updates use real APIs: 
- *   - Approve: POST /UserDetail/update_docs_status
- *   - Reject: POST /userDetail/reject_document
-
- */
+// ============================================================================
+// COMPONENT HEADER AND DOCUMENTATION
+// ============================================================================
 
 export default function MemberDetail() {
+  // ============================================================================
+  // ROUTING AND INITIALIZATION
+  // ============================================================================
   const { memberId: urlMemberId } = useParams();
   const navigate = useNavigate();
   
@@ -48,6 +44,10 @@ export default function MemberDetail() {
       userEmail: localStorage.getItem("userEmail")
     }
   });
+
+  // ============================================================================
+  // CORE COMPONENT STATE
+  // ============================================================================
   const [member, setMember] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -58,6 +58,10 @@ export default function MemberDetail() {
   const [editBusinessMode, setEditBusinessMode] = useState(false);
   const [editData, setEditData] = useState({});
   const [saving, setSaving] = useState(false);
+
+  // ============================================================================
+  // LOCATION AND ADDITIONAL FIELDS STATE
+  // ============================================================================
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
   const [userAdditionalFields, setUserAdditionalFields] = useState({});
@@ -69,7 +73,16 @@ export default function MemberDetail() {
   const [statesCache, setStatesCache] = useState({});
   const isAdditionalFieldsFetched = useRef(false);
 
-  // --- Company Additional Fields State and Logic (integrated from CompanyAdditionalFields.jsx) ---
+  // ============================================================================
+  // MY PROFILE STATE
+  // ============================================================================
+  const [userProfileImage, setUserProfileImage] = useState(null);
+  const [imageUploading, setImageUploading] = useState(false);
+
+  // ============================================================================
+  // MY BUSINESS STATE
+  // ============================================================================
+  const [companyLogoImage, setCompanyLogoImage] = useState(null);
   const [companyFieldsData, setCompanyFieldsData] = useState({
     companyField1: "",
     companyField2: "",
@@ -84,7 +97,30 @@ export default function MemberDetail() {
   });
   const [companyFieldsLoading, setCompanyFieldsLoading] = useState(false);
 
-  // --- Payment Details State and Logic (copied and adapted from PaymentDetails.jsx) ---
+  // ============================================================================
+  // COMPANY DOCUMENTS STATE
+  // ============================================================================
+  const [companyDocuments, setCompanyDocuments] = useState([]);
+  const [showDocumentModal, setShowDocumentModal] = useState(false);
+  const [documentType, setDocumentType] = useState('');
+  const [documentDescription, setDocumentDescription] = useState('');
+  const [documentFile, setDocumentFile] = useState(null);
+  const [documentSection, setDocumentSection] = useState('company'); // 'company' or 'personal'
+  const [documentTypes, setDocumentTypes] = useState([{ value: '', label: 'Select' }]);
+  const [documentTypesLoading, setDocumentTypesLoading] = useState(false);
+  const [userDocuments, setUserDocuments] = useState([]);
+  const [userDocumentsLoading, setUserDocumentsLoading] = useState(false);
+  const [showDocumentViewModal, setShowDocumentViewModal] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState(null);
+
+  // ============================================================================
+  // PERSONAL DOCUMENTS STATE
+  // ============================================================================
+  const [personalDocuments, setPersonalDocuments] = useState([]);
+
+  // ============================================================================
+  // PAYMENT DETAILS STATE
+  // ============================================================================
   const [payments, setPayments] = useState([]);
   const [paymentsLoading, setPaymentsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -102,32 +138,18 @@ export default function MemberDetail() {
     chequeStatus: '',
     statusUpdateDate: ''
   });
-  const [bankDetails, setBankDetails] = useState([]);
-  const [bankDetailsLoading, setBankDetailsLoading] = useState(false);
   const [sortField, setSortField] = useState("date");
   const [sortDirection, setSortDirection] = useState("desc");
 
-  // --- Document Modal State ---
-  const [showDocumentModal, setShowDocumentModal] = useState(false);
-  const [documentType, setDocumentType] = useState('');
-  const [documentDescription, setDocumentDescription] = useState('');
-  const [documentFile, setDocumentFile] = useState(null);
-  const [documentSection, setDocumentSection] = useState('company'); // 'company' or 'personal'
-  const [companyDocuments, setCompanyDocuments] = useState([]);
-  const [personalDocuments, setPersonalDocuments] = useState([]);
+  // ============================================================================
+  // BANK DETAILS STATE
+  // ============================================================================
+  const [bankDetails, setBankDetails] = useState([]);
+  const [bankDetailsLoading, setBankDetailsLoading] = useState(false);
 
-  const [documentTypes, setDocumentTypes] = useState([{ value: '', label: 'Select' }]);
-  const [documentTypesLoading, setDocumentTypesLoading] = useState(false);
-
-  // --- Document Fetching State ---
-  const [userDocuments, setUserDocuments] = useState([]);
-  const [userDocumentsLoading, setUserDocumentsLoading] = useState(false);
-
-  // --- Document View Modal State ---
-  const [showDocumentViewModal, setShowDocumentViewModal] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState(null);
-
-  // --- Product Modal State ---
+  // ============================================================================
+  // MODAL AND FORM STATE
+  // ============================================================================
   const [showProductModal, setShowProductModal] = useState(false);
   const [productForm, setProductForm] = useState({
     hsnCode: '',
@@ -137,14 +159,8 @@ export default function MemberDetail() {
   });
   const [productSaving, setProductSaving] = useState(false);
 
-  // --- Image Upload State ---
-  const [userProfileImage, setUserProfileImage] = useState(null);
-  const [companyLogoImage, setCompanyLogoImage] = useState(null);
-  const [imageUploading, setImageUploading] = useState(false);
-
-  // --- Payment Modal State ---
+  // Payment Modal State
   const [showEditPaymentModal, setShowEditPaymentModal] = useState(false);
-  // Payment modes are now fetched from API via usePaymentModes hook
   const [bankNames, setBankNames] = useState([]);
   const [editPaymentForm, setEditPaymentForm] = useState({
     id: '',
@@ -156,7 +172,7 @@ export default function MemberDetail() {
   const [paymentFormErrors, setPaymentFormErrors] = useState({});
   const [savePaymentLoading, setSavePaymentLoading] = useState(false);
 
-  // --- Add Payment Modal State ---
+  // Add Payment Modal State
   const [showAddPaymentModal, setShowAddPaymentModal] = useState(false);
   const [addPaymentForm, setAddPaymentForm] = useState({
     plan: "",
@@ -176,6 +192,9 @@ export default function MemberDetail() {
   const [selectedPaymentModeName, setSelectedPaymentModeName] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  // ============================================================================
+  // DOCUMENT MANAGEMENT FUNCTIONS
+  // ============================================================================
   const fetchDocumentTypes = async (section) => {
     setDocumentTypesLoading(true);
     try {
@@ -576,6 +595,9 @@ export default function MemberDetail() {
     // eslint-disable-next-line
   }, [payments, searchTerm]);
 
+  // ============================================================================
+  // PAYMENT MANAGEMENT FUNCTIONS
+  // ============================================================================
   const fetchPayments = async () => {
     try {
       setPaymentsLoading(true);
@@ -774,6 +796,9 @@ export default function MemberDetail() {
     setCurrentPage(1);
   }, [payments, searchTerm]);
 
+  // ============================================================================
+  // MEMBER DETAILS AND PROFILE FUNCTIONS
+  // ============================================================================
   const fetchMemberDetails = useCallback(async () => {
     try {
       setLoading(true);
@@ -1081,6 +1106,9 @@ export default function MemberDetail() {
     }
   }, []); // Run only once on mount
 
+  // ============================================================================
+  // LOCATION AND ADDITIONAL FIELDS FUNCTIONS
+  // ============================================================================
   const fetchCountries = async () => {
     try {
       // Return cached data if available
@@ -1556,6 +1584,9 @@ export default function MemberDetail() {
     }));
   };
 
+  // ============================================================================
+  // SAVE AND EDIT FUNCTIONS
+  // ============================================================================
   const handleSave = async () => {
     try {
       setSaving(true);
@@ -1766,6 +1797,9 @@ export default function MemberDetail() {
     return roles[roleId] || 'Member';
   };
 
+  // ============================================================================
+  // UI AND TAB MANAGEMENT FUNCTIONS
+  // ============================================================================
   const tabs = useMemo(() => [
     { id: 'user-profile', label: 'My Profile' },
     { id: 'business-profile', label: 'My Business' },
@@ -1922,6 +1956,9 @@ export default function MemberDetail() {
     // eslint-disable-next-line
   }, [products, productSearchTerm]);
 
+  // ============================================================================
+  // PRODUCT MANAGEMENT FUNCTIONS
+  // ============================================================================
   const fetchProducts = async () => {
     try {
       setProductsLoading(true);
@@ -4991,6 +5028,9 @@ export default function MemberDetail() {
 
   console.log('🔍 Rendering main component content...');
   
+  // ============================================================================
+  // JSX RENDER
+  // ============================================================================
   return (
     <DashboardLayout>
       <style dangerouslySetInnerHTML={{ __html: editorStyles }} />
