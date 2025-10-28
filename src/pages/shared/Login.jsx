@@ -434,7 +434,7 @@ const Login = () => {
         <div className="flex flex-col items-center mb-6">
           <img src={logo} alt="Company Logo" className="h-20 mb-4 drop-shadow-xl rounded-full bg-white/80 p-2" />
           <h2 className={`text-3xl font-extrabold tracking-tight mb-1 ${isLogin ? 'text-primary-dark' : 'text-green-700'}`}>{isLogin ? 'Welcome Back' : 'Create Account'}</h2>
-          <p className="text-accent text-sm mb-2">{isLogin ? 'Sign in to your account' : 'Register to get started'}</p>
+          <p className="text-accent text-sm mb-2">{isLogin ? 'Hi in to your account' : 'Hello to get started'}</p>
         </div>
         {isLogin ? (
           <form className="space-y-5" onSubmit={handleLogin}>
