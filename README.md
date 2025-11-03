@@ -106,102 +106,18 @@ touch .env
 Then add these environment variables to the `.env` file:
 
 ```env
-VITE_API_BASE_URL=base_url_here
-VITE_CLIENT_SERVICE=your_client_service_here
-VITE_AUTH_KEY=your_auth_key_here
-VITE_RURL=your_rurl_here
-```
-
-**Important Notes:**
-- Replace the placeholder values with your actual API credentials
-- Never commit the `.env` file to version control (it's already in `.gitignore`)
-- Contact your backend team or project administrator for these values
-
-### Step 4: Run the Development Server
-
-Now that everything is set up, start the development server:
-
-```bash
-npm run dev
-```
-
-You should see output like this:
-
-```
-  VITE v7.0.4  ready in 500 ms
-
-  ➜  Local:   http://localhost:5173/
-  ➜  Network: use --host to expose
-```
-
-Open your browser and go to `http://localhost:5173` to see the application running.
-
-### Step 5: Build for Production
-
-When you're ready to deploy the application, create a production build:
-
-```bash
-npm run build
-```
-
-This will create an optimized production build in the `dist` folder with:
-- Minified JavaScript and CSS
-- Code splitting for better performance
-- Removed console logs and debuggers
-- Optimized assets
-
-To preview the production build locally:
-
-```bash
-npm run preview
-```
-
-### Building for Production with Jenkins
-
-**Important**: When building for production in Jenkins (or any CI/CD pipeline), you **MUST** set the `VITE_API_BASE_URL` environment variable during the build process. The Vite proxy only works in development mode, so in production builds, the application needs the full API URL.
-
-#### Jenkins Build Configuration
-
-In your Jenkins pipeline or build script, ensure you set the environment variable before running the build:
-
-**Option 1: Jenkins Environment Variables (Recommended)**
-```
-VITE_API_BASE_URL=https://api.etribes.mittalservices.com/
+VITE_API_BASE_URL=your_api_url_here
 VITE_CLIENT_SERVICE=your_client_service
 VITE_AUTH_KEY=your_auth_key
 VITE_RURL=your_rurl
 ```
 
-**Option 2: Inline with Build Command**
+4. Start the development server:
 ```bash
-VITE_API_BASE_URL=https://api.etribes.mittalservices.com/ npm run build
+npm run dev
 ```
 
-**Option 3: Jenkinsfile Example**
-```groovy
-stage('Build') {
-    environment {
-        VITE_API_BASE_URL = 'https://api.etribes.mittalservices.com/'
-        VITE_CLIENT_SERVICE = credentials('vite-client-service')
-        VITE_AUTH_KEY = credentials('vite-auth-key')
-        VITE_RURL = credentials('vite-rurl')
-    }
-    steps {
-        sh 'npm install'
-        sh 'npm run build'
-    }
-}
-```
-
-#### Why This Matters
-
-- **Development**: The Vite dev server proxy rewrites `/api` requests to the actual API URL
-- **Production**: There's no proxy, so the app needs the full API base URL at build time
-- **404 Errors**: If `VITE_API_BASE_URL` is not set during build, the app will try to call `/api` on the same domain (where it doesn't exist), causing 404 errors
-
-#### Verification
-
-After building, check the `dist` folder. The API base URL should be embedded in the JavaScript bundle. You can verify this by searching for your API URL in the built files.
+The app should now be running at `http://localhost:5173`
 
 ## Project Structure
 
@@ -259,169 +175,61 @@ Etribe-test/
 
 ## Key Features
 
-### For Administrators
-- **Dashboard & Analytics**: Real-time statistics and charts for member activity, payments, and events
-- **Member Management**: Complete member lifecycle management (active, inactive, pending approval, expired)
-- **Event Management**: Create, schedule, and track events with attendance management
-- **Financial Tracking**: Monitor payments, dues, and generate financial reports
-- **Document Management**: Upload and manage documents, resumes, and files
-- **Communication Tools**: Send circulars, manage feedback, and handle grievances
-- **Role Management**: Granular access control and permission management
-- **Settings Configuration**: Customize membership plans, additional fields, SMTP, and master settings
+### For Admins
+- Dashboard with overview statistics
+- Member management (add, edit, delete)
+- Event creation and management
+- Payment tracking and reports
+- User role management
+- Document approval system
 
-### For Members (Users)
-- **Personal Dashboard**: View overview statistics and upcoming events
-- **Profile Management**: Update personal and business information
-- **Document Upload**: Upload resumes, documents, and additional fields
-- **Event Participation**: Browse events, register, and view past events
-- **Business Services**: Showcase products and services to other members
-- **Communication**: Submit feedback, grievances, and enquiries
-- **Member Directory**: Search and connect with other members
-- **Payment History**: Track dues and payment records
+### For Users
+- Personal profile management
+- Business profile updates
+- Document upload and management
+- Payment history
+- Event participation
+- Communication tools
 
-## Technology Stack
+## Common Issues & Solutions
 
-- **Frontend Framework**: React 19.1.0
-- **Routing**: React Router DOM 7.6.3
-- **Styling**: Tailwind CSS 3.4.3
-- **State Management**: React Context API
-- **HTTP Client**: Axios 1.10.0
-- **Build Tool**: Vite 7.0.4
-- **Rich Text Editor**: Tiptap 3.2.1
-- **Charts**: Recharts 3.1.0
-- **Notifications**: React Toastify 11.0.5
-- **Icons**: React Icons 5.5.0, Lucide React 0.525.0
-- **File Processing**: jsPDF 3.0.1, jsPDF AutoTable 5.0.2, XLSX 0.18.5
+### White Screen on Member Detail Page
+If you're seeing a white screen when trying to access member details, check that:
+1. The route includes a member ID (e.g., `/user/member-detail/me`)
+2. Your authentication token is valid
+3. The API endpoints are accessible
 
-## Available Scripts
+### API 404 Errors
+Some endpoints might not exist yet. The system has fallback logic, but if you're getting consistent 404s, check your API configuration.
 
-```bash
-# Development server
-npm run dev
+## Development Notes
 
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-
-# Run linter
-npm run lint
-```
-
-## Common Issues & Troubleshooting
-
-### Port Already in Use
-
-**Error**: `Error: Port 5173 is already in use`
-
-**Solution**: 
-1. Find what's using the port: `lsof -i :5173` (Mac/Linux) or `netstat -ano | findstr :5173` (Windows)
-2. Kill the process, or
-3. Run on a different port: `npm run dev -- --port 3000`
-
-### Module Not Found Errors
-
-**Error**: `Cannot find module 'xyz'`
-
-**Solution**:
-1. Delete `node_modules` folder and `package-lock.json`
-2. Clear npm cache: `npm cache clean --force`
-3. Reinstall: `npm install`
-
-### API Connection Issues
-
-**Error**: Network errors or 404s when calling API
-
-**Solution**:
-1. Verify your `.env` file exists and has correct values
-2. Check if your backend server is running
-3. Restart the dev server after changing `.env` (Vite doesn't auto-reload env changes)
-4. Check browser console for CORS errors
-
-### Production Build 404 Errors (Jenkins)
-
-**Error**: All API calls return 404 in production build, but work fine locally
-
-**Solution**:
-1. **This is the most common issue**: The `VITE_API_BASE_URL` environment variable must be set during the Jenkins build process
-2. Check your Jenkins build configuration - ensure environment variables are set before `npm run build`
-3. Verify the variable is exported: Check Jenkins console output for environment variables
-4. Remember: Vite inlines environment variables at build time, not runtime
-5. The variable must be prefixed with `VITE_` to be accessible in the code
-6. After building, check the `dist` folder - search for your API URL in the built JavaScript files to confirm it was embedded
-
-**Quick Fix for Jenkins**:
-```bash
-# Set environment variable before build
-export VITE_API_BASE_URL=https://api.etribes.mittalservices.com/
-npm run build
-```
-
-### Authentication Issues
-
-**Error**: Getting redirected to login, even after logging in
-
-**Solution**:
-1. Check localStorage in browser DevTools (Application tab)
-2. Look for `token` and `userRole` keys
-3. Clear localStorage and try logging in again
-4. Check if your API is returning valid tokens
-
-### Build Errors
-
-**Error**: Build fails with syntax errors
-
-**Solution**:
-1. Run linter: `npm run lint` to see errors
-2. Fix the linting errors in the reported files
-3. Some warnings can be ignored, but errors must be fixed
-
-### White Screen on Route Navigation
-
-**Error**: Page shows blank after navigation
-
-**Solution**:
-1. Open browser console (F12) and check for errors
-2. Verify the route exists in `App.jsx`
-3. Check if the component file exists in the correct directory
-4. Ensure the component is properly exported
-
-## Development Workflow
-
-### Typical Development Session
-
-1. **Pull latest changes**: `git pull origin master`
-2. **Install new dependencies** (if any): `npm install`
-3. **Start dev server**: `npm run dev`
-4. **Make your changes** in the `src/` folder
-5. **Test your changes** in the browser (hot reload is enabled)
-6. **Check for linting errors**: `npm run lint`
-7. **Commit your changes**: `git add .` then `git commit -m "Your message"`
-8. **Push to repository**: `git push origin your-branch`
-
-### Code Style
-
-- Use functional components with hooks
-- Follow React naming conventions (PascalCase for components)
-- Keep components small and focused
-- Use meaningful variable and function names
-- Add comments for complex logic
+- The app uses a role-based access control system
+- Admin routes are prefixed with `/admin/*`
+- User routes are prefixed with `/user/*`
+- Authentication is handled via localStorage tokens (you might want to implement proper JWT handling for production)
 
 ## Contributing
 
 We welcome contributions! Here's how you can help:
 
-1. **Fork the repository** to your GitHub account
-2. **Create a feature branch**: `git checkout -b feature/your-feature-name`
-3. **Make your changes** and test them thoroughly
-4. **Commit your changes**: `git commit -m "Add your feature description"`
-5. **Push to your fork**: `git push origin feature/your-feature-name`
-6. **Open a Pull Request** on the main repository
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-### Before Submitting
+## License
 
-- Run the linter to ensure code quality
-- Test your changes in different browsers
-- Update documentation if you add new features
-- Follow the existing code style.
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+If you run into issues or have questions:
+- Check the console for error messages
+- Look at the network tab in dev tools for API failures
+- Make sure all environment variables are set correctly
+
+---
+
+That's it! This should get you up and running. The codebase is pretty straightforward once you get the hang of it. Happy coding! 🚀
