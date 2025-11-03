@@ -156,6 +156,53 @@ To preview the production build locally:
 npm run preview
 ```
 
+### Building for Production with Jenkins
+
+**Important**: When building for production in Jenkins (or any CI/CD pipeline), you **MUST** set the `VITE_API_BASE_URL` environment variable during the build process. The Vite proxy only works in development mode, so in production builds, the application needs the full API URL.
+
+#### Jenkins Build Configuration
+
+In your Jenkins pipeline or build script, ensure you set the environment variable before running the build:
+
+**Option 1: Jenkins Environment Variables (Recommended)**
+```
+VITE_API_BASE_URL=https://api.etribes.mittalservices.com/
+VITE_CLIENT_SERVICE=your_client_service
+VITE_AUTH_KEY=your_auth_key
+VITE_RURL=your_rurl
+```
+
+**Option 2: Inline with Build Command**
+```bash
+VITE_API_BASE_URL=https://api.etribes.mittalservices.com/ npm run build
+```
+
+**Option 3: Jenkinsfile Example**
+```groovy
+stage('Build') {
+    environment {
+        VITE_API_BASE_URL = 'https://api.etribes.mittalservices.com/'
+        VITE_CLIENT_SERVICE = credentials('vite-client-service')
+        VITE_AUTH_KEY = credentials('vite-auth-key')
+        VITE_RURL = credentials('vite-rurl')
+    }
+    steps {
+        sh 'npm install'
+        sh 'npm run build'
+    }
+}
+```
+
+#### Why This Matters
+
+- **Development**: The Vite dev server proxy rewrites `/api` requests to the actual API URL
+- **Production**: There's no proxy, so the app needs the full API base URL at build time
+- **404 Errors**: If `VITE_API_BASE_URL` is not set during build, the app will try to call `/api` on the same domain (where it doesn't exist), causing 404 errors
+
+#### Verification
+
+After building, check the `dist` folder. The API base URL should be embedded in the JavaScript bundle. You can verify this by searching for your API URL in the built files.
+
 ## Project Structure
 
 Here's how the project is organized:
@@ -291,6 +338,25 @@ npm run lint
 2. Check if your backend server is running
 3. Restart the dev server after changing `.env` (Vite doesn't auto-reload env changes)
 4. Check browser console for CORS errors
+
+### Production Build 404 Errors (Jenkins)
+
+**Error**: All API calls return 404 in production build, but work fine locally
+
+**Solution**:
+1. **This is the most common issue**: The `VITE_API_BASE_URL` environment variable must be set during the Jenkins build process
+2. Check your Jenkins build configuration - ensure environment variables are set before `npm run build`
+3. Verify the variable is exported: Check Jenkins console output for environment variables
+4. Remember: Vite inlines environment variables at build time, not runtime
+5. The variable must be prefixed with `VITE_` to be accessible in the code
+6. After building, check the `dist` folder - search for your API URL in the built JavaScript files to confirm it was embedded
+
+**Quick Fix for Jenkins**:
+```bash
+# Set environment variable before build
+export VITE_API_BASE_URL=https://api.etribes.mittalservices.com/
+npm run build
+```
 
 ### Authentication Issues
 

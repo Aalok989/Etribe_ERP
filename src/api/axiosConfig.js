@@ -1,8 +1,34 @@
 import axios from 'axios';
 
+// Determine base URL: Use environment variable in production, or '/api' for development proxy
+// In development, Vite proxy handles '/api' -> actual API URL
+// In production, we need the full API URL since there's no proxy
+// SECURITY: Never hardcode API URLs in source code - always use environment variables
+const getBaseURL = () => {
+  // Check if we're in production mode
+  if (import.meta.env.PROD) {
+    // Production: Use the full API base URL from environment variable
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+    
+    if (!apiBaseUrl || apiBaseUrl.trim() === '') {
+      // Fail safely - don't use a hardcoded fallback URL for security
+      const errorMsg = 'VITE_API_BASE_URL environment variable is required for production builds. ' +
+                       'Please set it in your CI/CD pipeline (Jenkins) before running the build.';
+      console.error(errorMsg);
+      throw new Error(errorMsg);
+    }
+    
+    // Ensure the URL ends with a slash
+    return apiBaseUrl.endsWith('/') ? apiBaseUrl : `${apiBaseUrl}/`;
+  } else {
+    // Development: Use proxy path which will be handled by Vite dev server
+    return '/api';
+  }
+};
+
 // Create Axios instance
 const api = axios.create({
-  baseURL: '/api', // Use proxy path in development
+  baseURL: getBaseURL(),
   headers: {
     'Client-Service': import.meta.env.VITE_CLIENT_SERVICE,
     'Auth-Key': import.meta.env.VITE_AUTH_KEY,
