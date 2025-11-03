@@ -424,4 +424,4 @@ We welcome contributions! Here's how you can help:
 - Run the linter to ensure code quality
 - Test your changes in different browsers
 - Update documentation if you add new features
-- Follow the existing code style
+- Follow the existing code style.
