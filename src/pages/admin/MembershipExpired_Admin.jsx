@@ -6,6 +6,9 @@ import api from "../../api/axiosConfig";
 import { toast } from 'react-toastify';
 import { getAuthHeaders } from "../../utils/apiHeaders";
 import { useDashboard } from "../../context/DashboardContext";
+import PhonepeLogo from "../../assets/Phonepe.png";
+import RazorpayLogo from "../../assets/Razorpay.png";
+import StripeLogo from "../../assets/Stripe.png";
 
 import * as XLSX from 'xlsx';
 import jsPDF from "jspdf";
@@ -297,6 +300,8 @@ const addPaymentDetail = async (payload, isCheque) => {
   data.append('cheque_no', String(payload.cheque_no));
   data.append('cheque_date', payload.cheque_date);
   if (payload.file) data.append('file', payload.file);
+  if (payload.razorpay_order_id) data.append('razorpay_order_id', payload.razorpay_order_id);
+  if (payload.razorpay_payment_id) data.append('razorpay_payment_id', payload.razorpay_payment_id);
   // Remove content-type for FormData
   delete headers['Content-Type'];
   
@@ -352,6 +357,7 @@ export default function MembershipExpired() {
   const [updateError, setUpdateError] = useState(null);
   const [updateSuccess, setUpdateSuccess] = useState(null);
   const [selectedPaymentModeName, setSelectedPaymentModeName] = useState("");
+  const [selectedGateway, setSelectedGateway] = useState("");
 
   // Load table headers on component mount
   useEffect(() => {
@@ -590,6 +596,7 @@ export default function MembershipExpired() {
       chequeAmount: "",
       chequeDate: ""
     });
+    setSelectedGateway("");
   };
 
   const closeModify = () => {
@@ -608,15 +615,30 @@ export default function MembershipExpired() {
     });
     setUpdateError(null);
     setUpdateSuccess(null);
+    setSelectedGateway("");
   };
 
   const handleFormChange = (e) => {
     const { name, value, type, files } = e.target;
     
+    // Clear error when user makes changes
+    if (updateError) {
+      setUpdateError(null);
+    }
+    
     if (type === 'file') {
       setForm(prev => ({ ...prev, [name]: files[0] }));
     } else {
-      if (name === 'plan') {
+      if (name === 'paymentMode') {
+        setSelectedGateway("");
+        // When payment mode is selected, update the selected payment mode name
+        const selectedMode = paymentModes.find(mode => mode.id == value);
+        const modeName = selectedMode ? (selectedMode.mode_name || selectedMode.payment_mode_name || selectedMode.name || selectedMode.mode || selectedMode) : '';
+        console.log('Selected payment mode:', selectedMode);
+        console.log('Payment mode name:', modeName);
+        setSelectedPaymentModeName(modeName);
+        setForm(prev => ({ ...prev, [name]: value }));
+      } else if (name === 'plan') {
         // When membership plan is selected, auto-fill price and valid till
         const selectedPlan = plans.find(plan => plan.id == value);
           
@@ -675,14 +697,6 @@ export default function MembershipExpired() {
         } else {
           setForm(prev => ({ ...prev, [name]: value }));
         }
-      } else if (name === 'paymentMode') {
-        // When payment mode is selected, update the selected payment mode name
-        const selectedMode = paymentModes.find(mode => mode.id == value);
-        const modeName = selectedMode ? (selectedMode.mode_name || selectedMode.payment_mode_name || selectedMode.name || selectedMode.mode || selectedMode) : '';
-        console.log('Selected payment mode:', selectedMode);
-        console.log('Payment mode name:', modeName);
-        setSelectedPaymentModeName(modeName);
-        setForm(prev => ({ ...prev, [name]: value }));
       } else {
         setForm(prev => ({ ...prev, [name]: value }));
       }
@@ -692,6 +706,11 @@ export default function MembershipExpired() {
   const handleDateChange = (e) => {
     const selectedDate = e.target.value;
     setForm(prev => ({ ...prev, validUpto: selectedDate }));
+    
+    // Clear error when user makes changes
+    if (updateError) {
+      setUpdateError(null);
+    }
     
     // If we have a selected plan, recalculate the valid till based on the selected date
     if (form.plan) {
@@ -734,22 +753,144 @@ export default function MembershipExpired() {
     }
   };
 
+  // Create Razorpay order via backend API
+  const createRazorpayOrder = async (amount, currency = 'INR') => {
+    try {
+      const response = await api.post('/payment/razorpay/create-order', {
+        amount: Math.round(amount * 100), // Convert to paise (Razorpay expects amount in smallest currency unit)
+        currency: currency,
+        company_detail_id: modifyMember?.company_detail_id || modifyMember?.id,
+        plan_id: form.plan,
+        valid_upto: form.validUpto
+      }, {
+        headers: getAuthHeaders()
+      });
+      
+      if (response.data && (response.data.order_id || response.data.id)) {
+        return {
+          orderId: response.data.order_id || response.data.id,
+          amount: response.data.amount,
+          currency: response.data.currency || currency
+        };
+      }
+      throw new Error('Failed to create Razorpay order');
+    } catch (error) {
+      console.error('Error creating Razorpay order:', error);
+      throw new Error('Razorpay order creation failed. Please configure the backend API endpoint: /payment/razorpay/create-order');
+    }
+  };
+
+  // Handle Razorpay payment
+  const handleRazorpayPayment = async () => {
+    try {
+      const selectedPlan = plans.find(plan => plan.id == form.plan);
+      const amount = selectedPlan ? parseFloat(selectedPlan.price || selectedPlan.plan_price || selectedPlan.cost || selectedPlan.amount || 0) : 0;
+      
+      if (amount <= 0) {
+        setUpdateError('Invalid payment amount. Please select a valid membership plan.');
+        setUpdateLoading(false);
+        return;
+      }
+
+      const orderData = await createRazorpayOrder(amount);
+      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_1DP5mmOlF5G5ag';
+      
+      if (!window.Razorpay) {
+        setUpdateError('Razorpay checkout script not loaded. Please refresh the page.');
+        setUpdateLoading(false);
+        return;
+      }
+
+      const userName = modifyMember?.name || localStorage.getItem('userName') || 'User';
+      const userEmail = modifyMember?.email || localStorage.getItem('userEmail') || '';
+      const userPhone = modifyMember?.phone_num || modifyMember?.phone || modifyMember?.contact || '';
+
+      const options = {
+        key: razorpayKey,
+        amount: orderData.amount || Math.round(amount * 100),
+        currency: orderData.currency || 'INR',
+        name: 'ETribe Membership',
+        description: `Membership Plan Payment - ${selectedPlan?.plan_name || selectedPlan?.name || 'Plan'}`,
+        order_id: orderData.orderId,
+        handler: async function (response) {
+          console.log('Razorpay Payment Success:', response);
+          try {
+            const verifyResponse = await api.post('/payment/razorpay/verify', {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              company_detail_id: modifyMember?.company_detail_id || modifyMember?.id,
+              plan_id: form.plan,
+              amount: amount,
+              valid_upto: form.validUpto
+            }, {
+              headers: getAuthHeaders()
+            });
+
+            if (verifyResponse.data && (verifyResponse.data.status === true || verifyResponse.data.success === true)) {
+              const paymentModeString = `${selectedPaymentModeName} - Razorpay`;
+              const paymentPayload = {
+                company_detail_id: modifyMember?.company_detail_id || modifyMember?.id,
+                payment_mode: paymentModeString,
+                bank_id: '',
+                cheque_amount: amount.toString(),
+                cheque_no: response.razorpay_payment_id,
+                cheque_date: '',
+                file: undefined,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id
+              };
+
+              await addPaymentDetail(paymentPayload, false);
+              
+              toast.success('Payment completed successfully via Razorpay!');
+              setMembers(prevMembers => prevMembers.filter(member => member.id !== modifyMember.id));
+              navigate('/members-services/payment-details');
+              closeModify();
+              setUpdateError(null);
+              setUpdateSuccess(null);
+              setUpdateLoading(false);
+            } else {
+              throw new Error('Payment verification failed');
+            }
+          } catch (verifyError) {
+            console.error('Payment verification error:', verifyError);
+            toast.error('Payment verification failed. Please contact support.');
+            setUpdateError('Payment verification failed. Please contact support.');
+            setUpdateLoading(false);
+          }
+        },
+        prefill: { name: userName, email: userEmail, contact: userPhone },
+        theme: { color: '#6366f1' },
+        modal: { ondismiss: function() { setUpdateLoading(false); setUpdateError(null); toast.info('Payment cancelled'); } }
+      };
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } catch (error) {
+      console.error('Razorpay payment error:', error);
+      setUpdateError(error.message || 'Failed to initiate Razorpay payment. Please try again.');
+      toast.error(error.message || 'Failed to initiate Razorpay payment.');
+      setUpdateLoading(false);
+    }
+  };
+
   const handleUpdate = async () => {
     if (!modifyMember) return;
     // Validation
+    if (!form.paymentMode) {
+      setUpdateError('Please select a payment mode.');
+      return;
+    }
     if (!form.plan) {
       setUpdateError('Please select a membership plan.');
-      closeModify();
       return;
     }
     if (!form.validUpto) {
       setUpdateError('Please select a valid until date.');
-      closeModify();
       return;
     }
     if (!form.validTill) {
       setUpdateError('Valid till date is not calculated. Please reselect the membership plan.');
-      closeModify();
       return;
     }
     // Check if date is in future
@@ -758,9 +899,36 @@ export default function MembershipExpired() {
     today.setHours(0, 0, 0, 0);
     if (selectedDate <= today) {
       setUpdateError('Please select a future date for membership validity.');
-      closeModify();
       return;
     }
+    
+    // Check if Payment Gateway is selected but no gateway is chosen
+    const isPaymentGateway = selectedPaymentModeName && (
+      selectedPaymentModeName.toLowerCase() === 'payment gateway' || 
+      selectedPaymentModeName.toLowerCase().includes('gateway') ||
+      selectedPaymentModeName.toLowerCase() === 'paymentgateway'
+    );
+    
+    if (isPaymentGateway && !selectedGateway) {
+      setUpdateError('Please select a payment gateway (PhonePe, Razorpay, or Stripe).');
+      return;
+    }
+    
+    // Validate bank name for non-gateway payments
+    if (!isPaymentGateway && !form.bankName) {
+      setUpdateError('Please select a bank name.');
+      return;
+    }
+    
+    // If Payment Gateway with Razorpay is selected, handle Razorpay payment flow
+    if (isPaymentGateway && selectedGateway === 'Razorpay') {
+      setUpdateLoading(true);
+      setUpdateError(null);
+      setUpdateSuccess(null);
+      await handleRazorpayPayment();
+      return;
+    }
+    
     setUpdateLoading(true);
     setUpdateError(null);
     setUpdateSuccess(null);
@@ -776,15 +944,16 @@ export default function MembershipExpired() {
       refreshMembers();
       
       // 2. Add payment detail
-      const isCheque = selectedPaymentModeName === 'Cheque';
+      const isCheque = selectedPaymentModeName && selectedPaymentModeName.toLowerCase() === 'cheque';
       const selectedPlan = plans.find(plan => plan.id == form.plan);
+      const paymentModeString = isPaymentGateway ? `${selectedPaymentModeName} - ${selectedGateway}` : selectedPaymentModeName;
       const paymentPayload = {
         company_detail_id: modifyMember.company_detail_id || modifyMember.id,
-        payment_mode: selectedPaymentModeName,
-        bank_id: form.bankName,
-        cheque_amount: isCheque ? form.chequeAmount : (selectedPlan ? (selectedPlan.price || selectedPlan.plan_price || selectedPlan.cost || selectedPlan.amount || '') : ''),
-        cheque_no: isCheque ? form.chequeNo : '',
-        cheque_date: isCheque ? form.chequeDate : '',
+        payment_mode: paymentModeString,
+        bank_id: form.bankName || '',
+        cheque_amount: isCheque ? form.chequeAmount : (!isCheque && selectedPlan ? (selectedPlan.price || selectedPlan.plan_price || selectedPlan.cost || selectedPlan.amount || '') : ''),
+        cheque_no: isCheque ? form.chequeNo : undefined,
+        cheque_date: isCheque ? form.chequeDate : undefined,
         valid_upto: form.validTill, // Use the calculated valid_till date
         valid_till: form.validTill, // Use the calculated valid_till date
         price: selectedPlan ? (selectedPlan.price || selectedPlan.plan_price || selectedPlan.cost || selectedPlan.amount || '') : '',
@@ -860,8 +1029,6 @@ export default function MembershipExpired() {
       
       // Refresh members data to ensure consistency
       refreshMembers();
-      
-      // Do not redirect
     } finally {
       setUpdateLoading(false);
     }
@@ -1383,48 +1550,54 @@ export default function MembershipExpired() {
                     </>
                   )}
                   
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      *Bank Name
-                    </label>
-                    <select
-                      name="bankName"
-                      value={form.bankName || ''}
-                      onChange={handleFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 dark:bg-gray-700 dark:text-gray-100"
-                      placeholder="Select Bank"
-                      required
-                      disabled={bankDetailsLoading}
-                    >
-                      <option value="">
-                        {bankDetailsLoading ? 'Loading bank details...' : 'Select Bank'}
-                      </option>
-                      {bankDetails.map(bank => {
-                        // Handle different possible data structures
-                        const bankId = bank.id || bank.bank_id || bank;
-                        const bankName = bank.bank_name || bank.name || bank.bank || bank;
-                        
-                        // Ensure we have a string for display
-                        const displayName = typeof bankName === 'string' ? bankName : JSON.stringify(bankName);
-                        
-                        return (
-                          <option key={bankId} value={bankId}>
-                            {displayName}
-                          </option>
-                        );
-                      })}
-                    </select>
-                    {bankDetailsLoading && (
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        Loading bank details...
-                      </p>
-                    )}
-                    {!bankDetailsLoading && bankDetails.length === 0 && (
-                      <p className="text-sm text-red-500 dark:text-red-400 mt-1">
-                        No bank details available
-                      </p>
-                    )}
-                  </div>
+                  {selectedPaymentModeName && (
+                    (selectedPaymentModeName.toLowerCase() !== 'payment gateway' && 
+                     !selectedPaymentModeName.toLowerCase().includes('gateway') &&
+                     selectedPaymentModeName.toLowerCase() !== 'paymentgateway')
+                  ) && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        *Bank Name
+                      </label>
+                      <select
+                        name="bankName"
+                        value={form.bankName || ''}
+                        onChange={handleFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 dark:bg-gray-700 dark:text-gray-100"
+                        placeholder="Select Bank"
+                        required
+                        disabled={bankDetailsLoading}
+                      >
+                        <option value="">
+                          {bankDetailsLoading ? 'Loading bank details...' : 'Select Bank'}
+                        </option>
+                        {bankDetails.map(bank => {
+                          // Handle different possible data structures
+                          const bankId = bank.id || bank.bank_id || bank;
+                          const bankName = bank.bank_name || bank.name || bank.bank || bank;
+                          
+                          // Ensure we have a string for display
+                          const displayName = typeof bankName === 'string' ? bankName : JSON.stringify(bankName);
+                          
+                          return (
+                            <option key={bankId} value={bankId}>
+                              {displayName}
+                            </option>
+                          );
+                        })}
+                      </select>
+                      {bankDetailsLoading && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                          Loading bank details...
+                        </p>
+                      )}
+                      {!bankDetailsLoading && bankDetails.length === 0 && (
+                        <p className="text-sm text-red-500 dark:text-red-400 mt-1">
+                          No bank details available
+                        </p>
+                      )}
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -1501,6 +1674,52 @@ export default function MembershipExpired() {
                       Validity will be automatically filled when you select a membership plan
                     </p>
                   </div>
+
+                  {selectedPaymentModeName && (
+                    (selectedPaymentModeName.toLowerCase() === 'payment gateway' || 
+                     selectedPaymentModeName.toLowerCase().includes('gateway') ||
+                     selectedPaymentModeName.toLowerCase() === 'paymentgateway')
+                  ) && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        *Select Payment Gateway
+                      </label>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        {/* PhonePe Option */}
+                        <label className={`flex items-center gap-1 cursor-pointer transition-opacity ${
+                          updateLoading ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}>
+                          <input type="radio" name="paymentGateway" value="PhonePe" checked={selectedGateway === 'PhonePe'} onChange={(e) => { setSelectedGateway(e.target.value); if (updateError) setUpdateError(null); }} disabled={updateLoading} className="w-4 h-4 text-purple-600 focus:ring-purple-500"/>
+                          <img src={PhonepeLogo} alt="PhonePe" className="w-8 h-8 object-contain" onError={(e) => { e.target.style.display = 'none'; }}/>
+                          <span className="font-medium text-gray-900 dark:text-gray-100 text-sm whitespace-nowrap">PhonePe</span>
+                        </label>
+
+                        {/* Separator */}
+                        <span className="text-gray-400 dark:text-gray-500">|</span>
+
+                        {/* Razorpay Option */}
+                        <label className={`flex items-center gap-1 cursor-pointer transition-opacity ${
+                          updateLoading ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}>
+                          <input type="radio" name="paymentGateway" value="Razorpay" checked={selectedGateway === 'Razorpay'} onChange={(e) => { setSelectedGateway(e.target.value); if (updateError) setUpdateError(null); }} disabled={updateLoading} className="w-4 h-4 text-blue-600 focus:ring-blue-500"/>
+                          <img src={RazorpayLogo} alt="Razorpay" className="w-8 h-8 object-contain" onError={(e) => { e.target.style.display = 'none'; }}/>
+                          <span className="font-medium text-gray-900 dark:text-gray-100 text-sm whitespace-nowrap">Razorpay</span>
+                        </label>
+
+                        {/* Separator */}
+                        <span className="text-gray-400 dark:text-gray-500">|</span>
+
+                        {/* Stripe Option */}
+                        <label className={`flex items-center gap-1 cursor-pointer transition-opacity ${
+                          updateLoading ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}>
+                          <input type="radio" name="paymentGateway" value="Stripe" checked={selectedGateway === 'Stripe'} onChange={(e) => { setSelectedGateway(e.target.value); if (updateError) setUpdateError(null); }} disabled={updateLoading} className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"/>
+                          <img src={StripeLogo} alt="Stripe" className="w-8 h-8 object-contain" onError={(e) => { e.target.style.display = 'none'; }}/>
+                          <span className="font-medium text-gray-900 dark:text-gray-100 text-sm whitespace-nowrap">Stripe</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
                   
                   {updateError && (
                     <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
@@ -1524,7 +1743,11 @@ export default function MembershipExpired() {
                       type="button"
                       className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 flex items-center justify-center gap-2"
                       onClick={handleUpdate}
-                      disabled={updateLoading || !form.plan || !form.validUpto}
+                      disabled={updateLoading || !form.plan || !form.validUpto || !form.paymentMode || (selectedPaymentModeName && (
+                        (selectedPaymentModeName.toLowerCase() === 'payment gateway' || 
+                         selectedPaymentModeName.toLowerCase().includes('gateway') ||
+                         selectedPaymentModeName.toLowerCase() === 'paymentgateway')
+                      ) && !selectedGateway)}
                     >
                       {updateLoading && <FiRefreshCw className="animate-spin" size={16} />}
                       {updateLoading ? 'Processing...' : 'Confirm Payment'}

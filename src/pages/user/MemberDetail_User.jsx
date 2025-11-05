@@ -17,6 +17,9 @@ import { toast } from 'react-toastify';
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import PhonepeLogo from "../../assets/Phonepe.png";
+import RazorpayLogo from "../../assets/Razorpay.png";
+import StripeLogo from "../../assets/Stripe.png";
 
 // ============================================================================
 // COMPONENT HEADER AND DOCUMENTATION
@@ -191,6 +194,9 @@ export default function MemberDetail() {
   const [addPaymentSuccess, setAddPaymentSuccess] = useState(null);
   const [selectedPaymentModeName, setSelectedPaymentModeName] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
+  
+  // Payment Gateway Selection State
+  const [selectedGateway, setSelectedGateway] = useState("");
 
   // ============================================================================
   // DOCUMENT MANAGEMENT FUNCTIONS
@@ -2869,6 +2875,7 @@ export default function MemberDetail() {
     setSelectedPaymentModeName("");
     setAddPaymentError(null);
     setAddPaymentSuccess(null);
+    setSelectedGateway("");
   };
 
   const closeAddPaymentModal = () => {
@@ -2888,6 +2895,7 @@ export default function MemberDetail() {
     setSelectedPaymentModeName("");
     setAddPaymentError(null);
     setAddPaymentSuccess(null);
+    setSelectedGateway("");
   };
 
   const handleAddPaymentFormChange = (e) => {
@@ -2960,6 +2968,8 @@ export default function MemberDetail() {
         console.log('Selected payment mode:', selectedMode);
         console.log('Payment mode name:', modeName);
         setSelectedPaymentModeName(modeName);
+        // Reset gateway selection when payment mode changes
+        setSelectedGateway("");
         setAddPaymentForm(prev => ({ ...prev, [name]: value }));
       } else {
         setAddPaymentForm(prev => ({ ...prev, [name]: value }));
@@ -3053,6 +3063,184 @@ export default function MemberDetail() {
     return response.data;
   };
 
+  // Create Razorpay order via backend API
+  const createRazorpayOrder = async (amount, currency = 'INR') => {
+    try {
+      const response = await api.post('/payment/razorpay/create-order', {
+        amount: Math.round(amount * 100), // Convert to paise (Razorpay expects amount in smallest currency unit)
+        currency: currency,
+        company_detail_id: member?.company_detail_id || member?.id,
+        plan_id: addPaymentForm.plan,
+        valid_upto: addPaymentForm.validUpto
+      }, {
+        headers: getAuthHeaders()
+      });
+      
+      if (response.data && (response.data.order_id || response.data.id)) {
+        return {
+          orderId: response.data.order_id || response.data.id,
+          amount: response.data.amount,
+          currency: response.data.currency || currency
+        };
+      }
+      throw new Error('Failed to create Razorpay order');
+    } catch (error) {
+      console.error('Error creating Razorpay order:', error);
+      // If backend API doesn't exist, we can create order on frontend (less secure, but works)
+      // For now, throw error and let user know backend needs to be configured
+      throw new Error('Razorpay order creation failed. Please configure the backend API endpoint: /payment/razorpay/create-order');
+    }
+  };
+
+  // Handle Razorpay payment
+  const handleRazorpayPayment = async () => {
+    try {
+      const selectedPlan = plans.find(plan => plan.id == addPaymentForm.plan);
+      const amount = selectedPlan ? parseFloat(selectedPlan.price || selectedPlan.plan_price || selectedPlan.cost || selectedPlan.amount || 0) : 0;
+      
+      if (amount <= 0) {
+        setAddPaymentError('Invalid payment amount. Please select a valid membership plan.');
+        setAddPaymentLoading(false);
+        return;
+      }
+
+      // Create Razorpay order
+      const orderData = await createRazorpayOrder(amount);
+      
+      // Get Razorpay key from environment or use default test key
+      // NOTE: In production, this should come from backend or environment variables
+      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_1DP5mmOlF5G5ag'; // Replace with your Razorpay Key ID
+      
+      // Check if Razorpay is loaded
+      if (!window.Razorpay) {
+        setAddPaymentError('Razorpay checkout script not loaded. Please refresh the page.');
+        setAddPaymentLoading(false);
+        return;
+      }
+
+      // Get user details for Razorpay
+      const userName = member?.user_name || member?.name || localStorage.getItem('userName') || 'User';
+      const userEmail = member?.email || localStorage.getItem('userEmail') || '';
+      const userPhone = member?.phone || member?.mobile || '';
+
+      const options = {
+        key: razorpayKey,
+        amount: orderData.amount || Math.round(amount * 100), // Amount in paise
+        currency: orderData.currency || 'INR',
+        name: 'ETribe Membership',
+        description: `Membership Plan Payment - ${selectedPlan?.plan_name || selectedPlan?.name || 'Plan'}`,
+        order_id: orderData.orderId, // Use order ID from backend
+        handler: async function (response) {
+          // Payment successful
+          console.log('Razorpay Payment Success:', response);
+          
+          try {
+            // Verify payment on backend
+            const verifyResponse = await api.post('/payment/razorpay/verify', {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              company_detail_id: member?.company_detail_id || member?.id,
+              plan_id: addPaymentForm.plan,
+              amount: amount,
+              valid_upto: addPaymentForm.validUpto
+            }, {
+              headers: getAuthHeaders()
+            });
+
+            if (verifyResponse.data && (verifyResponse.data.status === true || verifyResponse.data.success === true)) {
+              // Create payment mode string
+              const paymentModeString = `${selectedPaymentModeName} - Razorpay`;
+              
+              // Record payment in system
+              const paymentPayload = {
+                company_detail_id: member?.company_detail_id || member?.id,
+                payment_mode: paymentModeString,
+                bank_id: '',
+                cheque_amount: amount.toString(),
+                cheque_no: response.razorpay_payment_id,
+                cheque_date: '',
+                file: undefined,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id
+              };
+
+              const paymentResponse = await addPaymentDetail(paymentPayload, false);
+              
+              if (paymentResponse && (paymentResponse.status === true || paymentResponse.success === true || paymentResponse.data)) {
+                toast.success('Payment completed successfully via Razorpay!');
+                
+                // Refresh payments data
+                await fetchPayments();
+                
+                // Force re-filtering and update display
+                setTimeout(() => {
+                  filterPayments();
+                }, 100);
+                
+                // Close modal
+                setShowAddPaymentModal(false);
+                
+                // Reset form
+                setAddPaymentForm({
+                  plan: "",
+                  validUpto: "",
+                  paymentMode: "",
+                  bankName: "",
+                  price: "",
+                  validTill: "",
+                  chequeNo: "",
+                  chequeImg: null,
+                  chequeAmount: "",
+                  chequeDate: ""
+                });
+                setSelectedPaymentModeName("");
+                setSelectedGateway("");
+                setAddPaymentError(null);
+                setAddPaymentSuccess(null);
+                setAddPaymentLoading(false);
+              } else {
+                throw new Error('Failed to record payment in system');
+              }
+            } else {
+              throw new Error('Payment verification failed');
+            }
+          } catch (verifyError) {
+            console.error('Payment verification error:', verifyError);
+            toast.error('Payment verification failed. Please contact support.');
+            setAddPaymentError('Payment verification failed. Please contact support.');
+            setAddPaymentLoading(false);
+          }
+        },
+        prefill: {
+          name: userName,
+          email: userEmail,
+          contact: userPhone
+        },
+        theme: {
+          color: '#6366f1' // Indigo color matching your app theme
+        },
+        modal: {
+          ondismiss: function() {
+            // User closed the payment modal
+            setAddPaymentLoading(false);
+            setAddPaymentError(null);
+            toast.info('Payment cancelled');
+          }
+        }
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+      
+    } catch (error) {
+      console.error('Razorpay payment error:', error);
+      setAddPaymentError(error.message || 'Failed to initiate Razorpay payment. Please try again.');
+      toast.error(error.message || 'Failed to initiate Razorpay payment.');
+      setAddPaymentLoading(false);
+    }
+  };
+
   const handleAddPayment = async () => {
     if (!addPaymentForm.plan) {
       setAddPaymentError('Please select a membership plan.');
@@ -3071,18 +3259,65 @@ export default function MemberDetail() {
       return;
     }
     
+    // Validate payment mode
+    if (!addPaymentForm.paymentMode) {
+      setAddPaymentError('Please select a payment mode.');
+      return;
+    }
+    
+    // Check if Payment Gateway is selected
+    const isPaymentGateway = selectedPaymentModeName && (
+      selectedPaymentModeName.toLowerCase() === 'payment gateway' || 
+      selectedPaymentModeName.toLowerCase().includes('gateway') ||
+      selectedPaymentModeName.toLowerCase() === 'paymentgateway'
+    );
+    
+    // If Payment Gateway is selected, validate gateway selection
+    if (isPaymentGateway) {
+      if (!selectedGateway) {
+        setAddPaymentError('Please select a payment gateway (PhonePe, Razorpay, or Stripe).');
+        return;
+      }
+      
+      // Handle Razorpay payment gateway
+      if (selectedGateway === 'Razorpay') {
+        setAddPaymentLoading(true);
+        setAddPaymentError(null);
+        setAddPaymentSuccess(null);
+        await handleRazorpayPayment();
+        return; // Exit early as Razorpay flow handles its own submission
+      }
+      
+      // TODO: Handle other gateways (PhonePe, Stripe) here
+      // For now, continue with normal flow for other gateways
+    }
+    
+    // Validate bank name for non-gateway payments (except Cash)
+    const isCash = selectedPaymentModeName && selectedPaymentModeName.toLowerCase() === 'cash';
+    if (!isPaymentGateway && !isCash && !addPaymentForm.bankName) {
+      setAddPaymentError('Please select a bank name.');
+      return;
+    }
+    
     setAddPaymentLoading(true);
     setAddPaymentError(null);
     setAddPaymentSuccess(null);
     
     try {
       // Add payment detail
-      const isCheque = addPaymentForm.paymentMode === 'Cheque';
+      const isCheque = selectedPaymentModeName && selectedPaymentModeName.toLowerCase() === 'cheque';
       const selectedPlan = plans.find(plan => plan.id == addPaymentForm.plan);
+      
+      // Create payment mode string - include gateway name if Payment Gateway is selected
+      let paymentModeString = selectedPaymentModeName;
+      if (isPaymentGateway && selectedGateway) {
+        paymentModeString = `${selectedPaymentModeName} - ${selectedGateway}`;
+      }
+      
       const paymentPayload = {
         company_detail_id: member?.company_detail_id || member?.id,
-        payment_mode: selectedPaymentModeName,
-        bank_id: addPaymentForm.bankName,
+        payment_mode: paymentModeString,
+        bank_id: addPaymentForm.bankName || '',
         cheque_amount: isCheque ? addPaymentForm.chequeAmount : (selectedPlan ? (selectedPlan.price || selectedPlan.plan_price || selectedPlan.cost || selectedPlan.amount || '') : ''),
         cheque_no: isCheque ? addPaymentForm.chequeNo : '',
         cheque_date: isCheque ? addPaymentForm.chequeDate : '',
@@ -3098,8 +3333,11 @@ export default function MemberDetail() {
       console.log('Payment API Response:', paymentResponse);
 
       if (paymentResponse && (paymentResponse.status === true || paymentResponse.success === true || paymentResponse.data)) {
-        toast.success('Payment recorded successfully!');
-        setAddPaymentSuccess('Payment recorded successfully!');
+        const successMessage = isPaymentGateway && selectedGateway 
+          ? `Payment initiated via ${selectedGateway} successfully!`
+          : 'Payment recorded successfully!';
+        toast.success(successMessage);
+        setAddPaymentSuccess(successMessage);
         
         // Refresh payments data
         await fetchPayments();
@@ -3126,6 +3364,7 @@ export default function MemberDetail() {
           chequeDate: ""
         });
         setSelectedPaymentModeName("");
+        setSelectedGateway("");
         setAddPaymentError(null);
         setAddPaymentSuccess(null);
       } else {
@@ -4755,48 +4994,55 @@ export default function MemberDetail() {
                         </>
                       )}
                       
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          *Bank Name
-                        </label>
-                        <select
-                          name="bankName"
-                          value={addPaymentForm.bankName || ''}
-                          onChange={handleAddPaymentFormChange}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 dark:bg-gray-700 dark:text-gray-100"
-                          placeholder="Select Bank"
-                          required
-                          disabled={bankDetailsLoading}
-                        >
-                          <option value="">
-                            {bankDetailsLoading ? 'Loading bank details...' : 'Select Bank'}
-                          </option>
-                          {apiBankDetails.map(bank => {
-                            // Handle different possible data structures
-                            const bankId = bank.id || bank.bank_id || bank;
-                            const bankName = bank.bank_name || bank.name || bank.bank || bank;
-                            
-                            // Ensure we have a string for display
-                            const displayName = typeof bankName === 'string' ? bankName : JSON.stringify(bankName);
-                            
-                            return (
-                              <option key={bankId} value={bankId}>
-                                {displayName}
-                              </option>
-                            );
-                          })}
-                        </select>
-                        {bankDetailsLoading && (
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            Loading bank details...
-                          </p>
-                        )}
-                        {!bankDetailsLoading && apiBankDetails.length === 0 && (
-                          <p className="text-sm text-red-500 dark:text-red-400 mt-1">
-                            No bank details available
-                          </p>
-                        )}
-                      </div>
+                      {/* Bank Name - Hidden when Payment Gateway is selected */}
+                      {!(selectedPaymentModeName && (
+                        selectedPaymentModeName.toLowerCase() === 'payment gateway' || 
+                        selectedPaymentModeName.toLowerCase().includes('gateway') ||
+                        selectedPaymentModeName.toLowerCase() === 'paymentgateway'
+                      )) && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            *Bank Name
+                          </label>
+                          <select
+                            name="bankName"
+                            value={addPaymentForm.bankName || ''}
+                            onChange={handleAddPaymentFormChange}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 dark:bg-gray-700 dark:text-gray-100"
+                            placeholder="Select Bank"
+                            required
+                            disabled={bankDetailsLoading}
+                          >
+                            <option value="">
+                              {bankDetailsLoading ? 'Loading bank details...' : 'Select Bank'}
+                            </option>
+                            {apiBankDetails.map(bank => {
+                              // Handle different possible data structures
+                              const bankId = bank.id || bank.bank_id || bank;
+                              const bankName = bank.bank_name || bank.name || bank.bank || bank;
+                              
+                              // Ensure we have a string for display
+                              const displayName = typeof bankName === 'string' ? bankName : JSON.stringify(bankName);
+                              
+                              return (
+                                <option key={bankId} value={bankId}>
+                                  {displayName}
+                                </option>
+                              );
+                            })}
+                          </select>
+                          {bankDetailsLoading && (
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                              Loading bank details...
+                            </p>
+                          )}
+                          {!bankDetailsLoading && apiBankDetails.length === 0 && (
+                            <p className="text-sm text-red-500 dark:text-red-400 mt-1">
+                              No bank details available
+                            </p>
+                          )}
+                        </div>
+                      )}
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -4874,6 +5120,98 @@ export default function MemberDetail() {
                         </p>
                       </div>
 
+                      {/* Payment Gateway Selection - Only shown when Payment Gateway is selected */}
+                      {selectedPaymentModeName && (
+                        selectedPaymentModeName.toLowerCase() === 'payment gateway' || 
+                        selectedPaymentModeName.toLowerCase().includes('gateway') ||
+                        selectedPaymentModeName.toLowerCase() === 'paymentgateway'
+                      ) && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            *Select Payment Gateway
+                          </label>
+                          <div className="flex items-center gap-3 flex-wrap">
+                            {/* PhonePe Option */}
+                            <label className={`flex items-center gap-1 cursor-pointer transition-opacity ${
+                              addPaymentLoading ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}>
+                              <input
+                                type="radio"
+                                name="paymentGateway"
+                                value="PhonePe"
+                                checked={selectedGateway === 'PhonePe'}
+                                onChange={(e) => setSelectedGateway(e.target.value)}
+                                disabled={addPaymentLoading}
+                                className="w-4 h-4 text-purple-600 focus:ring-purple-500"
+                              />
+                              <img 
+                                src={PhonepeLogo} 
+                                alt="PhonePe" 
+                                className="w-8 h-8 object-contain"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                }}
+                              />
+                              <span className="font-medium text-gray-900 dark:text-gray-100 text-sm whitespace-nowrap">PhonePe</span>
+                            </label>
+
+                            {/* Separator */}
+                            <span className="text-gray-400 dark:text-gray-500">|</span>
+
+                            {/* Razorpay Option */}
+                            <label className={`flex items-center gap-1 cursor-pointer transition-opacity ${
+                              addPaymentLoading ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}>
+                              <input
+                                type="radio"
+                                name="paymentGateway"
+                                value="Razorpay"
+                                checked={selectedGateway === 'Razorpay'}
+                                onChange={(e) => setSelectedGateway(e.target.value)}
+                                disabled={addPaymentLoading}
+                                className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                              />
+                              <img 
+                                src={RazorpayLogo} 
+                                alt="Razorpay" 
+                                className="w-8 h-8 object-contain"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                }}
+                              />
+                              <span className="font-medium text-gray-900 dark:text-gray-100 text-sm whitespace-nowrap">Razorpay</span>
+                            </label>
+
+                            {/* Separator */}
+                            <span className="text-gray-400 dark:text-gray-500">|</span>
+
+                            {/* Stripe Option */}
+                            <label className={`flex items-center gap-1 cursor-pointer transition-opacity ${
+                              addPaymentLoading ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}>
+                              <input
+                                type="radio"
+                                name="paymentGateway"
+                                value="Stripe"
+                                checked={selectedGateway === 'Stripe'}
+                                onChange={(e) => setSelectedGateway(e.target.value)}
+                                disabled={addPaymentLoading}
+                                className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+                              />
+                              <img 
+                                src={StripeLogo} 
+                                alt="Stripe" 
+                                className="w-8 h-8 object-contain"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                }}
+                              />
+                              <span className="font-medium text-gray-900 dark:text-gray-100 text-sm whitespace-nowrap">Stripe</span>
+                            </label>
+                          </div>
+                        </div>
+                      )}
+
                       {addPaymentError && (
                         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
                           <div className="flex items-center gap-2">
@@ -4892,15 +5230,29 @@ export default function MemberDetail() {
                         >
                           Cancel
                         </button>
-                        <button
-                          type="button"
-                          className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 flex items-center justify-center gap-2"
-                          onClick={handleAddPayment}
-                          disabled={addPaymentLoading || !addPaymentForm.plan || !addPaymentForm.validUpto}
-                        >
-                          {addPaymentLoading && <FiRefreshCw className="animate-spin" size={16} />}
-                          {addPaymentLoading ? 'Processing...' : 'Confirm Payment'}
-                        </button>
+                        {(() => {
+                          // Check if Payment Gateway is selected
+                          const isPaymentGateway = selectedPaymentModeName && (
+                            selectedPaymentModeName.toLowerCase() === 'payment gateway' || 
+                            selectedPaymentModeName.toLowerCase().includes('gateway') ||
+                            selectedPaymentModeName.toLowerCase() === 'paymentgateway'
+                          );
+                          
+                          // If Payment Gateway is selected, gateway must be chosen
+                          const isGatewayRequired = isPaymentGateway && !selectedGateway;
+                          
+                          return (
+                            <button
+                              type="button"
+                              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+                              onClick={handleAddPayment}
+                              disabled={addPaymentLoading || !addPaymentForm.plan || !addPaymentForm.validUpto || isGatewayRequired}
+                            >
+                              {addPaymentLoading && <FiRefreshCw className="animate-spin" size={16} />}
+                              {addPaymentLoading ? 'Processing...' : 'Confirm Payment'}
+                            </button>
+                          );
+                        })()}
                       </div>
                     </form>
                   </div>

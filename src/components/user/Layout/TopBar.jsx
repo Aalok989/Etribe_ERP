@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
-import { FiSun, FiMoon, FiUser, FiBell, FiClock, FiCalendar, FiCheckCircle, FiRefreshCw, FiSearch, FiMessageSquare } from "react-icons/fi";
+import { FiSun, FiMoon, FiUser, FiBell, FiClock, FiCalendar, FiCheckCircle, FiRefreshCw, FiSearch, FiMessageSquare, FiCreditCard, FiSettings, FiAward } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import api from "../../../api/axiosConfig";
 import { getAuthHeaders } from "../../../utils/apiHeaders";
+import MemberIDCard from "../MemberIDCard/MemberIDCard";
+import MembershipCertificate from "../MembershipCertificate/MembershipCertificate";
 
 export default function TopBar() {
   const [profile, setProfile] = useState({ 
@@ -20,6 +22,10 @@ export default function TopBar() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const notificationsRef = useRef(null);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isIDCardOpen, setIsIDCardOpen] = useState(false);
+  const [isCertificateOpen, setIsCertificateOpen] = useState(false);
+  const profileDropdownRef = useRef(null);
   
   // No more hardcoded groupData - we fetch real user data from API
 
@@ -157,12 +163,15 @@ export default function TopBar() {
       if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
         setNotificationsOpen(false);
       }
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
+        setIsProfileDropdownOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [notificationsRef]);
+  }, [notificationsRef, profileDropdownRef]);
 
   // Mark as read handler
   const markAsRead = (id) => {
@@ -393,54 +402,111 @@ export default function TopBar() {
           )}
         </div>
         <div className="h-6 sm:h-8 w-px bg-gray-200 dark:bg-gray-700"></div>
-        <div 
-          className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg transition-colors cursor-pointer group hover:bg-gray-50 dark:hover:bg-gray-700"
-          onClick={() => fetchUserProfile(true)}
-          title="Click to refresh profile"
-        >
-                     <div className="flex-shrink-0 flex items-center justify-center">
-             {profile.photo ? (
-               <img 
-                 src={`${import.meta.env.VITE_API_BASE_URL}/${profile.photo}`}
-                 alt="Profile Photo" 
-                 className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover border border-gray-300 dark:border-gray-700 shadow-sm group-hover:shadow-md transition-shadow"
-                 onError={(e) => {
-                   e.target.style.display = 'none';
-                   e.target.nextSibling.style.display = 'flex';
-                 }}
-               />
-             ) : null}
-             <div className={`h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center border border-gray-300 dark:border-gray-700 shadow-sm group-hover:shadow-md transition-shadow ${profile.photo ? 'hidden' : ''}`}>
-               <FiUser className="text-blue-500 dark:text-blue-300" size={16} />
-             </div>
-           </div>
-          <div className="hidden sm:block text-right min-w-0">
-            {loading ? (
-              <div className="text-xs text-gray-400 dark:text-gray-500">Loading...</div>
-            ) : refreshing ? (
-              <div className="text-xs text-blue-500 dark:text-blue-400 flex items-center gap-1">
-                <FiRefreshCw className="animate-spin" size={12} />
-                Refreshing...
+        <div className="relative" ref={profileDropdownRef}>
+          <div 
+            className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg transition-colors cursor-pointer group hover:bg-gray-50 dark:hover:bg-gray-700"
+            onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+            title="Click to view profile options"
+          >
+            <div className="flex-shrink-0 flex items-center justify-center">
+              {profile.photo ? (
+                <img 
+                  src={`${import.meta.env.VITE_API_BASE_URL}/${profile.photo}`}
+                  alt="Profile Photo" 
+                  className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover border border-gray-300 dark:border-gray-700 shadow-sm group-hover:shadow-md transition-shadow"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div className={`h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center border border-gray-300 dark:border-gray-700 shadow-sm group-hover:shadow-md transition-shadow ${profile.photo ? 'hidden' : ''}`}>
+                <FiUser className="text-blue-500 dark:text-blue-300" size={16} />
               </div>
-            ) : error ? (
-              <div className="text-xs text-red-500">{error}</div>
-            ) : (
-              <>
-                <div className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                  {profile.name}
+            </div>
+            <div className="hidden sm:block text-right min-w-0">
+              {loading ? (
+                <div className="text-xs text-gray-400 dark:text-gray-500">Loading...</div>
+              ) : refreshing ? (
+                <div className="text-xs text-blue-500 dark:text-blue-400 flex items-center gap-1">
+                  <FiRefreshCw className="animate-spin" size={12} />
+                  Refreshing...
                 </div>
-                <div className="text-xs text-gray-400 dark:text-gray-400 truncate group-hover:text-blue-500 dark:group-hover:text-blue-300 transition-colors">
-                  {profile.email}
-                </div>
-                {/* {profile.company_name && (
-                  <div className="text-xs text-gray-500 dark:text-gray-500 truncate group-hover:text-blue-500 dark:group-hover:text-blue-300 transition-colors">
-                    {profile.company_name}
+              ) : error ? (
+                <div className="text-xs text-red-500">{error}</div>
+              ) : (
+                <>
+                  <div className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    {profile.name}
                   </div>
-                )} */}
-              </>
-            )}
+                  <div className="text-xs text-gray-400 dark:text-gray-400 truncate group-hover:text-blue-500 dark:group-hover:text-blue-300 transition-colors">
+                    {profile.email}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
+
+          {/* Profile Dropdown Menu */}
+          {isProfileDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-30 overflow-hidden">
+              <div className="py-2">
+                <button
+                  onClick={() => {
+                    setIsIDCardOpen(true);
+                    setIsProfileDropdownOpen(false);
+                  }}
+                  className="w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+                >
+                  <FiCreditCard className="text-indigo-600 dark:text-indigo-400" size={18} />
+                  <span className="font-medium">View ID Card</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setIsCertificateOpen(true);
+                    setIsProfileDropdownOpen(false);
+                  }}
+                  className="w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+                >
+                  <FiAward className="text-amber-600 dark:text-amber-400" size={18} />
+                  <span className="font-medium">Membership Certificate</span>
+                </button>
+                <Link
+                  to="/user/member-detail/me"
+                  onClick={() => setIsProfileDropdownOpen(false)}
+                  className="w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+                >
+                  <FiSettings className="text-gray-600 dark:text-gray-400" size={18} />
+                  <span className="font-medium">My Profile</span>
+                </Link>
+                <button
+                  onClick={() => {
+                    fetchUserProfile(true);
+                    setIsProfileDropdownOpen(false);
+                  }}
+                  className="w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+                >
+                  <FiRefreshCw className="text-blue-600 dark:text-blue-400" size={18} />
+                  <span className="font-medium">Refresh Profile</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Member ID Card Modal */}
+        <MemberIDCard
+          isOpen={isIDCardOpen}
+          onClose={() => setIsIDCardOpen(false)}
+          profileData={profile}
+        />
+
+        {/* Membership Certificate Modal */}
+        <MembershipCertificate
+          isOpen={isCertificateOpen}
+          onClose={() => setIsCertificateOpen(false)}
+          profileData={profile}
+        />
       </div>
     </header>
   );
