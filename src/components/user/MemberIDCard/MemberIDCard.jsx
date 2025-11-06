@@ -155,62 +155,30 @@ const MemberIDCard = ({ isOpen, onClose, profileData }) => {
     if (!cardElement) return;
 
     try {
-      // Import html2canvas and jsPDF dynamically
-      const [html2canvas, jsPDF] = await Promise.all([
-        import('html2canvas'),
-        import('jspdf')
-      ]);
+      // Import html2pdf dynamically
+      const html2pdfModule = await import('html2pdf.js');
+      const html2pdf = html2pdfModule.default || html2pdfModule.html2pdf || html2pdfModule;
 
-      // Convert card to canvas
-      const canvas = await html2canvas.default(cardElement, {
-        backgroundColor: null,
-        scale: 2,
-        logging: false,
-        useCORS: true,
-        allowTaint: true
-      });
+      // Configure options for PDF generation
+      const opt = {
+        margin: 10,
+        filename: `Member-ID-Card-${idCardData.membershipId}.pdf`,
+        image: { type: 'png', quality: 1.0 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: null
+        },
+        jsPDF: { 
+          unit: 'mm', 
+          format: 'a4', 
+          orientation: 'landscape' 
+        }
+      };
 
-      // Get canvas dimensions
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-
-      // A4 dimensions in mm (landscape for ID card)
-      const A4_WIDTH = 297; // A4 landscape width
-      const A4_HEIGHT = 210; // A4 landscape height
-      const MARGIN = 10; // Margin on each side
-
-      // Calculate available space
-      const availableWidth = A4_WIDTH - (MARGIN * 2);
-      const availableHeight = A4_HEIGHT - (MARGIN * 2);
-
-      // Calculate scaling to fit within available space (convert px to mm: 1px = 0.264583mm)
-      const scaleX = availableWidth / (imgWidth * 0.264583);
-      const scaleY = availableHeight / (imgHeight * 0.264583);
-      const scale = Math.min(scaleX, scaleY); // Use smaller scale to maintain aspect ratio
-
-      // Calculate final dimensions in mm
-      const finalWidth = (imgWidth * 0.264583) * scale;
-      const finalHeight = (imgHeight * 0.264583) * scale;
-
-      // Center the card on A4 page
-      const xOffset = (A4_WIDTH - finalWidth) / 2;
-      const yOffset = (A4_HEIGHT - finalHeight) / 2;
-
-      // Create PDF with A4 landscape format
-      const pdf = new jsPDF.default({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      // Convert canvas to image data
-      const imgData = canvas.toDataURL('image/png', 1.0);
-
-      // Add image to PDF, centered on A4 page
-      pdf.addImage(imgData, 'PNG', xOffset, yOffset, finalWidth, finalHeight);
-
-      // Save PDF
-      pdf.save(`Member-ID-Card-${idCardData.membershipId}.pdf`);
+      // Generate and save PDF
+      await html2pdf().set(opt).from(cardElement).save();
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('Failed to download ID card as PDF. Please try again.');

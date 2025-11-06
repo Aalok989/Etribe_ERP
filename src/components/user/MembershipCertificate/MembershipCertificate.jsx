@@ -74,28 +74,116 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
     const element = document.getElementById("membership-certificate");
     if (!element) return;
 
-    const [html2canvas, jsPDF] = await Promise.all([
-      import("html2canvas"),
-      import("jspdf"),
-    ]);
+    try {
+      // Wait until fonts are fully loaded
+      await document.fonts.ready;
+      
+      // Wait for all images to load
+      const images = element.querySelectorAll('img');
+      await Promise.all(
+        Array.from(images).map((img) => {
+          if (img.complete) return Promise.resolve();
+          return new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = resolve; // Continue even if image fails
+            setTimeout(resolve, 3000); // Timeout after 3 seconds
+          });
+        })
+      );
+      
+      // Additional wait to ensure everything is rendered
+      await new Promise(resolve => setTimeout(resolve, 300));
 
-    const canvas = await html2canvas.default(element, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-    });
+      const [html2canvas, jsPDF] = await Promise.all([
+        import("html2canvas"),
+        import("jspdf"),
+      ]);
 
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF.default("landscape", "mm", "a4");
+      // Render to canvas with high resolution
+      const canvas = await html2canvas.default(element, {
+        scale: 3,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight,
+        onclone: (clonedDoc) => {
+          // Ensure fonts are loaded in cloned document
+          const clonedElement = clonedDoc.getElementById("membership-certificate");
+          if (clonedElement) {
+            // Add font imports to cloned document
+            const style = clonedDoc.createElement('style');
+            style.textContent = `
+              @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Dancing+Script:wght@400;600&family=Great+Vibes&display=swap');
+            `;
+            clonedDoc.head.appendChild(style);
+            
+            // Apply spacing adjustments for PDF only
+            // Shift "Certificate of Membership" text up - PDF only (not gold leaf)
+            const titleSection = clonedElement.querySelector('div.text-center.relative.z-10');
+            if (titleSection) {
+              titleSection.style.marginBottom = '1.5rem'; // Increased gap for PDF
+              
+              // Only shift the h2 text element, not the gold leaf images
+              const titleText = titleSection.querySelector('h2');
+              if (titleText) {
+                titleText.style.marginTop = '-3rem'; // Shift up only the text in PDF
+              }
+            }
+            
+            // Increase gap between title and certificate text for PDF
+            const certificateTextSection = clonedElement.querySelector('div.text-center.mt-2');
+            if (certificateTextSection) {
+              certificateTextSection.style.marginTop = '1rem';
+            }
+            
+            // Fix "Aalok Kumar" and separator line spacing for PDF
+            const aalokKumarContainer = clonedElement.querySelector('div.mb-2');
+            if (aalokKumarContainer && aalokKumarContainer.querySelector('p[style*="Dancing Script"]')) {
+              aalokKumarContainer.style.marginTop = '-0.5rem'; // Shift up in PDF only
+              
+              // Fix separator line to be below text, not overlapping - PDF only
+              const nameText = aalokKumarContainer.querySelector('p[style*="Dancing Script"]');
+              if (nameText) {
+                nameText.style.marginBottom = '2rem'; // More space below name for PDF
+              }
+              
+              const separatorLine = aalokKumarContainer.querySelector('div[style*="linear-gradient"]');
+              if (separatorLine && separatorLine.parentElement) {
+                separatorLine.parentElement.style.marginTop = '2rem'; // More space above separator for PDF
+              }
+            }
+            
+            // Shift "Stark Industries" up - PDF only (not "Director of")
+            const starkIndustriesText = clonedElement.querySelector('p[style*="Great Vibes"]');
+            if (starkIndustriesText && starkIndustriesText.textContent.includes('Stark Industries')) {
+              starkIndustriesText.style.marginTop = '-1rem'; // Shift up more in PDF only
+            }
+            
+            // Wait a bit for fonts to apply
+            return new Promise(resolve => setTimeout(resolve, 100));
+          }
+        }
+      });
 
-    const width = pdf.internal.pageSize.getWidth();
-    const height = (canvas.height * width) / canvas.width;
-    const yOffset = (pdf.internal.pageSize.getHeight() - height) / 2;
+      const imgData = canvas.toDataURL("image/png", 1.0);
 
-    pdf.addImage(imgData, "PNG", 0, yOffset, width, height);
-    pdf.save(
-      `Membership-Certificate-${certificateData.membershipId || "Member"}.pdf`
-    );
+      // Create PDF with exact canvas dimensions
+      const pdf = new jsPDF.default({
+        orientation: "landscape",
+        unit: "px",
+        format: [canvas.width, canvas.height],
+      });
+
+      pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+      pdf.save(`Membership-Certificate-${certificateData.membershipId || "Member"}.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to download certificate as PDF. Please try again.');
+    }
   };
 
   if (!isOpen) return null;
@@ -176,7 +264,7 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
               </div>
 
               {/* Title */}
-              <div className="text-center relative z-10 py-2">
+              <div className="text-center relative z-10 py-2 mb-4">
                 <div className="flex items-center justify-center gap-0 -mb-2">
                   {/* Gold Leaf Left */}
                   <img
@@ -186,8 +274,18 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
                   />
                   
                   <h2 
-                    className="text-8xl bg-gradient-to-r from-amber-600 to-amber-800 bg-clip-text text-transparent whitespace-nowrap"
-                    style={{ fontFamily: "'Great Vibes', cursive", textTransform: 'none', fontWeight: 400, lineHeight: '1.2', paddingTop: '0.5rem', paddingBottom: '0.5rem', paddingRight: '0.5rem', paddingLeft: '0.25rem' }}
+                    className="text-8xl whitespace-nowrap"
+                    style={{ 
+                      fontFamily: "'Great Vibes', cursive", 
+                      textTransform: 'none', 
+                      fontWeight: 400, 
+                      lineHeight: '1.2', 
+                      paddingTop: '0.5rem', 
+                      paddingBottom: '0.5rem', 
+                      paddingRight: '0.5rem', 
+                      paddingLeft: '0.25rem',
+                      color: '#d97706'
+                    }}
                   >
                     Certificate of Membership
                   </h2>
@@ -202,7 +300,7 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
               </div>
 
               {/* Certificate Text */}
-              <div className="text-center -mt-2 max-w-4xl mx-auto px-8">
+              <div className="text-center mt-2 max-w-4xl mx-auto px-8">
                 <div
                   className="text-gray-800 text-2xl leading-relaxed"
                   style={{ 
@@ -211,14 +309,26 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
                     textAlign: 'center'
                   }}
                 >
-                  <p className="mb-2">
+                  <p className="mb-2" style={{ fontFamily: "'Playfair Display', serif", color: '#1f2937', fontSize: '1.5rem', fontWeight: 400 }}>
                     This is to certify that
                   </p>
-                  <p className="mb-2 text-5xl" style={{ fontFamily: "'Dancing Script', cursive", fontWeight: 600, color: '#dc2626' }}>
-                    {certificateData.memberName || "Aalok Kumar"}
-                  </p>
-                  <div className="flex justify-center mb-2">
-                    <div className="h-[2px] bg-gradient-to-r from-transparent via-amber-500 to-transparent w-[40%]"></div>
+                  <div className="mb-2">
+                    <p className="mb-0 text-5xl" style={{ fontFamily: "'Dancing Script', cursive", fontWeight: 600, color: '#dc2626', marginBottom: '0.75rem' }}>
+                      {certificateData.memberName || "Aalok Kumar"}
+                    </p>
+                    <div className="flex justify-center" style={{ marginTop: '0.75rem' }}>
+                      <div 
+                        className="h-[2px] w-[40%]"
+                        style={{
+                          background: 'linear-gradient(to right, transparent, #f59e0b, transparent)',
+                          minWidth: '200px',
+                          display: 'block',
+                          position: 'relative',
+                          top: '0',
+                          left: '0'
+                        }}
+                      ></div>
+                    </div>
                   </div>
                   <p className="mb-2 text-gray-800" style={{ fontFamily: "'Playfair Display', serif" }}>
                     Director of
