@@ -2,11 +2,17 @@ import React, { useState, useEffect } from "react";
 import { FiX, FiDownload } from "react-icons/fi";
 import api from "../../../api/axiosConfig";
 import { getAuthHeaders } from "../../../utils/apiHeaders";
-import { useDashboard } from "../../../context/DashboardContext";
 import GoldenBadge from "../../../assets/GoldenBadge.png";
+import CompanyLogo from "../../../assets/company-logo/parent.jpg";
+import CompanyLogoPNG from "../../../assets/logos/company-logo.png";
+import EtribeTree from "../../../assets/Etribe-Tree.png";
+import EtribeText from "../../../assets/Etribe-Text.png";
+import GoldLeaf from "../../../assets/goldleaf.png";
+import Sign1 from "../../../assets/sign 1.png";
+import Sign2 from "../../../assets/sign 2.png";
+import Sign3 from "../../../assets/sign 3.png";
 
 const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
-  const { data: dashboardData } = useDashboard();
   const [loading, setLoading] = useState(true);
   const [certificateData, setCertificateData] = useState({
     memberName: "",
@@ -15,7 +21,6 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
     organizationName: "",
     organizationAddress: "",
     organizationWebsite: "",
-    organizationLogo: null,
   });
 
   useEffect(() => {
@@ -29,40 +34,37 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
       const uid = localStorage.getItem("uid");
       if (!token || !uid) return;
 
-      let userId = profileData?.id || uid;
+      const userId = profileData?.id || uid;
 
-      try {
-        const profileRes = await api.post(
-          "/userDetail/get_profile",
-          {},
-          { headers: getAuthHeaders(), timeout: 10000 }
-        );
-        if (profileRes.data.status && profileRes.data.data?.id)
-          userId = profileRes.data.data.id;
-      } catch {}
-
-      const idCardRes = await api.post(
-        "/IdCard/get_member_card",
+      const response = await api.post(
+        "/membershipCertificate/get_certificate",
         { user_id: parseInt(userId) },
         { headers: getAuthHeaders(), timeout: 10000 }
       );
 
-      if (idCardRes.data.status === 200 && idCardRes.data.data?.member_details) {
-        const m = idCardRes.data.data.member_details;
-        const orgData = dashboardData?.groupData || {};
+      if (response.data && (response.data.status === true || response.data.success === true || response.data.data)) {
+        const data = response.data.data || response.data;
         setCertificateData({
-          memberName: m.member_name || "Member Name",
-          companyName: m.company_name || "",
-          membershipId: m.user_id || userId,
-          organizationName: orgData.name || "Organization Name",
-          organizationAddress: orgData.address || "",
-          organizationWebsite: orgData.website || "",
-          organizationLogo:
-            orgData.signature || m.company_logo_url || null,
+          memberName: data.member_name || data.memberName || "Member Name",
+          companyName: data.company_name || data.companyName || "",
+          membershipId: data.membership_id || data.membershipId || data.user_id || userId,
+          organizationName: data.organization_name || data.organizationName || "Organization Name",
+          organizationAddress: data.organization_address || data.organizationAddress || "",
+          organizationWebsite: data.organization_website || data.organizationWebsite || "",
         });
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching certificate data:", err);
+      // Set default values on error
+      const userId = profileData?.id || localStorage.getItem("uid") || "";
+      setCertificateData({
+        memberName: "Aalok Kumar",
+        companyName: "Stark Industries",
+        membershipId: userId,
+        organizationName: "Etribe (Empowering Communities)",
+        organizationAddress: "",
+        organizationWebsite: "",
+      });
     } finally {
       setLoading(false);
     }
@@ -96,7 +98,6 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
     );
   };
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   if (!isOpen) return null;
 
   return (
@@ -110,10 +111,10 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
           <div className="flex gap-3">
             <button
               onClick={handleDownload}
-              className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors"
+              title="Download Certificate as PDF"
             >
-              <FiDownload size={18} />
-              Download PDF
+              <FiDownload size={24} />
             </button>
             <button
               onClick={onClose}
@@ -142,30 +143,107 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
               <div className="absolute inset-4 border-[6px] border-amber-600 rounded-xl"></div>
               <div className="absolute inset-8 border-2 border-amber-300 rounded-lg"></div>
 
-              {/* Top Section */}
-              <div className="relative z-10 flex justify-between items-center px-16 pt-10">
-                <div className="flex flex-col">
-                  {certificateData.organizationLogo ? (
-                    <img
-                      src={
-                        certificateData.organizationLogo.startsWith("http")
-                          ? certificateData.organizationLogo
-                          : `${API_BASE_URL}/${certificateData.organizationLogo}`
-                      }
+              {/* Watermark - ETribe Tree */}
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-0 opacity-10">
+                <img
+                  src={EtribeTree}
+                  alt="ETribe Tree Watermark"
+                  className="w-96 h-auto"
+                />
+              </div>
+
+              {/* Logo in top left corner */}
+              <div className="absolute top-12 left-12 z-10">
+                <img
+                  src={CompanyLogo}
                       alt="Organization Logo"
-                      className="h-20 w-auto mb-2"
-                    />
-                  ) : null}
-                  <h1 className="text-4xl font-bold text-amber-700 uppercase tracking-wider">
-                    {certificateData.organizationName || "Organization Name"}
-                  </h1>
-                  {certificateData.organizationWebsite && (
-                    <p className="text-gray-600 text-sm">
-                      {certificateData.organizationWebsite}
-                    </p>
-                  )}
+                  className="h-12 w-auto"
+                />
+              </div>
+
+              {/* Logo in top right corner */}
+              <div className="absolute top-12 right-4 z-10">
+                <img
+                  src={EtribeText}
+                  alt="ETribe Text"
+                  className="h-14 w-auto"
+                />
+              </div>
+
+              {/* Divider */}
+              <div className="relative z-10 flex justify-center pt-24 pb-4">
+                <div className="h-[2px] bg-gradient-to-r from-transparent via-amber-500 to-transparent w-[50%]"></div>
+              </div>
+
+              {/* Title */}
+              <div className="text-center relative z-10 py-2">
+                <div className="flex items-center justify-center gap-0 -mb-2">
+                  {/* Gold Leaf Left */}
+                  <img
+                    src={GoldLeaf}
+                    alt="Gold Leaf"
+                    className="h-40 w-auto -scale-x-100 -mr-28 -mt-4"
+                  />
+                  
+                  <h2 
+                    className="text-8xl bg-gradient-to-r from-amber-600 to-amber-800 bg-clip-text text-transparent whitespace-nowrap"
+                    style={{ fontFamily: "'Great Vibes', cursive", textTransform: 'none', fontWeight: 400, lineHeight: '1.2', paddingTop: '0.5rem', paddingBottom: '0.5rem', paddingRight: '0.5rem', paddingLeft: '0.25rem' }}
+                  >
+                    Certificate of Membership
+                  </h2>
+                  
+                  {/* Gold Leaf Right */}
+                  <img
+                    src={GoldLeaf}
+                    alt="Gold Leaf"
+                    className="h-40 w-auto -ml-28 -mt-4"
+                  />
+                </div>
+              </div>
+
+              {/* Certificate Text */}
+              <div className="text-center -mt-2 max-w-4xl mx-auto px-8">
+                <div
+                  className="text-gray-800 text-2xl leading-relaxed"
+                  style={{ 
+                    fontFamily: "'Playfair Display', serif",
+                    lineHeight: '1.8',
+                    textAlign: 'center'
+                  }}
+                >
+                  <p className="mb-2">
+                    This is to certify that
+                  </p>
+                  <p className="mb-2 text-5xl" style={{ fontFamily: "'Dancing Script', cursive", fontWeight: 600, color: '#dc2626' }}>
+                    {certificateData.memberName || "Aalok Kumar"}
+                  </p>
+                  <div className="flex justify-center mb-2">
+                    <div className="h-[2px] bg-gradient-to-r from-transparent via-amber-500 to-transparent w-[40%]"></div>
+                  </div>
+                  <p className="mb-2 text-gray-800" style={{ fontFamily: "'Playfair Display', serif" }}>
+                    Director of
+                  </p>
+                  <p className="mb-2 text-5xl" style={{ fontFamily: "'Great Vibes', cursive", fontWeight: 400, color: '#b91c1c' }}>
+                    {certificateData.companyName || "Stark Industries"}
+                  </p>
+                  <p className="-mb-1">
+                    is a recognized Member of{" "}
+                    <span className="font-semibold text-gray-900" style={{ fontFamily: "'Playfair Display', serif" }}>
+                      {certificateData.organizationName || "Etribe (Empowering Communities)"}
+                    </span>
+                  </p>
+                  <p className="-mb-1">
+                    and have signed a pledge to abide by the
+                  </p>
+                  <p>
+                    rules and regulations of the society.
+                  </p>
+                </div>
                 </div>
 
+              {/* Footer */}
+              <div className="absolute bottom-10 left-0 right-0 px-16 flex justify-between items-end">
+                {/* Member ID and Golden Badge */}
                 <div className="flex flex-col items-center">
                   <img
                     src={GoldenBadge}
@@ -177,68 +255,23 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
                     M{certificateData.membershipId?.toString().padStart(4, "0")}
                   </p>
                 </div>
-              </div>
-
-              {/* Divider */}
-              <div className="flex justify-center mt-6 mb-4">
-                <div className="h-[2px] bg-gradient-to-r from-transparent via-amber-500 to-transparent w-[80%]"></div>
-              </div>
-
-              {/* Title */}
-              <div className="text-center">
-                <h2 className="text-6xl font-bold bg-gradient-to-r from-amber-600 to-amber-800 bg-clip-text text-transparent mb-3 leading-tight">
-                  <div className="block">CERTIFICATE</div>
-                  <div className="block">OF</div>
-                  <div className="block">MEMBERSHIP</div>
-                </h2>
-                <p className="italic text-gray-700 text-xl">
-                  This is to certify that
-                </p>
-              </div>
-
-              {/* Member Info */}
-              <div className="text-center mt-6">
-                <h3 className="text-5xl font-bold text-gray-900">
-                  {certificateData.memberName.toUpperCase()}
-                </h3>
-                {certificateData.companyName && (
-                  <p className="text-2xl font-semibold text-gray-700 mt-2">
-                    {certificateData.companyName.toUpperCase()}
-                  </p>
-                )}
-                <p className="mt-4 text-gray-700 text-lg max-w-3xl mx-auto leading-relaxed">
-                  is a valued member of{" "}
-                  <span className="text-amber-700 font-semibold">
-                    {certificateData.organizationName}
-                  </span>{" "}
-                  and upholds the values and integrity of our institution.
-                </p>
-              </div>
-
-              {/* Footer */}
-              <div className="absolute bottom-10 left-0 right-0 px-16 flex justify-between items-end">
-                {/* Date */}
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Issued on</p>
-                  <p className="font-semibold text-gray-800 text-base">
-                    {new Date().toLocaleDateString("en-US", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </p>
-                </div>
 
                 {/* Signatures */}
                 <div className="flex gap-10">
                   {[
-                    ["Parveen Garg", "President"],
-                    ["Pardeep Koul", "Gen. Secretary"],
-                    ["Ashok Kumar Mittal", "Treasurer"],
-                  ].map(([name, role]) => (
-                    <div key={name} className="text-center">
-                      <div className="w-32 border-b-2 border-gray-400 mb-2 h-16"></div>
-                      <p className="font-bold text-gray-900 text-sm uppercase">
+                    ["Parveen Garg", "President", Sign1],
+                    ["Pardeep Koul", "Gen. Secretary", Sign2],
+                    ["Ashok Kumar Mittal", "Treasurer", Sign3],
+                  ].map(([name, role, signature]) => (
+                    <div key={name} className="text-center" style={{ minWidth: '140px' }}>
+                      <div className="w-full mb-0.5 h-16 flex items-center justify-center">
+                        <img
+                          src={signature}
+                          alt={`${name} Signature`}
+                          className="h-16 w-auto object-contain"
+                        />
+                      </div>
+                      <p className="font-bold text-gray-900 text-sm uppercase break-words">
                         {name}
                       </p>
                       <p className="text-xs text-gray-600">{role}</p>

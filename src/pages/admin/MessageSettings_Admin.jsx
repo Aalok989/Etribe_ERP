@@ -348,7 +348,7 @@ export default function MessageSettings() {
                           <label className="block text-gray-700 dark:text-gray-200 font-medium mb-2">Mobile No. Key</label>
                           <input type="text" name="mobileNoKey" value={form.mobileNoKey} onChange={handleChange} className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-indigo-400 transition-colors" placeholder="mobile_number" required disabled={submitting} />
                           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">The parameter name for mobile number in API requests</p>
-                </div>
+                        </div>
                         <div>
                           <label className="block text-gray-700 dark:text-gray-200 font-medium mb-2">Message Key</label>
                           <input type="text" name="messageKey" value={form.messageKey} onChange={handleChange} className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-indigo-400 transition-colors" placeholder="msg_key_123456" required disabled={submitting} />

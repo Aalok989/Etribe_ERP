@@ -147,6 +147,7 @@ const menuItems = [
       { label: "Group Data", path: "/admin/group-data" },
       { label: "SMTP Settings", path: "/admin/smtp-settings" },
       { label: "Message Settings", path: "/admin/message-settings" },
+      { label: "Payment Settings", path: "/admin/payment-settings" },
       { label: "User Additional Fields", path: "/admin/user-additional-fields" },
       { label: "Company Additional Fields", path: "/admin/company-additional-fields" },
       { label: "Membership Plans", path: "/admin/membership-plans" },

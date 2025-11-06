@@ -39,6 +39,7 @@ import RoleManagement_Admin from "./pages/admin/RoleManagement_Admin";
 import GroupData_Admin from "./pages/admin/GroupData_Admin";
 import SMTPSettings_Admin from "./pages/admin/SMTPSettings_Admin";
 import MessageSettings_Admin from "./pages/admin/MessageSettings_Admin";
+import PaymentSettings_Admin from "./pages/admin/PaymentSettings_Admin";
 import UserAdditionalFields_Admin from "./pages/admin/UserAdditionalFields_Admin";
 import CompanyAdditionalFields_Admin from "./pages/admin/CompanyAdditionalFields_Admin";
 import MembershipPlans_Admin from "./pages/admin/MembershipPlans_Admin";
@@ -234,6 +235,7 @@ function App() {
                   <Route path="group-data" element={<GroupData_Admin />} />
                   <Route path="smtp-settings" element={<SMTPSettings_Admin />} />
                   <Route path="message-settings" element={<MessageSettings_Admin />} />
+                  <Route path="payment-settings" element={<PaymentSettings_Admin />} />
                   <Route path="user-additional-fields" element={<UserAdditionalFields_Admin />} />
                   <Route path="company-additional-fields" element={<CompanyAdditionalFields_Admin />} />
                   <Route path="membership-plans" element={<MembershipPlans_Admin />} />

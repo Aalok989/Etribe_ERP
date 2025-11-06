@@ -5,6 +5,7 @@ import api from "../../../api/axiosConfig";
 import { getAuthHeaders } from "../../../utils/apiHeaders";
 import MemberIDCard from "../MemberIDCard/MemberIDCard";
 import MembershipCertificate from "../MembershipCertificate/MembershipCertificate";
+import VisitingCard from "../VisitingCard/VisitingCard";
 
 export default function TopBar() {
   const [profile, setProfile] = useState({ 
@@ -25,6 +26,7 @@ export default function TopBar() {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isIDCardOpen, setIsIDCardOpen] = useState(false);
   const [isCertificateOpen, setIsCertificateOpen] = useState(false);
+  const [isVisitingCardOpen, setIsVisitingCardOpen] = useState(false);
   const profileDropdownRef = useRef(null);
   
   // No more hardcoded groupData - we fetch real user data from API
@@ -463,6 +465,16 @@ export default function TopBar() {
                 </button>
                 <button
                   onClick={() => {
+                    setIsVisitingCardOpen(true);
+                    setIsProfileDropdownOpen(false);
+                  }}
+                  className="w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+                >
+                  <FiUser className="text-red-600 dark:text-red-400" size={18} />
+                  <span className="font-medium">Visiting Card</span>
+                </button>
+                <button
+                  onClick={() => {
                     setIsCertificateOpen(true);
                     setIsProfileDropdownOpen(false);
                   }}
@@ -498,6 +510,13 @@ export default function TopBar() {
         <MemberIDCard
           isOpen={isIDCardOpen}
           onClose={() => setIsIDCardOpen(false)}
+          profileData={profile}
+        />
+
+        {/* Visiting Card Modal */}
+        <VisitingCard
+          isOpen={isVisitingCardOpen}
+          onClose={() => setIsVisitingCardOpen(false)}
           profileData={profile}
         />
 
