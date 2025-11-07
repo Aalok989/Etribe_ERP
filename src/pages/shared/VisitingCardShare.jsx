@@ -1,13 +1,14 @@
 import React, { useMemo } from "react";
 import { useParams } from "react-router-dom";
+import pako from "pako";
 import VisitingCard from "../../components/user/VisitingCard/VisitingCard";
 
 const decodeSharePayload = (encoded) => {
   if (!encoded) return { error: "No share data provided." };
 
   try {
-    const decodedString = atob(decodeURIComponent(encoded));
-    const payload = JSON.parse(decodedString);
+    const jsonString = pako.inflate(atob(encoded), { to: "string" });
+    const payload = JSON.parse(jsonString);
 
     if (!payload || typeof payload !== "object") {
       return { error: "Invalid share data." };

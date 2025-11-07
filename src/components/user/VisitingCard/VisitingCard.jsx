@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import pako from 'pako';
 import { FiX, FiSave, FiRefreshCw, FiCheck } from 'react-icons/fi';
 import parentLogo from '../../../assets/logos/parent.jpg';
 import memberPhoto from '../../../assets/Aashish.png';
@@ -15,6 +16,7 @@ const VisitingCard = ({
   showSaveButton = true,
   useMockData = false,
   renderHeaderActions,
+  onShare,
 }) => {
 
   const isInline = displayMode === 'inline';
@@ -118,6 +120,56 @@ const VisitingCard = ({
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState(null);
 
+  const sharePayload = useMemo(() => ({
+    templateId: currentTemplate,
+    cardData: visitingCardData,
+  }), [currentTemplate, visitingCardData]);
+
+  const shareUrl = useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const json = JSON.stringify(sharePayload);
+      const compressed = pako.deflate(json, { to: 'string' });
+      const encoded = btoa(compressed);
+      return `${window.location.origin}/share/visiting-card/${encoded}`;
+    } catch (error) {
+      console.error('Failed to generate share URL', error);
+      return null;
+    }
+  }, [sharePayload]);
+
+  const handleShareRequest = async () => {
+    if (!shareUrl) {
+      onShare?.({ url: null, status: 'error', error: new Error('Share link not available') });
+      return;
+    }
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: visitingCardData?.memberName || 'Visiting Card',
+          url: shareUrl,
+        });
+        onShare?.({ url: shareUrl, status: 'shared' });
+        return;
+      } catch (error) {
+        if (error?.name === 'AbortError') {
+          onShare?.({ url: shareUrl, status: 'cancelled' });
+          return;
+        }
+        console.warn('Native share failed, falling back to clipboard', error);
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      onShare?.({ url: shareUrl, status: 'copied' });
+    } catch (error) {
+      console.error('Failed to copy share link', error);
+      onShare?.({ url: shareUrl, status: 'error', error });
+    }
+  };
+
   const shouldRender = isInline || isOpen;
   if (!shouldRender) return null;
 
@@ -208,6 +260,14 @@ const VisitingCard = ({
     ? `flex justify-end gap-3 pt-4 ${inlinePadding}`
     : 'flex justify-end gap-3 border-t border-slate-100 bg-slate-50/70 px-6 py-4 dark:border-slate-800 dark:bg-slate-900/80';
 
+  const headerActions = isInline
+    ? renderHeaderActions?.({
+        currentTemplate,
+        shareUrl,
+        triggerShare: handleShareRequest,
+      }) || null
+    : null;
+
   return (
     <div
       className={wrapperClass}
@@ -227,7 +287,7 @@ const VisitingCard = ({
             )}
           </div>
           {isInline
-            ? renderHeaderActions?.() || null
+            ? headerActions
             : (
               <button
                 type="button"

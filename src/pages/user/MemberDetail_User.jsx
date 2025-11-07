@@ -7,7 +7,7 @@ import {
   FiEdit2, FiArrowUp, FiUser, FiMail, FiPhone, FiMapPin, FiHome, FiCalendar, 
   FiShield, FiFileText, FiGlobe, FiAlertCircle, FiChevronLeft, FiRefreshCw, 
   FiBriefcase, FiX, FiSearch, FiUsers, FiCopy, FiDownload, FiFile, FiChevronDown, 
-  FiEye, FiEdit, FiTrash2, FiChevronRight, FiChevronUp, FiImage, FiFolder, 
+  FiEye, FiShare2, FiEdit, FiTrash2, FiChevronRight, FiChevronUp, FiImage, FiFolder, 
   FiPlus, FiUpload 
 } from "react-icons/fi";
 import DashboardLayout from "../../components/user/Layout/DashboardLayout";
@@ -62,6 +62,25 @@ export default function MemberDetail() {
   const [editBusinessMode, setEditBusinessMode] = useState(false);
   const [editData, setEditData] = useState({});
   const [saving, setSaving] = useState(false);
+  const handleVisitingCardShareFeedback = useCallback(({ url, status, error }) => {
+    if (status === 'shared') {
+      toast.success('Share sheet opened for your visiting card.');
+      return;
+    }
+
+    if (status === 'copied') {
+      toast.success('Share link copied to clipboard.');
+      return;
+    }
+
+    if (status === 'cancelled') {
+      toast.info('Share cancelled.');
+      return;
+    }
+
+    console.error('Visiting card share failed', error, url);
+    toast.error('Unable to share the visiting card right now.');
+  }, []);
   const [showVisitingCard, setShowVisitingCard] = useState(false);
 
   // ============================================================================
@@ -5526,22 +5545,33 @@ export default function MemberDetail() {
             </div>
             <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] border border-gray-200 dark:border-gray-700">
               <div className="p-4 sm:p-6">
-                <VisitingCard
-                  displayMode="inline"
-                  allowSelection
-                  profileData={visitingCardProfileData}
-                  useMockData
-                  renderHeaderActions={() => (
-                    <button
-                      type="button"
-                      onClick={() => setShowVisitingCard(true)}
-                      className="inline-flex items-center justify-center text-black hover:text-gray-700 transition"
-                      aria-label="Preview visiting card"
-                    >
-                      <FiEye size={24} />
-                    </button>
-                  )}
-                />
+                 <VisitingCard
+                   displayMode="inline"
+                   allowSelection
+                   profileData={visitingCardProfileData}
+                   useMockData
+                   onShare={handleVisitingCardShareFeedback}
+                   renderHeaderActions={({ triggerShare }) => (
+                     <div className="flex items-center gap-3">
+                       <button
+                         type="button"
+                         onClick={() => setShowVisitingCard(true)}
+                         className="inline-flex items-center justify-center text-black hover:text-gray-700 transition"
+                         aria-label="Preview visiting card"
+                       >
+                         <FiEye size={24} />
+                       </button>
+                       <button
+                         type="button"
+                         onClick={triggerShare}
+                         className="inline-flex items-center justify-center text-black hover:text-gray-700 transition"
+                         aria-label="Share visiting card"
+                       >
+                         <FiShare2 size={22} />
+                       </button>
+                     </div>
+                   )}
+                 />
               </div>
             </div>
           </div>
