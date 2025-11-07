@@ -152,6 +152,7 @@ const menuItems = [
       { label: "Company Additional Fields", path: "/admin/company-additional-fields" },
       { label: "Membership Plans", path: "/admin/membership-plans" },
       { label: "Document Type", path: "/admin/document-type" },
+      { label: "E-Visiting Card", path: "/admin/e-visiting-card" },
     ],
   },
 ];
