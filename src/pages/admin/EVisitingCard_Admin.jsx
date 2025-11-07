@@ -1,22 +1,27 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { FiTag, FiSave, FiUsers } from "react-icons/fi";
+import { FiTag, FiSave, FiUsers, FiCheckSquare, FiSquare } from "react-icons/fi";
 
 import DashboardLayout from "../../components/admin/Layout/DashboardLayout";
 import { templates } from "../../components/user/VisitingCard/templates";
 import parentLogo from "../../assets/logos/parent.jpg";
 import memberPhoto from "../../assets/Aashish.png";
+import api from "../../api/axiosConfig";
+import { getAuthHeaders } from "../../utils/apiHeaders";
+import {
+  templateCatalog,
+  getCategories,
+  getAssignmentForUser,
+  saveAssignmentForUser,
+} from "../../data/mockVisitingCardConfig";
 
-const mockUsers = [
-  { id: "u1", name: "Aashish Jangra" },
-  { id: "u2", name: "Parveen Kumar" },
-  { id: "u3", name: "Rohit Sharma" },
-];
-
+const categoryMap = getCategories();
 const categoryOptions = [
-  { value: "basic", label: "Basic" },
-  { value: "standard", label: "Standard" },
-  { value: "premium", label: "Premium" },
+  { value: 'all', label: 'All Categories' },
+  ...Array.from(categoryMap.keys()).map((key) => ({
+    value: key,
+    label: key.replace(/\b\w/g, (char) => char.toUpperCase()),
+  })),
 ];
 
 const defaultCardData = {
@@ -34,17 +39,88 @@ const CARD_WIDTH = 255;
 const CARD_HEIGHT = 405;
 
 export default function EVisitingCard_Admin() {
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
   const [selectedUser, setSelectedUser] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("basic");
-  const [selectedTemplate, setSelectedTemplate] = useState("1");
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedTemplates, setSelectedTemplates] = useState(() => {
+    const firstTemplate = templateCatalog[0];
+    return firstTemplate ? [firstTemplate.id] : [];
+  });
   const [isSaving, setIsSaving] = useState(false);
 
-  const templateEntries = useMemo(() => {
-    return Object.entries(templates).map(([key, Component]) => ({
-      key,
-      Component,
-    }));
+  const templatesForCategory = useMemo(() => {
+    if (selectedCategory === 'all') {
+      return templateCatalog;
+    }
+    return templateCatalog.filter((tpl) => tpl.category === selectedCategory);
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoadingUsers(true);
+      try {
+        const response = await api.get(
+          "/userDetail/active_members",
+          { headers: getAuthHeaders() }
+        );
+
+        const list = response.data?.data ?? [];
+        const currentUid = localStorage.getItem("uid");
+        const formatted = list
+          .filter((item) => item?.name)
+          .map((item) => ({
+            id: item.id || item.user_id || item.uid || item.name,
+            name: item.name,
+          }))
+          .filter((item) => {
+            if (!currentUid) return true;
+            return String(item.id) !== String(currentUid);
+          });
+
+        setUsers(formatted);
+      } catch (error) {
+        console.error("Failed to load users:", error);
+        toast.error("Unable to load users. Please try again.");
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+
+    fetchUsers();
   }, []);
+
+  useEffect(() => {
+    if (!selectedUser) {
+      if (templateCatalog[0]) {
+        setSelectedTemplates([templateCatalog[0].id]);
+      }
+      return;
+    }
+
+    const assignment = getAssignmentForUser(selectedUser);
+    if (assignment && Array.isArray(assignment.templateIds) && assignment.templateIds.length > 0) {
+      const valid = assignment.templateIds.filter((id) => templates[id]);
+      if (valid.length > 0) {
+        setSelectedTemplates(valid);
+        return;
+      }
+    }
+
+    if (templateCatalog[0]) {
+      setSelectedTemplates([templateCatalog[0].id]);
+    }
+  }, [selectedUser]);
+
+  useEffect(() => {
+    const templatesInCategory = templatesForCategory.map((tpl) => tpl.id);
+    const filtered = selectedTemplates.filter((id) => templatesInCategory.includes(id));
+    if (filtered.length === 0 && templatesInCategory[0]) {
+      setSelectedTemplates([templatesInCategory[0]]);
+    } else if (filtered.length !== selectedTemplates.length) {
+      setSelectedTemplates(filtered);
+    }
+  }, [selectedCategory, templatesForCategory, selectedTemplates]);
 
   const handleSave = async () => {
     if (!selectedUser) {
@@ -55,7 +131,16 @@ export default function EVisitingCard_Admin() {
     setIsSaving(true);
     try {
       // TODO: Replace with actual API call once endpoint is ready
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      if (selectedTemplates.length === 0) {
+        toast.error("Select at least one template.");
+        setIsSaving(false);
+        return;
+      }
+
+      saveAssignmentForUser(selectedUser, {
+        category: selectedCategory,
+        templateIds: selectedTemplates,
+      });
       toast.success("Visiting card template preference saved successfully.");
     } catch (error) {
       toast.error("Failed to save template preference. Please try again.");
@@ -81,9 +166,10 @@ export default function EVisitingCard_Admin() {
                 className="bg-transparent text-sm outline-none"
                 value={selectedUser}
                 onChange={(event) => setSelectedUser(event.target.value)}
+                disabled={loadingUsers}
               >
-                <option value="">Select user</option>
-                {mockUsers.map((user) => (
+                <option value="">{loadingUsers ? "Loading users..." : "Select user"}</option>
+                {users.map((user) => (
                   <option key={user.id} value={user.id}>
                     {user.name}
                   </option>
@@ -124,41 +210,43 @@ export default function EVisitingCard_Admin() {
               </p>
             </div>
             <span className="text-sm text-gray-400">
-              Showing {templateEntries.length} templates
+              Showing {templatesForCategory.length} templates in {selectedCategory}
             </span>
           </div>
 
           <div className="p-2 sm:p-6 grid grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 gap-x-4 gap-y-6 justify-items-center">
-            {templateEntries.map(({ key, Component }) => {
-              const isSelected = selectedTemplate === key;
+            {templatesForCategory.map(({ id, label }) => {
+              const Component = templates[id];
+              if (!Component) return null;
+              const isSelected = selectedTemplates.includes(id);
               return (
                 <div
-                  key={key}
+                  key={id}
                   className="flex flex-col items-center gap-4 transition duration-150 cursor-pointer"
-                  onClick={() => setSelectedTemplate(key)}
+                  onClick={() => {
+                    setSelectedTemplates((prev) => {
+                      if (prev.includes(id)) {
+                        return prev.filter((value) => value !== id);
+                      }
+                      return [...prev, id];
+                    });
+                  }}
                 >
                   <div className="pt-6 pb-3">
                     <Component
                       cardData={defaultCardData}
                       cardWidth={CARD_WIDTH}
                       cardHeight={CARD_HEIGHT}
-                      cardId={`admin-evisitingcard-${key}`}
+                      cardId={`admin-evisitingcard-${id}`}
                     />
                   </div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <input
-                      type="radio"
-                      name="template"
-                      value={key}
-                      checked={isSelected}
-                      onChange={(event) => {
-                        event.stopPropagation();
-                        setSelectedTemplate(key);
-                      }}
-                      className="w-5 h-5 text-indigo-600"
-                      onClick={(event) => event.stopPropagation()}
-                    />
-                    Template {key}
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 select-none">
+                    {isSelected ? (
+                      <FiCheckSquare className="text-indigo-600" />
+                    ) : (
+                      <FiSquare className="text-gray-400" />
+                    )}
+                    {label}
                   </label>
                 </div>
               );

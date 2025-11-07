@@ -20,6 +20,7 @@ import autoTable from "jspdf-autotable";
 import PhonepeLogo from "../../assets/Phonepe.png";
 import RazorpayLogo from "../../assets/Razorpay.png";
 import StripeLogo from "../../assets/Stripe.png";
+import VisitingCard from "../../components/user/VisitingCard/VisitingCard";
 
 // ============================================================================
 // COMPONENT HEADER AND DOCUMENTATION
@@ -61,6 +62,7 @@ export default function MemberDetail() {
   const [editBusinessMode, setEditBusinessMode] = useState(false);
   const [editData, setEditData] = useState({});
   const [saving, setSaving] = useState(false);
+  const [showVisitingCard, setShowVisitingCard] = useState(false);
 
   // ============================================================================
   // LOCATION AND ADDITIONAL FIELDS STATE
@@ -3482,8 +3484,27 @@ export default function MemberDetail() {
   // Memoize loading state to prevent unnecessary re-renders
   const isLoading = useMemo(() => loading, [loading]);
   
+  const visitingCardProfileData = useMemo(() => {
+    if (!member) return {};
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+    const profileImagePath = member.profile_image || member.user_image || member.avatar;
+    const companyLogoPath = member.company_logo || member.company_logo_image || member.company_logo_path;
+
+    return {
+      uid: member.id || member.member_id || memberId,
+      fullName: member.name || `${member.first_name || ''} ${member.last_name || ''}`.trim() || undefined,
+      email: member.email,
+      phone: member.phone_num || member.contact_number,
+      address: member.address || [member.city, member.state, member.country].filter(Boolean).join(', '),
+      membershipId: member.membership_id || member.member_no || memberId,
+      issuedUpto: member.plan_validity || member.valid_upto || member.plan_valid_till,
+      profileImage: profileImagePath ? `${baseUrl}/${profileImagePath}` : undefined,
+      companyLogo: companyLogoPath ? `${baseUrl}/${companyLogoPath}` : undefined,
+    };
+  }, [member, memberId]);
+
   console.log('🔍 Render state:', { loading, error, member, isLoading });
-  
+ 
   if (isLoading) {
     console.log('🔍 Rendering loading state...');
     return (
@@ -3604,6 +3625,13 @@ export default function MemberDetail() {
           <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-2">{member.name || 'User'}</h2>
           <div className="text-sm text-gray-500 dark:text-gray-300 font-medium">{member.email}</div>
           <div className="text-sm text-gray-400 dark:text-gray-400">{member.phone_num}</div>
+          <button
+            onClick={() => setShowVisitingCard(true)}
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600 text-white text-sm font-semibold shadow hover:bg-indigo-700 transition-colors"
+          >
+            <FiEye size={16} />
+            View Visiting Card
+          </button>
         </div>
       </div>
 
@@ -6014,6 +6042,13 @@ export default function MemberDetail() {
           </div>
         </div>
       )}
+
+      <VisitingCard
+        isOpen={showVisitingCard}
+        onClose={() => setShowVisitingCard(false)}
+        profileData={visitingCardProfileData}
+        allowSelection={false}
+      />
     </DashboardLayout>
   );
 } 

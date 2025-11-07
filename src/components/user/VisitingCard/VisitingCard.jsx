@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { FiX, FiDownload } from 'react-icons/fi';
+import React, { useEffect, useMemo, useState } from 'react';
+import { FiX, FiSave, FiRefreshCw } from 'react-icons/fi';
 import parentLogo from '../../../assets/logos/parent.jpg';
 import memberPhoto from '../../../assets/Aashish.png';
 import { templates } from './templates';
+import { getAssignmentForUser, saveUserTemplateSelection } from '../../../data/mockVisitingCardConfig';
 
-const VisitingCard = ({ isOpen, onClose, profileData, selectedTemplate = 1 }) => {
-  const [currentTemplate, setCurrentTemplate] = useState(selectedTemplate);
+const VisitingCard = ({ isOpen, onClose, profileData, selectedTemplate = 1, allowSelection = true }) => {
 
   // Hardcoded data for visiting card (can be replaced with profileData prop)
   const visitingCardData = {
@@ -26,133 +26,207 @@ const VisitingCard = ({ isOpen, onClose, profileData, selectedTemplate = 1 }) =>
     ...profileData // Merge with provided profileData
   };
 
-  // Get available template numbers
-  const availableTemplates = Object.keys(templates).map(Number).sort((a, b) => a - b);
+  const templateKeys = useMemo(() => Object.keys(templates).sort(), []);
+
+  const storedUid = typeof window !== 'undefined' ? window.localStorage.getItem('uid') : null;
+
+  const currentUserId = profileData?.uid
+    || profileData?.id
+    || profileData?.userId
+    || profileData?.membershipId
+    || storedUid
+    || visitingCardData.membershipId;
+
+  const assignment = getAssignmentForUser(currentUserId);
+  const isAdmin = String(currentUserId) === '1';
+
+  const initialTemplateId = useMemo(() => {
+    if (assignment?.selectedTemplateId && templates[assignment.selectedTemplateId]) {
+      return Number(assignment.selectedTemplateId);
+    }
+    if (assignment && Array.isArray(assignment.templateIds)) {
+      const valid = assignment.templateIds.find((id) => templates[id]);
+      if (valid) {
+        return Number(valid);
+      }
+    }
+    return Number(selectedTemplate) || Number(templateKeys[0]) || 1;
+  }, [assignment, selectedTemplate, templateKeys]);
+
+  const [currentTemplate, setCurrentTemplate] = useState(initialTemplateId);
+
+  useEffect(() => {
+    setCurrentTemplate(initialTemplateId);
+  }, [initialTemplateId]);
+
+  const assignedTemplates = useMemo(() => {
+    if (isAdmin || !assignment) {
+      return templateKeys.map(Number);
+    }
+    if (assignment && Array.isArray(assignment.templateIds)) {
+      const valid = assignment.templateIds.filter((id) => templates[id]).map(Number);
+      if (valid.length > 0) {
+        return valid;
+      }
+    }
+    return templateKeys.map(Number);
+  }, [assignment, isAdmin, templateKeys]);
+
+  const availableTemplates = useMemo(() => {
+    if (allowSelection) {
+      return assignedTemplates;
+    }
+    return [Number(initialTemplateId)];
+  }, [allowSelection, assignedTemplates, initialTemplateId]);
+
+  useEffect(() => {
+    if (availableTemplates.length === 0) return;
+    if (!availableTemplates.includes(currentTemplate)) {
+      setCurrentTemplate(availableTemplates[0]);
+    }
+  }, [availableTemplates, currentTemplate]);
 
   // Get the selected template component
   const SelectedTemplate = templates[currentTemplate] || templates[1];
 
-  const handleDownload = async () => {
-    const cardElement = document.getElementById(`visiting-card-preview-${currentTemplate}`);
-    if (!cardElement) {
-      alert('Card element not found. Please try again.');
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState(null);
+
+  if (!isOpen) return null;
+
+  const handleSave = () => {
+    if (!allowSelection) return;
+    if (!currentUserId) {
+      setSaveMessage({ type: 'error', text: 'Unable to determine user. Please log in again.' });
       return;
     }
 
     try {
-      // Import html2pdf dynamically
-      const html2pdfModule = await import('html2pdf.js');
-      const html2pdf = html2pdfModule.default || html2pdfModule.html2pdf || html2pdfModule;
-
-      // Configure options for PDF generation
-      const opt = {
-        margin: 10,
-        filename: `Visiting-Card-${visitingCardData.membershipId}-Template-${currentTemplate}.pdf`,
-        image: { type: 'png', quality: 1.0 },
-        html2canvas: { 
-        scale: 3,
-        useCORS: true,
-          allowTaint: true,
-          backgroundColor: null
-        },
-        jsPDF: { 
-        unit: 'mm',
-          format: 'a4', 
-          orientation: 'portrait' 
-        }
-      };
-
-      // Generate and save PDF
-      await html2pdf().set(opt).from(cardElement).save();
+      setSaving(true);
+      saveUserTemplateSelection(currentUserId, String(currentTemplate));
+      setSaveMessage({ type: 'success', text: 'Template preference saved locally.' });
     } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Failed to download visiting card as PDF. Please try again.');
+      console.error('Failed to save visiting card preference:', error);
+      setSaveMessage({ type: 'error', text: 'Failed to save template selection.' });
+    } finally {
+      setSaving(false);
+      setTimeout(() => setSaveMessage(null), 2500);
     }
   };
 
-  if (!isOpen) return null;
+  const handleOverlayClick = (event) => {
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
+  };
+
+  const previewWidth = allowSelection ? 320 : 360;
+  const previewHeight = Math.round((405 / 255) * previewWidth);
+
+  const headerTitle = allowSelection ? 'Choose Your Visiting Card' : 'Your Visiting Card';
+  const headerSubtitle = allowSelection
+    ? 'Select the design you prefer and save it for quick access later.'
+    : 'Here is the visiting card currently assigned to you.';
+
+  if (!allowSelection) {
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm px-4 py-6"
+        onClick={handleOverlayClick}
+      >
+        <SelectedTemplate
+          cardData={visitingCardData}
+          cardWidth={255}
+          cardHeight={405}
+          cardId="assigned-visiting-card"
+        />
+      </div>
+    );
+  }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-7xl max-h-[95vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Select Visiting Card Template</h2>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleDownload}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors"
-              title="Download Visiting Card as PDF"
-            >
-              <FiDownload size={24} />
-            </button>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
-            >
-              <FiX size={24} />
-            </button>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm px-4 py-6"
+      onClick={handleOverlayClick}
+    >
+      <div className="relative w-full max-w-5xl overflow-hidden rounded-3xl bg-white/95 shadow-2xl dark:bg-slate-900/95">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 pt-6 pb-4 shadow-sm dark:border-slate-800 sm:px-8 sm:pt-8">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-indigo-400">Visiting Card</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">{headerTitle}</h2>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-300 max-w-2xl">{headerSubtitle}</p>
           </div>
         </div>
 
-        {/* Hidden previews for PDF generation */}
-        <div className="hidden">
-          {availableTemplates.map((templateNum) => {
-            const TemplateComponent = templates[templateNum];
-            return (
-              <TemplateComponent
-                key={templateNum}
-                cardData={visitingCardData}
-                cardWidth={255}
-                cardHeight={405}
-                cardId={`visiting-card-preview-${templateNum}`}
-              />
-            );
-          })}
-        </div>
-
-        {/* Template Grid */}
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {availableTemplates.map((templateNum) => {
+        <div className="flex flex-col gap-6 px-6 py-6 sm:px-8">
+          <div className="grid gap-6 justify-items-center sm:grid-cols-2 xl:grid-cols-3">
+            {assignedTemplates.map((templateNum) => {
               const TemplateComponent = templates[templateNum];
               const isSelected = currentTemplate === templateNum;
-              
-              return (
-                <div
-                  key={templateNum}
-                  className="flex flex-col items-center cursor-pointer"
-                  onClick={() => setCurrentTemplate(templateNum)}
-                >
-                  {/* Template Card - Full Size */}
-                  <div className="mb-4">
-                    <TemplateComponent
-                      cardData={visitingCardData}
-                      cardWidth={255}
-                      cardHeight={405}
-                      cardId={`template-preview-${templateNum}`}
-                    />
-                  </div>
 
-                  {/* Radio Button Below Template */}
-                      <div className="flex items-center gap-2">
+              return (
+                <button
+                  key={templateNum}
+                  type="button"
+                  onClick={() => setCurrentTemplate(templateNum)}
+                  className={`group flex w-[255px] flex-col items-center rounded-3xl border bg-white/95 p-4 shadow-sm transition-all hover:shadow-lg dark:bg-slate-900/80 ${
+                    isSelected
+                      ? 'border-indigo-500 ring-2 ring-indigo-200 dark:border-indigo-400 dark:ring-indigo-900'
+                      : 'border-slate-200 dark:border-slate-700'
+                  }`}
+                >
+                  <TemplateComponent
+                    cardData={visitingCardData}
+                    cardWidth={255}
+                    cardHeight={405}
+                    cardId={`template-preview-${templateNum}`}
+                  />
+                  <div className="mt-3 flex items-center gap-2">
                     <input
                       type="radio"
                       name="template-selection"
                       value={templateNum}
                       checked={isSelected}
                       onChange={() => setCurrentTemplate(templateNum)}
-                      className="w-5 h-5 text-indigo-600 cursor-pointer"
-                      onClick={(e) => e.stopPropagation()}
+                      className="h-4 w-4 cursor-pointer text-indigo-600"
                     />
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <span
+                      className={`text-sm font-medium ${
+                        isSelected
+                          ? 'text-indigo-600 dark:text-indigo-300'
+                          : 'text-slate-600 dark:text-slate-200'
+                      }`}
+                    >
                       Template {templateNum}
-                        </span>
+                    </span>
                   </div>
-                </div>
+                </button>
               );
             })}
+          </div>
+
+          {saveMessage && (
+            <div
+              className={`rounded-2xl px-4 py-3 text-sm font-medium shadow-sm ${
+                saveMessage.type === 'success'
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                  : 'bg-rose-50 text-rose-700 border border-rose-200'
+              }`}
+            >
+              {saveMessage.text}
             </div>
+          )}
+        </div>
+
+        <div className="flex justify-end gap-3 border-t border-slate-100 bg-slate-50/70 px-6 py-4 dark:border-slate-800 dark:bg-slate-900/80">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {saving ? <FiRefreshCw className="animate-spin" size={18} /> : <FiSave size={18} />}
+            {saving ? 'Saving…' : 'Save Selection'}
+          </button>
         </div>
       </div>
     </div>
