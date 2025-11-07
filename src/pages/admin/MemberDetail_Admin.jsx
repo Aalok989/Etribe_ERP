@@ -1704,6 +1704,113 @@ export default function MemberDetail_Admin() {
     { id: 'products', label: 'Products' }
   ];
 
+  const chromeTabStyles = `
+    .chrome-tabs-wrapper {
+      position: relative;
+      width: 100%;
+      margin-bottom: 1.25rem;
+    }
+    .chrome-tabs-container {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.25rem;
+      padding: 0.75rem 1rem 0.25rem;
+      border-radius: 0.85rem 0.85rem 0 0;
+      background: linear-gradient(180deg, rgba(243, 244, 246, 0.95) 0%, rgba(229, 231, 235, 0.95) 100%);
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      border-bottom: none;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .chrome-tabs-container::-webkit-scrollbar {
+      display: none;
+    }
+    .dark .chrome-tabs-container {
+      background: linear-gradient(180deg, rgba(31, 41, 55, 0.85) 0%, rgba(17, 24, 39, 0.95) 100%);
+      border-color: rgba(75, 85, 99, 0.9);
+    }
+    .chrome-tabs-underline {
+      height: 2px;
+      width: 100%;
+      background: linear-gradient(90deg, rgba(99, 102, 241, 0.2) 0%, rgba(99, 102, 241, 0.6) 50%, rgba(99, 102, 241, 0.2) 100%);
+      border-radius: 9999px;
+    }
+    .dark .chrome-tabs-underline {
+      background: linear-gradient(90deg, rgba(129, 140, 248, 0.16) 0%, rgba(129, 140, 248, 0.45) 50%, rgba(129, 140, 248, 0.16) 100%);
+    }
+    .chrome-tab-button {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.65rem 1.85rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #6b7280;
+      background: linear-gradient(180deg, rgba(229, 231, 235, 0.95) 0%, rgba(209, 213, 219, 0.95) 100%);
+      border: none;
+      border-radius: 0.65rem 0.65rem 0 0;
+      cursor: pointer;
+      transition: transform 0.2s ease, color 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: inset 0 -1px 0 rgba(148, 163, 184, 0.45);
+    }
+    .chrome-tab-button::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 0.65rem 0.65rem 0 0;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      border-bottom: none;
+      opacity: 0.45;
+      pointer-events: none;
+    }
+    .chrome-tab-button span {
+      position: relative;
+      z-index: 1;
+      white-space: nowrap;
+    }
+    .chrome-tab-button:hover {
+      color: #374151;
+      filter: brightness(1.02);
+    }
+    .chrome-tab-button.active {
+      color: #1f2937;
+      background: linear-gradient(180deg, #ffffff 0%, #f3f4f6 100%);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12), inset 0 -1px 0 rgba(255, 255, 255, 0.9);
+      transform: translateY(-2px);
+    }
+    .chrome-tab-button.active::after {
+      border-color: rgba(99, 102, 241, 0.45);
+      opacity: 0.75;
+    }
+    .chrome-tab-button:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35);
+    }
+    .dark .chrome-tab-button {
+      color: #d1d5db;
+      background: linear-gradient(180deg, rgba(55, 65, 81, 0.92) 0%, rgba(31, 41, 55, 0.98) 100%);
+      box-shadow: inset 0 -1px 0 rgba(148, 163, 184, 0.18);
+    }
+    .dark .chrome-tab-button::after {
+      border-color: rgba(75, 85, 99, 0.75);
+      opacity: 0.55;
+    }
+    .dark .chrome-tab-button:hover {
+      color: #f9fafb;
+      filter: brightness(1.06);
+    }
+    .dark .chrome-tab-button.active {
+      color: #f9fafb;
+      background: linear-gradient(180deg, rgba(30, 64, 175, 0.92) 0%, rgba(15, 23, 42, 0.96) 100%);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.6), inset 0 -1px 0 rgba(59, 130, 246, 0.55);
+    }
+    .dark .chrome-tab-button.active::after {
+      border-color: rgba(129, 140, 248, 0.5);
+      opacity: 0.9;
+    }
+  `;
+
   // Payment export and clipboard helpers (from PaymentDetails.jsx)
   const exportToExcel = () => {
     const exportData = filteredPayments.map((payment, index) => ({
@@ -5175,6 +5282,7 @@ export default function MemberDetail_Admin() {
 
   return (
     <DashboardLayout>
+      <style dangerouslySetInnerHTML={{ __html: chromeTabStyles }} />
       <div className="flex flex-col gap-4 py-3">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -5196,20 +5304,30 @@ export default function MemberDetail_Admin() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex space-x-8 border-b border-gray-200 dark:border-gray-700">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === tab.id
-                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="chrome-tabs-wrapper">
+          <div
+            className="chrome-tabs-container"
+            role="tablist"
+            aria-label="Member detail sections"
+          >
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  tabIndex={isActive ? 0 : -1}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`chrome-tab-button${isActive ? ' active' : ''}`}
+                >
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="chrome-tabs-underline" />
         </div>
 
         {/* Controls */}

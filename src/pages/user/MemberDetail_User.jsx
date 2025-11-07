@@ -1814,8 +1814,21 @@ export default function MemberDetail() {
     { id: 'company-documents', label: 'Company Documents' },
     { id: 'personal-documents', label: 'Personal Documents' },
     { id: 'payment-details', label: 'Payment Details' },
-    { id: 'products', label: 'Bank Details' }
+    { id: 'products', label: 'Bank Details' },
+    { id: 'e-visiting-card', label: 'E-Visiting Card' }
   ], []);
+
+  const tabHeadingMap = useMemo(() => ({
+    'user-profile': 'My Profile',
+    'business-profile': 'My Business Profile',
+    'company-documents': 'My Company Documents',
+    'personal-documents': 'My Personal Documents',
+    'payment-details': 'My Payment Details',
+    'products': 'My Bank & Payment Details',
+    'e-visiting-card': 'My E-Visiting Card'
+  }), []);
+
+  const activeTabTitle = tabHeadingMap[activeTab] || 'My Membership Details';
 
   // Payment export and clipboard helpers (from PaymentDetails.jsx)
   const exportToExcel = () => {
@@ -3479,6 +3492,112 @@ export default function MemberDetail() {
       background-color: #007bff !important;
       color: white !important;
     }
+
+    /* Chrome-style tab navigation */
+    .chrome-tabs-wrapper {
+      position: relative;
+      width: 100%;
+      margin-bottom: 1.25rem;
+    }
+    .chrome-tabs-container {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.25rem;
+      padding: 0.75rem 1rem 0.25rem;
+      border-radius: 0.85rem 0.85rem 0 0;
+      background: linear-gradient(180deg, rgba(243, 244, 246, 0.95) 0%, rgba(229, 231, 235, 0.95) 100%);
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      border-bottom: none;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .chrome-tabs-container::-webkit-scrollbar {
+      display: none;
+    }
+    .dark .chrome-tabs-container {
+      background: linear-gradient(180deg, rgba(31, 41, 55, 0.85) 0%, rgba(17, 24, 39, 0.95) 100%);
+      border-color: rgba(75, 85, 99, 0.9);
+    }
+    .chrome-tabs-underline {
+      height: 2px;
+      width: 100%;
+      background: linear-gradient(90deg, rgba(99, 102, 241, 0.2) 0%, rgba(99, 102, 241, 0.6) 50%, rgba(99, 102, 241, 0.2) 100%);
+      border-radius: 9999px;
+    }
+    .dark .chrome-tabs-underline {
+      background: linear-gradient(90deg, rgba(129, 140, 248, 0.16) 0%, rgba(129, 140, 248, 0.45) 50%, rgba(129, 140, 248, 0.16) 100%);
+    }
+    .chrome-tab-button {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.65rem 1.85rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #6b7280;
+      background: linear-gradient(180deg, rgba(229, 231, 235, 0.95) 0%, rgba(209, 213, 219, 0.95) 100%);
+      border: none;
+      border-radius: 0.65rem 0.65rem 0 0;
+      cursor: pointer;
+      transition: transform 0.2s ease, color 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: inset 0 -1px 0 rgba(148, 163, 184, 0.45);
+    }
+    .chrome-tab-button::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 0.65rem 0.65rem 0 0;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      border-bottom: none;
+      opacity: 0.45;
+      pointer-events: none;
+    }
+    .chrome-tab-button span {
+      position: relative;
+      z-index: 1;
+      white-space: nowrap;
+    }
+    .chrome-tab-button:hover {
+      color: #374151;
+      filter: brightness(1.02);
+    }
+    .chrome-tab-button.active {
+      color: #1f2937;
+      background: linear-gradient(180deg, #ffffff 0%, #f3f4f6 100%);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12), inset 0 -1px 0 rgba(255, 255, 255, 0.9);
+      transform: translateY(-2px);
+    }
+    .chrome-tab-button.active::after {
+      border-color: rgba(99, 102, 241, 0.45);
+      opacity: 0.75;
+    }
+    .chrome-tab-button:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35);
+    }
+    .dark .chrome-tab-button {
+      color: #d1d5db;
+      background: linear-gradient(180deg, rgba(55, 65, 81, 0.92) 0%, rgba(31, 41, 55, 0.98) 100%);
+      box-shadow: inset 0 -1px 0 rgba(148, 163, 184, 0.18);
+    }
+    .dark .chrome-tab-button::after {
+      border-color: rgba(75, 85, 99, 0.75);
+      opacity: 0.55;
+    }
+    .dark .chrome-tab-button:hover {
+      color: #f9fafb;
+      filter: brightness(1.06);
+    }
+    .dark .chrome-tab-button.active {
+      color: #f9fafb;
+      background: linear-gradient(180deg, rgba(30, 64, 175, 0.92) 0%, rgba(15, 23, 42, 0.96) 100%);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.6), inset 0 -1px 0 rgba(59, 130, 246, 0.55);
+    }
+    .dark .chrome-tab-button.active::after {
+      border-color: rgba(129, 140, 248, 0.5);
+      opacity: 0.9;
+    }
   `;
 
   // Memoize loading state to prevent unnecessary re-renders
@@ -3625,13 +3744,6 @@ export default function MemberDetail() {
           <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-2">{member.name || 'User'}</h2>
           <div className="text-sm text-gray-500 dark:text-gray-300 font-medium">{member.email}</div>
           <div className="text-sm text-gray-400 dark:text-gray-400">{member.phone_num}</div>
-          <button
-            onClick={() => setShowVisitingCard(true)}
-            className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600 text-white text-sm font-semibold shadow hover:bg-indigo-700 transition-colors"
-          >
-            <FiEye size={16} />
-            View Visiting Card
-          </button>
         </div>
       </div>
 
@@ -5401,6 +5513,39 @@ export default function MemberDetail() {
             </div>
           </div>
         );
+      case 'e-visiting-card':
+        return (
+          <div className="flex flex-col gap-4 py-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="space-y-1">
+                <h1 className="text-xl sm:text-2xl font-bold text-black-800">E-Visiting Card</h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Preview the available templates and choose the one that suits you best.
+                </p>
+              </div>
+            </div>
+            <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] border border-gray-200 dark:border-gray-700">
+              <div className="p-4 sm:p-6">
+                <VisitingCard
+                  displayMode="inline"
+                  allowSelection
+                  profileData={visitingCardProfileData}
+                  useMockData
+                  renderHeaderActions={() => (
+                    <button
+                      type="button"
+                      onClick={() => setShowVisitingCard(true)}
+                      className="inline-flex items-center justify-center text-black hover:text-gray-700 transition"
+                      aria-label="Preview visiting card"
+                    >
+                      <FiEye size={24} />
+                    </button>
+                  )}
+                />
+              </div>
+            </div>
+          </div>
+        );
       default:
         return renderUserProfile();
     }
@@ -5425,7 +5570,7 @@ export default function MemberDetail() {
               <FiChevronLeft size={20} />
             </button>
             <h1 className="text-xl sm:text-2xl font-bold text-orange-600">
-              {activeTab === 'user-profile' ? 'My Profile' : activeTab === 'business-profile' ? 'My Business Profile' : 'My Membership Details'}
+              {activeTabTitle}
             </h1>
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
@@ -5435,20 +5580,30 @@ export default function MemberDetail() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex space-x-8 border-b border-gray-200 dark:border-gray-700">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === tab.id
-                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="chrome-tabs-wrapper">
+          <div
+            className="chrome-tabs-container"
+            role="tablist"
+            aria-label="Member detail sections"
+          >
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  tabIndex={isActive ? 0 : -1}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`chrome-tab-button${isActive ? ' active' : ''}`}
+                >
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="chrome-tabs-underline" />
         </div>
 
         {/* Controls */}
@@ -5514,7 +5669,7 @@ export default function MemberDetail() {
                   Cancel
                 </button>
               </>
-            ) : (activeTab === 'company-documents' ? (
+            ) : activeTab === 'company-documents' ? (
               <button
                 onClick={() => openDocumentModal('company')}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition flex items-center gap-2"
@@ -5536,6 +5691,8 @@ export default function MemberDetail() {
             ) : activeTab === 'payment-details' ? (
               // Payment details has its own buttons inside the content area
               null
+            ) : activeTab === 'e-visiting-card' ? (
+              null
             ) : (
               <button
                 onClick={handleEditData}
@@ -5544,7 +5701,7 @@ export default function MemberDetail() {
                 <FiEdit2 size={16} />
                 Edit Data
               </button>
-            ))}
+            )}
           </div>
         </div>
 
@@ -6048,6 +6205,7 @@ export default function MemberDetail() {
         onClose={() => setShowVisitingCard(false)}
         profileData={visitingCardProfileData}
         allowSelection={false}
+        useMockData
       />
     </DashboardLayout>
   );
