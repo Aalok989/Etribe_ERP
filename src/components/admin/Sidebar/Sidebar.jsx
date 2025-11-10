@@ -153,6 +153,7 @@ const menuItems = [
       { label: "Membership Plans", path: "/admin/membership-plans" },
       { label: "Document Type", path: "/admin/document-type" },
       { label: "E-Visiting Card", path: "/admin/e-visiting-card" },
+      { label: "Membership Certificate", path: "/admin/membership-certificate" },
     ],
   },
 ];

@@ -4,7 +4,6 @@ import api from "../../../api/axiosConfig";
 import { getAuthHeaders } from "../../../utils/apiHeaders";
 import GoldenBadge from "../../../assets/GoldenBadge.png";
 import CompanyLogo from "../../../assets/company-logo/parent.jpg";
-import CompanyLogoPNG from "../../../assets/logos/company-logo.png";
 import EtribeTree from "../../../assets/Etribe-Tree.png";
 import EtribeText from "../../../assets/Etribe-Text.png";
 import GoldLeaf from "../../../assets/goldleaf.png";
@@ -12,16 +11,31 @@ import Sign1 from "../../../assets/sign 1.png";
 import Sign2 from "../../../assets/sign 2.png";
 import Sign3 from "../../../assets/sign 3.png";
 
+const DEFAULT_SIGNATORIES = [
+  { name: "Parveen Garg", designation: "President", signature: Sign1 },
+  { name: "Pardeep Koul", designation: "Gen. Secretary", signature: Sign2 },
+  { name: "Ashok Kumar Mittal", designation: "Treasurer", signature: Sign3 },
+];
+
+const createDefaultCertificateData = () => ({
+  memberName: "",
+  memberRole: "",
+  companyName: "",
+  certificateUid: "",
+  membershipId: "",
+  organizationName: "",
+  organizationAddress: "",
+  organizationWebsite: "",
+  companyLogo: "",
+  issuedOn: "",
+  validFrom: "",
+  validUntil: "",
+  signatories: [],
+});
+
 const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
   const [loading, setLoading] = useState(true);
-  const [certificateData, setCertificateData] = useState({
-    memberName: "",
-    companyName: "",
-    membershipId: "",
-    organizationName: "",
-    organizationAddress: "",
-    organizationWebsite: "",
-  });
+  const [certificateData, setCertificateData] = useState(createDefaultCertificateData);
 
   useEffect(() => {
     if (isOpen) fetchCertificateData();
@@ -32,43 +46,187 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
       setLoading(true);
       const token = localStorage.getItem("token");
       const uid = localStorage.getItem("uid");
-      if (!token || !uid) return;
+      if (!token || !uid) {
+        throw new Error("Missing authentication details");
+      }
 
       const userId = profileData?.id || uid;
 
-      const response = await api.post(
-        "/membershipCertificate/get_certificate",
-        { user_id: parseInt(userId) },
-        { headers: getAuthHeaders(), timeout: 10000 }
+      let certificateId =
+        profileData?.certificate_id ||
+        profileData?.certificateId ||
+        profileData?.certificateID;
+      let fallbackMemberName =
+        profileData?.member_name ||
+        profileData?.memberName ||
+        profileData?.name ||
+        "";
+
+      let profileResponseData = null;
+
+      if (!certificateId) {
+        const profileResponse = await api.post(
+          `/userDetail/get_user_profile/${userId}`,
+          {},
+          { headers: getAuthHeaders(), timeout: 10000 }
+        );
+
+        if (
+          profileResponse?.data &&
+          (profileResponse.data.status === true || profileResponse.data.status === 200)
+        ) {
+          profileResponseData = profileResponse.data.data || {};
+          certificateId =
+            profileResponseData.certificate_id ||
+            profileResponseData.certificateId ||
+            profileResponseData.certificateID;
+          fallbackMemberName =
+            profileResponseData.name ||
+            profileResponseData.member_name ||
+            fallbackMemberName;
+        }
+      }
+
+      if (!certificateId) {
+        throw new Error("Certificate ID not found for the user.");
+      }
+
+      const certificateResponse = await api.post(
+        `/Certificate/view/${certificateId}`,
+        {},
+        { headers: getAuthHeaders(), timeout: 15000 }
       );
 
-      if (response.data && (response.data.status === true || response.data.success === true || response.data.data)) {
-        const data = response.data.data || response.data;
-        setCertificateData({
-          memberName: data.member_name || data.memberName || "Member Name",
-          companyName: data.company_name || data.companyName || "",
-          membershipId: data.membership_id || data.membershipId || data.user_id || userId,
-          organizationName: data.organization_name || data.organizationName || "Organization Name",
-          organizationAddress: data.organization_address || data.organizationAddress || "",
-          organizationWebsite: data.organization_website || data.organizationWebsite || "",
-        });
+      const certificatePayload =
+        certificateResponse?.data?.data || certificateResponse?.data;
+
+      if (!certificatePayload || certificateResponse?.data?.status === false) {
+        throw new Error("Certificate details not available.");
       }
+
+      setCertificateData({
+        memberName:
+          certificatePayload.member_name ||
+          certificatePayload.memberName ||
+          fallbackMemberName ||
+          "",
+        memberRole: certificatePayload.member_role || "",
+        companyName:
+          certificatePayload.company_name ||
+          certificatePayload.organization_name ||
+          "",
+        certificateUid: certificatePayload.certificate_uid || "",
+        membershipId:
+          certificatePayload.member_id ||
+          certificatePayload.membership_id ||
+          certificatePayload.membershipId ||
+          userId,
+        organizationName:
+          certificatePayload.store_name ||
+          certificatePayload.organization_name ||
+          certificatePayload.company_name ||
+          "Etribe (Empowering Communities)",
+        organizationAddress:
+          certificatePayload.company_address ||
+          certificatePayload.organization_address ||
+          "",
+        organizationWebsite:
+          certificatePayload.company_website ||
+          certificatePayload.organization_website ||
+          "",
+        companyLogo: certificatePayload.company_logo || "",
+        issuedOn: certificatePayload.issued_on || "",
+        validFrom: certificatePayload.valid_from || "",
+        validUntil: certificatePayload.valid_until || "",
+        signatories: Array.isArray(certificatePayload.signatories)
+          ? certificatePayload.signatories
+          : [],
+      });
     } catch (err) {
       console.error("Error fetching certificate data:", err);
       // Set default values on error
       const userId = profileData?.id || localStorage.getItem("uid") || "";
       setCertificateData({
+        ...createDefaultCertificateData(),
         memberName: "Aalok Kumar",
         companyName: "Stark Industries",
         membershipId: userId,
         organizationName: "Etribe (Empowering Communities)",
-        organizationAddress: "",
-        organizationWebsite: "",
       });
     } finally {
       setLoading(false);
     }
   };
+
+  const resolveAssetUrl = (path) => {
+    if (!path) return "";
+    if (
+      /^https?:\/\//i.test(path) ||
+      path.startsWith("data:") ||
+      path.startsWith("blob:")
+    ) {
+      return path;
+    }
+
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    const assetEnvBase =
+      import.meta.env.VITE_ASSET_BASE_URL || import.meta.env.VITE_API_BASE_URL || "";
+
+    const buildUrl = (baseUrl) => {
+      if (!baseUrl) return null;
+      const trimmed = baseUrl.endsWith("/")
+        ? baseUrl.slice(0, -1)
+        : baseUrl;
+      return `${trimmed}${normalizedPath}`;
+    };
+
+    if (assetEnvBase) {
+      return buildUrl(assetEnvBase);
+    }
+
+    const base = api.defaults?.baseURL || "";
+
+    if (!base) {
+      return normalizedPath;
+    }
+
+    if (base.startsWith("http") || base.startsWith("/")) {
+      return buildUrl(base);
+    }
+
+    return normalizedPath;
+  };
+
+  const membershipIdentifier =
+    (certificateData.certificateUid
+      ? `${certificateData.certificateUid}`
+      : null) ||
+    (certificateData.membershipId
+      ? `M${certificateData.membershipId.toString().padStart(4, "0")}`
+      : "");
+
+  const memberNumericId =
+    certificateData.membershipId ||
+    certificateData.memberId ||
+    certificateData.member_id ||
+    "";
+
+  const signatoriesToDisplay = (
+    certificateData.signatories && certificateData.signatories.length > 0
+      ? certificateData.signatories.map((signatory, index) => ({
+          name: signatory.name || `Authorized Signatory ${index + 1}`,
+          designation:
+            signatory.designation ||
+            signatory.position ||
+            signatory.title ||
+            "Authorized Signatory",
+          signature:
+            resolveAssetUrl(signatory.signature_url || signatory.signatureUrl) ||
+            DEFAULT_SIGNATORIES[index]?.signature ||
+            DEFAULT_SIGNATORIES[0]?.signature,
+        }))
+      : DEFAULT_SIGNATORIES
+  ).slice(0, 3);
 
   const handleDownload = async () => {
     const element = document.getElementById("membership-certificate");
@@ -243,8 +401,10 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
               {/* Logo in top left corner */}
               <div className="absolute top-12 left-12 z-10">
                 <img
-                  src={CompanyLogo}
-                      alt="Organization Logo"
+                  src={
+                    resolveAssetUrl(certificateData.companyLogo) || CompanyLogo
+                  }
+                  alt="Organization Logo"
                   className="h-12 w-auto"
                 />
               </div>
@@ -360,19 +520,21 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
                     alt="Golden Badge"
                     className="w-32 h-32"
                   />
-                  <p className="text-sm text-gray-600 mt-1">Member ID</p>
-                  <p className="text-lg font-semibold text-amber-700">
-                    M{certificateData.membershipId?.toString().padStart(4, "0")}
-                  </p>
+                  <div className="text-center leading-tight">
+                    <p className="text-lg font-semibold text-amber-700">
+                      {memberNumericId ? `Member ID: ${memberNumericId}` : "Member"}
+                    </p>
+                    {membershipIdentifier && (
+                      <p className="text-sm font-semibold text-amber-700 mt-1">
+                        {membershipIdentifier}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Signatures */}
                 <div className="flex gap-10">
-                  {[
-                    ["Parveen Garg", "President", Sign1],
-                    ["Pardeep Koul", "Gen. Secretary", Sign2],
-                    ["Ashok Kumar Mittal", "Treasurer", Sign3],
-                  ].map(([name, role, signature]) => (
+                  {signatoriesToDisplay.map(({ name, designation, signature }) => (
                     <div key={name} className="text-center" style={{ minWidth: '140px' }}>
                       <div className="w-full mb-0.5 h-16 flex items-center justify-center">
                         <img
@@ -384,7 +546,9 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
                       <p className="font-bold text-gray-900 text-sm uppercase break-words">
                         {name}
                       </p>
-                      <p className="text-xs text-gray-600">{role}</p>
+                      <p className="text-xs text-gray-600">
+                        {designation}
+                      </p>
                     </div>
                   ))}
                 </div>

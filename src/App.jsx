@@ -48,6 +48,7 @@ import DocumentType_Admin from "./pages/admin/DocumentType_Admin";
 import Resume_Admin from "./pages/admin/Resume_Admin";
 import MasterSettings_Admin from "./pages/admin/MasterSettings_Admin";
 import EVisitingCard_Admin from "./pages/admin/EVisitingCard_Admin";
+import MembershipCertificateSettings_Admin from "./pages/admin/MembershipCertificateSettings_Admin";
 
 // User Pages
 import Dashboard_User from "./pages/user/Dashboard_User";
@@ -244,6 +245,7 @@ function App() {
                   <Route path="membership-plans" element={<MembershipPlans_Admin />} />
                   <Route path="document-type" element={<DocumentType_Admin />} />
                   <Route path="e-visiting-card" element={<EVisitingCard_Admin />} />
+                  <Route path="membership-certificate" element={<MembershipCertificateSettings_Admin />} />
                   <Route path="resume" element={<Resume_Admin />} />
                   <Route path="master-settings" element={<MasterSettings_Admin />} />
                 </Routes>

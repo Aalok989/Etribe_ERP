@@ -1,10 +1,27 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import pako from 'pako';
-import { FiX, FiSave, FiRefreshCw, FiCheck } from 'react-icons/fi';
+import { FiX, FiSave, FiRefreshCw, FiCheck, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import parentLogo from '../../../assets/logos/parent.jpg';
 import memberPhoto from '../../../assets/Aashish.png';
 import { templates } from './templates';
 import { getAssignmentForUser, saveUserTemplateSelection } from '../../../data/mockVisitingCardConfig';
+
+const SHAREABLE_FIELDS = [
+  'memberName',
+  'membershipId',
+  'email',
+  'phone',
+  'companyName',
+  'companyTagline',
+  'title',
+  'companyId',
+  'dob',
+  'bloodGroup',
+  'address',
+  'issuedUpto',
+  'memberPhoto',
+  'companyLogo',
+];
 
 const VisitingCard = ({
   isOpen = false,
@@ -81,11 +98,22 @@ const VisitingCard = ({
     return Number(selectedTemplate) || Number(templateKeys[0]) || 1;
   }, [assignment, selectedTemplate, templateKeys]);
 
+  const defaultTemplateId = useMemo(() => {
+    return (assignment?.defaultTemplateId && templates[assignment.defaultTemplateId])
+      ? Number(assignment.defaultTemplateId)
+      : initialTemplateId;
+  }, [assignment, initialTemplateId]);
+
   const [currentTemplate, setCurrentTemplate] = useState(initialTemplateId);
+  const [markedDefaultTemplate, setMarkedDefaultTemplate] = useState(defaultTemplateId ?? null);
 
   useEffect(() => {
     setCurrentTemplate(initialTemplateId);
   }, [initialTemplateId]);
+
+  useEffect(() => {
+    setMarkedDefaultTemplate(defaultTemplateId ?? null);
+  }, [defaultTemplateId]);
 
   const assignedTemplates = useMemo(() => {
     if (isAdmin || !assignment) {
@@ -120,17 +148,30 @@ const VisitingCard = ({
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState(null);
 
-  const sharePayload = useMemo(() => ({
-    templateId: currentTemplate,
-    cardData: visitingCardData,
-  }), [currentTemplate, visitingCardData]);
+  const sharePayload = useMemo(() => {
+    const minimalCardData = SHAREABLE_FIELDS.reduce((acc, key) => {
+      const value = visitingCardData?.[key];
+      if (value !== undefined && value !== null && value !== '') {
+        acc[key] = value;
+      }
+      return acc;
+    }, {});
+
+    return {
+      templateId: markedDefaultTemplate || currentTemplate,
+      cardData: minimalCardData,
+    };
+  }, [currentTemplate, markedDefaultTemplate, visitingCardData]);
 
   const shareUrl = useMemo(() => {
     if (typeof window === 'undefined') return null;
     try {
       const json = JSON.stringify(sharePayload);
       const compressed = pako.deflate(json, { to: 'string' });
-      const encoded = btoa(compressed);
+      const encoded = btoa(compressed)
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
       return `${window.location.origin}/share/visiting-card/${encoded}`;
     } catch (error) {
       console.error('Failed to generate share URL', error);
@@ -182,8 +223,9 @@ const VisitingCard = ({
 
     try {
       setSaving(true);
-      saveUserTemplateSelection(currentUserId, String(currentTemplate));
-      setSaveMessage({ type: 'success', text: 'Template preference saved locally.' });
+      const templateToPersist = markedDefaultTemplate || currentTemplate;
+      saveUserTemplateSelection(currentUserId, String(templateToPersist));
+      setSaveMessage({ type: 'success', text: `Template ${templateToPersist} saved as default.` });
     } catch (error) {
       console.error('Failed to save visiting card preference:', error);
       setSaveMessage({ type: 'error', text: 'Failed to save template selection.' });
@@ -263,10 +305,49 @@ const VisitingCard = ({
   const headerActions = isInline
     ? renderHeaderActions?.({
         currentTemplate,
+        defaultTemplate: markedDefaultTemplate || currentTemplate,
         shareUrl,
         triggerShare: handleShareRequest,
       }) || null
     : null;
+
+  useEffect(() => {
+    if (!assignedTemplates.includes(currentTemplate) && assignedTemplates.length > 0) {
+      setCurrentTemplate(assignedTemplates[0]);
+    }
+  }, [assignedTemplates, currentTemplate]);
+
+  const activeIndex = assignedTemplates.findIndex((template) => template === currentTemplate);
+
+  const navigateTemplates = (direction) => {
+    if (assignedTemplates.length <= 1) return;
+    const currentIdx = activeIndex === -1 ? 0 : activeIndex;
+
+    if (direction === 'prev') {
+      if (currentIdx <= 0) return;
+      setCurrentTemplate(assignedTemplates[currentIdx - 1]);
+      return;
+    }
+
+    if (direction === 'next') {
+      if (currentIdx >= assignedTemplates.length - 1) return;
+      setCurrentTemplate(assignedTemplates[currentIdx + 1]);
+    }
+  };
+
+  const canGoPrev = assignedTemplates.length > 1 && activeIndex > 0;
+  const canGoNext =
+    assignedTemplates.length > 1 && activeIndex < assignedTemplates.length - 1;
+
+  const isCurrentMarkedDefault = markedDefaultTemplate === currentTemplate;
+
+  const toggleDefaultTemplate = (checked) => {
+    if (checked) {
+      setMarkedDefaultTemplate(currentTemplate);
+    } else if (isCurrentMarkedDefault) {
+      setMarkedDefaultTemplate(null);
+    }
+  };
 
   return (
     <div
@@ -300,48 +381,130 @@ const VisitingCard = ({
         </div>
 
         <div className={bodyClass}>
-          <div className="grid gap-6 justify-items-center sm:grid-cols-2 xl:grid-cols-3">
-            {assignedTemplates.map((templateNum) => {
-              const TemplateComponent = templates[templateNum];
-              const isSelected = currentTemplate === templateNum;
-
-              return (
-                <div key={templateNum} className="flex flex-col items-center gap-3">
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setCurrentTemplate(templateNum)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        setCurrentTemplate(templateNum);
-                      }
-                    }}
-                    className="cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 rounded-3xl"
+          <div className="relative flex w-full flex-col items-center justify-center">
+            <div className="relative flex h-[470px] w-full items-center justify-center overflow-visible">
+              {assignedTemplates.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    disabled={!canGoPrev}
+                    onClick={() => navigateTemplates('prev')}
+                    className={`absolute left-6 z-20 flex h-11 w-11 items-center justify-center rounded-full ring-1 transition ${
+                      canGoPrev
+                        ? 'bg-white shadow-lg ring-slate-200 hover:-translate-y-0.5 hover:bg-white hover:shadow-xl dark:bg-slate-800 dark:ring-slate-700'
+                        : 'bg-white/70 shadow-md ring-slate-200/70 opacity-40 cursor-not-allowed pointer-events-none dark:bg-slate-800/60 dark:ring-slate-700/40'
+                    }`}
+                    aria-label="Previous template"
                   >
-                    <TemplateComponent
-                      cardData={visitingCardData}
-                      cardWidth={255}
-                      cardHeight={405}
-                      cardId={`template-preview-${templateNum}`}
-                    />
+                    <FiChevronLeft size={22} className="text-slate-700 dark:text-slate-200" />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!canGoNext}
+                    onClick={() => navigateTemplates('next')}
+                    className={`absolute right-6 z-20 flex h-11 w-11 items-center justify-center rounded-full ring-1 transition ${
+                      canGoNext
+                        ? 'bg-white shadow-lg ring-slate-200 hover:-translate-y-0.5 hover:bg-white hover:shadow-xl dark:bg-slate-800 dark:ring-slate-700'
+                        : 'bg-white/70 shadow-md ring-slate-200/70 opacity-40 cursor-not-allowed pointer-events-none dark:bg-slate-800/60 dark:ring-slate-700/40'
+                    }`}
+                    aria-label="Next template"
+                  >
+                    <FiChevronRight size={22} className="text-slate-700 dark:text-slate-200" />
+                  </button>
+                </>
+              )}
+
+              {assignedTemplates.map((templateNum, index) => {
+                const TemplateComponent = templates[templateNum];
+                const offset = index - (activeIndex === -1 ? 0 : activeIndex);
+                const isActive = offset === 0;
+                if (Math.abs(offset) > 1) return null;
+
+                const baseWidth = 255;
+                const baseHeight = Math.round((405 / 255) * baseWidth);
+                const translateX = offset * 280;
+                const scale = isActive ? 1.18 : 0.78;
+                const opacity = isActive ? 1 : 0.5;
+
+                return (
+                  <div
+                    key={templateNum}
+                    className="absolute flex items-center justify-center"
+                    style={{
+                      transform: `translateX(${translateX}px) scale(${scale})`,
+                      transition: 'transform 300ms ease, opacity 300ms ease',
+                      opacity,
+                      zIndex: isActive ? 30 : 20 - Math.abs(offset),
+                    }}
+                  >
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setCurrentTemplate(templateNum)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          setCurrentTemplate(templateNum);
+                        }
+                      }}
+                      className="group relative cursor-pointer rounded-3xl focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                      style={{
+                        width: baseWidth,
+                        height: baseHeight,
+                      }}
+                    >
+                      <TemplateComponent
+                        cardData={visitingCardData}
+                        cardWidth={baseWidth}
+                        cardHeight={baseHeight}
+                        cardId={`template-preview-${templateNum}`}
+                      />
+                    </div>
                   </div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-200">
-                    <input
-                      type="radio"
-                      name="template-selection"
-                      value={templateNum}
-                      checked={isSelected}
-                      onChange={() => setCurrentTemplate(templateNum)}
-                      className="h-4 w-4 cursor-pointer text-indigo-600"
+                );
+              })}
+            </div>
+
+            <div className="mt-6 flex flex-col items-center justify-center gap-3">
+              <label className="inline-flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-200">
+                <input
+                  type="checkbox"
+                  checked={isCurrentMarkedDefault}
+                  onChange={(event) => toggleDefaultTemplate(event.target.checked)}
+                  className="h-4 w-4 cursor-pointer rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <span>Mark this template as default</span>
+              </label>
+              <p className="text-xs text-slate-500 dark:text-slate-300">
+                Default template for preview/share:&nbsp;
+                <span className="font-semibold text-slate-700 dark:text-slate-100">
+                  {markedDefaultTemplate ? `Template ${markedDefaultTemplate}` : 'None selected'}
+                </span>
+              </p>
+            </div>
+
+            {assignedTemplates.length > 0 && (
+              <div className="mt-2 flex items-center justify-center gap-2">
+                {assignedTemplates.map((templateNum) => {
+                  const isSelected = templateNum === currentTemplate;
+                  return (
+                    <button
+                      key={`indicator-${templateNum}`}
+                      type="button"
+                      onClick={() => setCurrentTemplate(templateNum)}
+                      aria-label={`Select template ${templateNum}`}
+                      className={`h-2.5 w-2.5 rounded-full transition ${
+                        isSelected
+                          ? 'bg-indigo-500 scale-110'
+                          : templateNum === markedDefaultTemplate
+                            ? 'bg-indigo-300 hover:bg-indigo-400 dark:bg-indigo-500/70 dark:hover:bg-indigo-400'
+                            : 'bg-slate-300 hover:bg-slate-400 dark:bg-slate-600 dark:hover:bg-slate-500'
+                      }`}
                     />
-                    <span className={isSelected ? 'text-indigo-600 dark:text-indigo-300' : ''}>
-                      Template {templateNum}
-                    </span>
-                  </label>
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {saveMessage && (

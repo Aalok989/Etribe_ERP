@@ -6,8 +6,17 @@ import VisitingCard from "../../components/user/VisitingCard/VisitingCard";
 const decodeSharePayload = (encoded) => {
   if (!encoded) return { error: "No share data provided." };
 
+  const normalized = (() => {
+    let base64 = encoded.replace(/-/g, "+").replace(/_/g, "/");
+    const padding = base64.length % 4;
+    if (padding === 2) base64 += "==";
+    else if (padding === 3) base64 += "=";
+    else if (padding !== 0) base64 += "==";
+    return base64;
+  })();
+
   try {
-    const jsonString = pako.inflate(atob(encoded), { to: "string" });
+    const jsonString = pako.inflate(atob(normalized), { to: "string" });
     const payload = JSON.parse(jsonString);
 
     if (!payload || typeof payload !== "object") {
