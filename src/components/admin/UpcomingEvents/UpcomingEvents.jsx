@@ -9,9 +9,10 @@ function stripHtmlTags(str) {
 }
 
 export default function UpcomingEvents() {
-  const { data: dashboardData, loading: dashboardLoading, errors } = useDashboard();
+  const { data: dashboardData, loading: dashboardLoading, errors, refreshEvents } = useDashboard();
   const [events, setEvents] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [autoRefreshTriggered, setAutoRefreshTriggered] = useState(false);
 
   // Use data from dashboard context
   const loading = dashboardLoading.events || dashboardLoading.initial;
@@ -49,7 +50,18 @@ export default function UpcomingEvents() {
       setEvents([]);
       setSelected(null);
     }
-  }, [rawEvents, selected]);
+    // Reset auto-refresh state whenever we successfully receive events
+    if (rawEvents.length > 0 && autoRefreshTriggered) {
+      setAutoRefreshTriggered(false);
+    }
+  }, [rawEvents, selected, autoRefreshTriggered]);
+
+  useEffect(() => {
+    if (!autoRefreshTriggered && !loading && rawEvents.length === 0) {
+      setAutoRefreshTriggered(true);
+      refreshEvents();
+    }
+  }, [autoRefreshTriggered, loading, rawEvents.length, refreshEvents]);
 
   const Header = () => (
     <div className="relative rounded-t-2xl overflow-hidden">
