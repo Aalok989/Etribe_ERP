@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FiCalendar, FiMapPin, FiClock, FiUsers } from "react-icons/fi";
+import { FiCalendar, FiMapPin, FiClock, FiUsers, FiRefreshCw } from "react-icons/fi";
 import { useDashboard } from '../../../context/DashboardContext';
 
 // Utility function to strip HTML tags
@@ -9,9 +9,10 @@ function stripHtmlTags(str) {
 }
 
 export default function UpcomingEvents() {
-  const { data: dashboardData, loading: dashboardLoading, errors } = useDashboard();
+  const { data: dashboardData, loading: dashboardLoading, errors, refreshEvents } = useDashboard();
   const [events, setEvents] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Use data from dashboard context
   const loading = dashboardLoading.events || dashboardLoading.initial;
@@ -51,16 +52,51 @@ export default function UpcomingEvents() {
     }
   }, [rawEvents, selected]);
 
+  const handleRefresh = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      await refreshEvents();
+    } catch (error) {
+      console.error('Failed to refresh events:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const Header = () => (
+    <div className="relative rounded-t-2xl overflow-hidden">
+      <div className="absolute inset-0 bg-white dark:bg-[#1E1E1E]" />
+      <div className="relative z-10 px-5 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between gap-3">
+        <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 tracking-wide">
+          Upcoming Events
+        </h2>
+        <button
+          onClick={handleRefresh}
+          disabled={refreshing}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition disabled:opacity-60"
+        >
+          {refreshing ? (
+            <>
+              <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              Refreshing
+            </>
+          ) : (
+            <>
+              <FiRefreshCw />
+              Refresh
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+
   // If no events, show a message
   if (loading) {
     return (
       <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] h-full w-full flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
-        <div className="relative rounded-t-2xl overflow-hidden">
-          <div className="absolute inset-0 bg-white dark:bg-[#1E1E1E]" />
-          <h2 className="relative z-10 text-lg font-bold text-gray-800 dark:text-gray-100 tracking-wide px-5 py-3 border-b border-gray-200 dark:border-gray-700">
-            Upcoming Events
-          </h2>
-        </div>
+        <Header />
         <div className="p-5 flex-1 flex items-center justify-center overflow-hidden">
           <div className="text-center text-gray-600 dark:text-gray-300">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-2"></div>
@@ -74,12 +110,7 @@ export default function UpcomingEvents() {
   if (events.length === 0) {
     return (
       <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] h-full w-full flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
-        <div className="relative rounded-t-2xl overflow-hidden">
-          <div className="absolute inset-0 bg-white dark:bg-[#1E1E1E]" />
-          <h2 className="relative z-10 text-lg font-bold text-gray-800 dark:text-gray-100 tracking-wide px-5 py-3 border-b border-gray-200 dark:border-gray-700">
-            Upcoming Events
-          </h2>
-        </div>
+        <Header />
         <div className="p-5 flex-1 flex items-center justify-center overflow-hidden">
           <div className="text-center text-gray-600 dark:text-gray-300">
             <p>No upcoming events</p>
@@ -91,12 +122,7 @@ export default function UpcomingEvents() {
 
   return (
     <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] h-full w-full flex flex-col border border-gray-200 dark:border-gray-700 overflow-hidden">
-      <div className="relative rounded-t-2xl overflow-hidden">
-        <div className="absolute inset-0 bg-white dark:bg-[#1E1E1E]" />
-        <h2 className="relative z-10 text-lg font-bold text-gray-800 dark:text-gray-100 tracking-wide px-5 py-3 border-b border-gray-200 dark:border-gray-700">
-          Upcoming Events
-        </h2>
-      </div>
+      <Header />
       <div className="p-3 flex-1 flex flex-col overflow-hidden">
         {/* Date selection row - fixed height */}
         <div className="flex-shrink-0">
