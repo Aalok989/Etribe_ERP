@@ -280,13 +280,12 @@ export const DashboardProvider = ({ children }) => {
     try {
       const headers = { ...getAuthHeaders() };
 
-      const [allRes, pastRes, futureRes] = await Promise.all([
+      const results = await Promise.allSettled([
         api.post('/event/index', {}, { headers }),
         api.post('/event/past', {}, { headers }),
         api.post('/event/future', {}, { headers })
       ]);
 
-      // Helper function to extract events from various response formats
       const extractEvents = (response) => {
         if (Array.isArray(response.data?.data?.event)) return response.data.data.event;
         if (Array.isArray(response.data?.data?.events)) return response.data.data.events;
@@ -296,9 +295,17 @@ export const DashboardProvider = ({ children }) => {
         return [];
       };
 
-      const allEvents = extractEvents(allRes);
-      const pastEvents = extractEvents(pastRes);
-      const futureEvents = extractEvents(futureRes);
+      const safeEvents = (result) => {
+        if (result.status === 'fulfilled') {
+          return extractEvents(result.value);
+        }
+        console.warn('Event fetch failed:', result.reason);
+        return [];
+      };
+
+      const allEvents = safeEvents(results[0]);
+      const pastEvents = safeEvents(results[1]);
+      const futureEvents = safeEvents(results[2]);
 
       // Update cache
       setCache(prev => ({
