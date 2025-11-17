@@ -240,10 +240,10 @@ export default function ImportantContacts() {
   }
 
   return (
-    <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] h-full w-full flex flex-col border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] h-full w-full flex flex-col border border-gray-200 dark:border-gray-700 overflow-visible">
       <div className="relative rounded-t-2xl overflow-visible">
         <div className="absolute inset-0 bg-white dark:bg-[#1E1E1E]" />
-        <div className="relative z-10 px-5 py-3 overflow-visible">
+        <div className="relative z-30 px-5 py-3 overflow-visible">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
             <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 tracking-wide">
               Important Contacts
@@ -339,7 +339,7 @@ export default function ImportantContacts() {
           </div>
         </div>
       </div>
-      <div className="px-3 pt-0 pb-3 flex-1 flex flex-col overflow-hidden">
+      <div className="px-3 pt-0 pb-3 flex-1 flex flex-col overflow-visible">
         {/* Table Section */}
         <div className="flex-1 min-h-0 overflow-hidden">
           <div className="h-full overflow-hidden bg-white dark:bg-[#1E1E1E] rounded-lg border border-gray-200 dark:border-gray-700">

@@ -6,11 +6,27 @@ import bgImage from '../../assets/images/bg-login.jpg';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [redirect, setRedirect] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetError, setResetError] = useState('');
+  const [resetUserId, setResetUserId] = useState('');
+  const [resetForm, setResetForm] = useState({
+    password: '',
+    confirmPassword: '',
+  });
+  const [passwordVisibility, setPasswordVisibility] = useState({
+    login: false,
+    register: false,
+    registerConfirm: false,
+    reset: false,
+    resetConfirm: false,
+  });
 
 
   const [regForm, setRegForm] = useState({
@@ -179,6 +195,28 @@ const Login = () => {
         }
       }
 
+      // Handle cases where backend wants user to change password first
+      if (data?.status === 'change_password') {
+        const pendingUser =
+          data?.user_id ??
+          data?.data?.id ??
+          data?.data?.user_id ??
+          data?.user?.id ??
+          data?.user?.user_id;
+
+        if (!pendingUser) {
+          toast.error('Unable to start password reset. Missing user id.');
+        } else {
+          setResetUserId(String(pendingUser));
+          setResetForm({ password: '', confirmPassword: '' });
+          setResetError('');
+          setShowResetModal(true);
+          toast.warning(data?.message || 'Please set a new password to continue.');
+        }
+        setLoading(false);
+        return;
+      }
+
       // Success path: token present
       if (data?.token) {
         localStorage.setItem('token', data.token);
@@ -303,6 +341,13 @@ const Login = () => {
     }
   };
 
+  const togglePasswordVisibility = (field) => {
+    setPasswordVisibility((prev) => ({
+      ...prev,
+      [field]: !prev[field],
+    }));
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
     setRegError('');
@@ -385,6 +430,74 @@ const Login = () => {
     }
   };
 
+  const handleResetChange = (e) => {
+    const { name, value } = e.target;
+    setResetForm((prev) => ({ ...prev, [name]: value }));
+    if (resetError) setResetError('');
+  };
+
+  const handleResetSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!resetUserId) {
+      toast.error('Missing user id for password reset.');
+      return;
+    }
+
+    if (!resetForm.password || !resetForm.confirmPassword) {
+      setResetError('Please enter and confirm your new password.');
+      return;
+    }
+
+    const passwordValidationError = validatePassword(resetForm.password);
+    if (passwordValidationError) {
+      setResetError(passwordValidationError);
+      return;
+    }
+
+    if (resetForm.password !== resetForm.confirmPassword) {
+      setResetError('Passwords do not match.');
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const response = await api.post(
+        '/common/change_password',
+        {
+          id: resetUserId,
+          password: resetForm.password,
+          confirm_password: resetForm.confirmPassword,
+        },
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+
+      if (response?.data?.status === 200 || response?.data?.status === 'success') {
+        toast.success(response?.data?.message || 'Password updated. Please login.');
+        setShowResetModal(false);
+        setIsLogin(true);
+        setResetForm({ password: '', confirmPassword: '' });
+      } else {
+        const backendMessage =
+          response?.data?.message ||
+          (Array.isArray(response?.data?.errors) ? response.data.errors.join(', ') : 'Failed to update password.');
+        setResetError(backendMessage);
+      }
+    } catch (error) {
+      console.error('Reset password error:', error);
+      const backendMessage =
+        error?.response?.data?.message ||
+        (Array.isArray(error?.response?.data?.errors)
+          ? error.response.data.errors.join(', ')
+          : 'Unable to update password. Please try again.');
+      setResetError(backendMessage);
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   const handleRegChange = (e) => {
     const { name, value } = e.target;
     console.log('handleRegChange called:', { name, value });
@@ -458,20 +571,34 @@ const Login = () => {
             </div>
             <div>
               <label htmlFor="login-password" className="block text-primary-dark font-semibold mb-1">Password</label>
-              <input 
-                id="login-password"
-                name="password" 
-                type="password" 
-                required 
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white text-primary-dark" 
-                placeholder="Enter your password"
-                aria-describedby="login-password-error"
-                style={{
-                  backgroundColor: 'white',
-                  borderColor: '#d1d5db',
-                  color: '#1e40af'
-                }}
-              />
+              <div className="relative">
+                <input 
+                  id="login-password"
+                  name="password" 
+                  type={passwordVisibility.login ? 'text' : 'password'} 
+                  required 
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white text-primary-dark pr-12" 
+                  placeholder="Enter your password"
+                  aria-describedby="login-password-error"
+                  style={{
+                    backgroundColor: 'white',
+                    borderColor: '#d1d5db',
+                    color: '#1e40af'
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => togglePasswordVisibility('login')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-600 hover:text-blue-800"
+                  aria-label={passwordVisibility.login ? 'Hide password' : 'Show password'}
+                >
+                  {passwordVisibility.login ? (
+                    <AiOutlineEyeInvisible className="h-5 w-5" />
+                  ) : (
+                    <AiOutlineEye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
             </div>
             <button 
               type="submit" 
@@ -529,31 +656,59 @@ const Login = () => {
             <div className="flex gap-2">
               <div className="w-1/2">
                 <label htmlFor="reg-password" className="block text-primary-dark font-semibold mb-1">Password</label>
-                <input 
-                  id="reg-password"
-                  name="password" 
-                  value={regForm.password || ''} 
-                  onChange={handleRegChange} 
-                  type="password" 
-                  required 
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 bg-white text-primary-dark" 
-                  placeholder="Password"
-                  aria-describedby="reg-password-error"
-                />
+                <div className="relative">
+                  <input 
+                    id="reg-password"
+                    name="password" 
+                    value={regForm.password || ''} 
+                    onChange={handleRegChange} 
+                    type={passwordVisibility.register ? 'text' : 'password'} 
+                    required 
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 bg-white text-primary-dark pr-12" 
+                    placeholder="Password"
+                    aria-describedby="reg-password-error"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => togglePasswordVisibility('register')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-green-600 hover:text-green-800"
+                    aria-label={passwordVisibility.register ? 'Hide password' : 'Show password'}
+                  >
+                    {passwordVisibility.register ? (
+                      <AiOutlineEyeInvisible className="h-5 w-5" />
+                    ) : (
+                      <AiOutlineEye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
               </div>
               <div className="w-1/2">
                 <label htmlFor="reg-confirm-password" className="block text-primary-dark font-semibold mb-1">Confirm Password</label>
-                <input 
-                  id="reg-confirm-password"
-                  name="confirmPassword" 
-                  value={regForm.confirmPassword || ''} 
-                  onChange={handleRegChange} 
-                  type="password" 
-                  required 
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 bg-white text-primary-dark" 
-                  placeholder="Confirm Password"
-                  aria-describedby="reg-confirm-password-error"
-                />
+                <div className="relative">
+                  <input 
+                    id="reg-confirm-password"
+                    name="confirmPassword" 
+                    value={regForm.confirmPassword || ''} 
+                    onChange={handleRegChange} 
+                    type={passwordVisibility.registerConfirm ? 'text' : 'password'} 
+                    required 
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 bg-white text-primary-dark pr-12" 
+                    placeholder="Confirm Password"
+                    aria-describedby="reg-confirm-password-error"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => togglePasswordVisibility('registerConfirm')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-green-600 hover:text-green-800"
+                    aria-label={passwordVisibility.registerConfirm ? 'Hide password' : 'Show password'}
+                  >
+                    {passwordVisibility.registerConfirm ? (
+                      <AiOutlineEyeInvisible className="h-5 w-5" />
+                    ) : (
+                      <AiOutlineEye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
             <div>
@@ -647,7 +802,7 @@ const Login = () => {
                 aria-describedby="reg-pincode-error"
               />
             </div>
-            {regError && <div id="reg-error" className="text-red-500 text-sm text-center" role="alert">{regError}</div>}
+            {regError && <div id="reg-error" className="text-green-500 text-sm text-center" role="alert">{regError}</div>}
             <button 
               type="submit" 
               className="w-full bg-green-600 text-white py-2 rounded-lg font-bold shadow-lg hover:bg-green-700 transition disabled:opacity-50"
@@ -661,15 +816,15 @@ const Login = () => {
         )}
         {isLogin ? (
           <>
-            <div className="mt-6 text-center">
+            {/* <div className="mt-6 text-center">
               <a href="#" className="text-red-500 underline hover:underline text-sm">Forgot password?</a>
-            </div>
-            <div className="mt-2 text-center">
+            </div> */}
+            {/* <div className="mt-2 text-center">
               <span className="text-gray-600 text-sm">Don't have an account? </span>
               <button type="button" className="text-green-700 underline hover:text-primary text-sm" onClick={() => setIsLogin(false)}>
                 Register
               </button>
-            </div>
+            </div> */}
           </>
         ) : (
           <div className="mt-2 text-center">
@@ -690,6 +845,78 @@ const Login = () => {
           © {new Date().getFullYear()} ETribe. All rights reserved.
         </div>
       </div>
+      {showResetModal && (
+        <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <form
+            className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl relative"
+            onSubmit={handleResetSubmit}
+          >
+            <button
+              type="button"
+              className="absolute right-4 top-4 text-gray-500 hover:text-gray-800"
+              aria-label="Close reset password modal"
+              onClick={() => {
+                setShowResetModal(false);
+                setResetForm({ password: '', confirmPassword: '' });
+                setResetError('');
+              }}
+            >
+              ✕
+            </button>
+            <h3 className="mb-1 text-center text-2xl font-bold text-primary-dark">Update Password</h3>
+            <p className="mb-6 text-center text-sm text-gray-500">
+              Enter the temporary password sent to your email and create a new one.
+            </p>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="reset-password" className="mb-1 block text-sm font-semibold text-primary-dark">
+                  New Password
+                </label>
+                <input
+                  id="reset-password"
+                  name="password"
+                  type="password"
+                  value={resetForm.password}
+                  onChange={handleResetChange}
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="Enter new password"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="reset-confirm-password"
+                  className="mb-1 block text-sm font-semibold text-primary-dark"
+                >
+                  Confirm Password
+                </label>
+                <input
+                  id="reset-confirm-password"
+                  name="confirmPassword"
+                  type="password"
+                  value={resetForm.confirmPassword}
+                  onChange={handleResetChange}
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="Confirm new password"
+                  required
+                />
+              </div>
+              {resetError && (
+                <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600" role="alert">
+                  {resetError}
+                </div>
+              )}
+              <button
+                type="submit"
+                className="w-full rounded-lg bg-blue-600 py-2 font-semibold text-white shadow-lg transition hover:bg-blue-700 disabled:opacity-60"
+                disabled={resetLoading}
+              >
+                {resetLoading ? 'Saving...' : 'Save Password'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 };
