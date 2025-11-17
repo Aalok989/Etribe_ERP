@@ -358,6 +358,14 @@ export default function MembershipExpired() {
   const [updateSuccess, setUpdateSuccess] = useState(null);
   const [selectedPaymentModeName, setSelectedPaymentModeName] = useState("");
   const [selectedGateway, setSelectedGateway] = useState("");
+  const normalizedSelectedPaymentMode = (selectedPaymentModeName || "")
+    .toString()
+    .toLowerCase();
+  const isGatewayModeSelected =
+    normalizedSelectedPaymentMode === "payment gateway" ||
+    normalizedSelectedPaymentMode.includes("gateway") ||
+    normalizedSelectedPaymentMode === "paymentgateway";
+  const isCashModeSelected = normalizedSelectedPaymentMode === "cash";
 
   // Load table headers on component mount
   useEffect(() => {
@@ -1550,11 +1558,8 @@ export default function MembershipExpired() {
                     </>
                   )}
                   
-                  {selectedPaymentModeName && (
-                    (selectedPaymentModeName.toLowerCase() !== 'payment gateway' && 
-                     !selectedPaymentModeName.toLowerCase().includes('gateway') &&
-                     selectedPaymentModeName.toLowerCase() !== 'paymentgateway')
-                  ) && (
+                  {/* Bank Name - Hidden for Payment Gateway or Cash selections */}
+                  {selectedPaymentModeName && !isGatewayModeSelected && !isCashModeSelected && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         *Bank Name

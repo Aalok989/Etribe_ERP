@@ -608,9 +608,15 @@ export default function NewRegistration() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    const numericFields = ["contact_no", "company_contact_no"];
+
+    const formattedValue = numericFields.includes(name)
+      ? value.replace(/\D/g, "")
+      : value;
+
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: formattedValue,
     }));
   };
 

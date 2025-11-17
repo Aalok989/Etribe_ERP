@@ -17,8 +17,8 @@ export default function UpcomingEventsPage() {
   const [selectedEventIdx, setSelectedEventIdx] = useState(null);
   const [imageError, setImageError] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [sortField, setSortField] = useState('id');
-  const [sortDirection, setSortDirection] = useState('desc');
+  const [sortField, setSortField] = useState("datetime");
+  const [sortDirection, setSortDirection] = useState("desc");
   const [showExportDropdown, setShowExportDropdown] = useState(false);
 
   useEffect(() => {
@@ -153,15 +153,22 @@ export default function UpcomingEventsPage() {
     let aVal = a[sortField];
     let bVal = b[sortField];
 
-    if (aVal === null || aVal === undefined) aVal = "";
-    if (bVal === null || bVal === undefined) bVal = "";
+    if (sortField === "datetime") {
+      aVal = new Date(aVal || 0).getTime();
+      bVal = new Date(bVal || 0).getTime();
+    } else if (sortField === "id") {
+      aVal = Number(aVal) || 0;
+      bVal = Number(bVal) || 0;
+    } else {
+      if (aVal === null || aVal === undefined) aVal = "";
+      if (bVal === null || bVal === undefined) bVal = "";
+      if (typeof aVal === "string") aVal = aVal.toLowerCase();
+      if (typeof bVal === "string") bVal = bVal.toLowerCase();
+    }
 
-    if (typeof aVal === "string") aVal = aVal.toLowerCase();
-    if (typeof bVal === "string") bVal = bVal.toLowerCase();
-
-    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
-    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
-    return 0;
+    if (aVal === bVal) return 0;
+    const comparison = aVal > bVal ? 1 : -1;
+    return sortDirection === "asc" ? comparison : -comparison;
   });
 
   // Pagination

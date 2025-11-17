@@ -33,8 +33,8 @@ export default function AllEvents() {
   const [showViewEventModal, setShowViewEventModal] = useState(false);
   const [selectedEventIdx, setSelectedEventIdx] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [sortField, setSortField] = useState("event");
-  const [sortDirection, setSortDirection] = useState("asc");
+  const [sortField, setSortField] = useState("datetime");
+  const [sortDirection, setSortDirection] = useState("desc");
   const [imageError, setImageError] = useState(false);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
 
@@ -170,15 +170,19 @@ export default function AllEvents() {
     let aVal = a[sortField];
     let bVal = b[sortField];
 
-    if (aVal === null || aVal === undefined) aVal = "";
-    if (bVal === null || bVal === undefined) bVal = "";
+    if (sortField === "datetime") {
+      aVal = new Date(aVal || 0).getTime();
+      bVal = new Date(bVal || 0).getTime();
+    } else {
+      if (aVal === null || aVal === undefined) aVal = "";
+      if (bVal === null || bVal === undefined) bVal = "";
+      if (typeof aVal === "string") aVal = aVal.toLowerCase();
+      if (typeof bVal === "string") bVal = bVal.toLowerCase();
+    }
 
-    if (typeof aVal === "string") aVal = aVal.toLowerCase();
-    if (typeof bVal === "string") bVal = bVal.toLowerCase();
-
-    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
-    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
-    return 0;
+    if (aVal === bVal) return 0;
+    const comparison = aVal > bVal ? 1 : -1;
+    return sortDirection === "asc" ? comparison : -comparison;
   });
 
   // Pagination

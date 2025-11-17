@@ -73,8 +73,8 @@ export default function UpcomingEventsPage() {
   const [loading, setLoading] = useState(true);
   const [saveLoading, setSaveLoading] = useState(false);
   const [formErrors, setFormErrors] = useState({});
-  const [sortField, setSortField] = useState('id');
-  const [sortDirection, setSortDirection] = useState('desc');
+  const [sortField, setSortField] = useState("datetime");
+  const [sortDirection, setSortDirection] = useState("desc");
 
   // Edit Event State
   const [showEditEventModal, setShowEditEventModal] = useState(false);
@@ -156,23 +156,21 @@ export default function UpcomingEventsPage() {
   const sorted = [...filtered].sort((a, b) => {
     let aVal = a[sortField];
     let bVal = b[sortField];
-    
+
     if (sortField === "datetime") {
-      aVal = new Date(aVal || 0);
-      bVal = new Date(bVal || 0);
+      aVal = new Date(aVal || 0).getTime();
+      bVal = new Date(bVal || 0).getTime();
     } else if (sortField === "id") {
       aVal = Number(aVal) || 0;
       bVal = Number(bVal) || 0;
     } else {
-      aVal = aVal?.toLowerCase() || "";
-      bVal = bVal?.toLowerCase() || "";
+      aVal = aVal?.toLowerCase?.() || "";
+      bVal = bVal?.toLowerCase?.() || "";
     }
-    
-    if (sortDirection === "asc") {
-      return aVal > bVal ? 1 : -1;
-    } else {
-      return aVal < bVal ? 1 : -1;
-    }
+
+    if (aVal === bVal) return 0;
+    const comparison = aVal > bVal ? 1 : -1;
+    return sortDirection === "asc" ? comparison : -comparison;
   });
 
   const totalEntries = sorted.length;

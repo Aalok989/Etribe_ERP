@@ -74,8 +74,8 @@ export default function AllEvents() {
   const [editFormErrors, setEditFormErrors] = useState({});
   // 1. Add state for delete loading and error
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [sortField, setSortField] = useState("event");
-  const [sortDirection, setSortDirection] = useState("asc");
+  const [sortField, setSortField] = useState("datetime");
+  const [sortDirection, setSortDirection] = useState("desc");
   const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
@@ -150,18 +150,16 @@ export default function AllEvents() {
     let bVal = b[sortField];
 
     if (sortField === "datetime") {
-      aVal = new Date(aVal || 0);
-      bVal = new Date(bVal || 0);
+      aVal = new Date(aVal || 0).getTime();
+      bVal = new Date(bVal || 0).getTime();
     } else {
-      aVal = aVal?.toLowerCase() || "";
-      bVal = bVal?.toLowerCase() || "";
+      aVal = aVal?.toLowerCase?.() || "";
+      bVal = bVal?.toLowerCase?.() || "";
     }
 
-    if (sortDirection === "asc") {
-      return aVal > bVal ? 1 : -1;
-    } else {
-      return aVal < bVal ? 1 : -1;
-    }
+    if (aVal === bVal) return 0;
+    const comparison = aVal > bVal ? 1 : -1;
+    return sortDirection === "asc" ? comparison : -comparison;
   });
 
   const totalEntries = sorted.length;

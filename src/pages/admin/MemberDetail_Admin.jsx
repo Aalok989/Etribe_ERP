@@ -150,6 +150,15 @@ export default function MemberDetail_Admin() {
   const [addPaymentSuccess, setAddPaymentSuccess] = useState(null);
   const [selectedPaymentModeName, setSelectedPaymentModeName] = useState("");
   const [selectedGateway, setSelectedGateway] = useState("");
+
+  const normalizedSelectedPaymentMode = (selectedPaymentModeName || "")
+    .toString()
+    .toLowerCase();
+  const isGatewayModeSelected =
+    normalizedSelectedPaymentMode === "payment gateway" ||
+    normalizedSelectedPaymentMode.includes("gateway") ||
+    normalizedSelectedPaymentMode === "paymentgateway";
+  const isCashModeSelected = normalizedSelectedPaymentMode === "cash";
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const fetchDocumentTypes = async (section) => {
@@ -4778,11 +4787,8 @@ export default function MemberDetail_Admin() {
                         </>
                       )}
                       
-                      {!(selectedPaymentModeName && (
-                        selectedPaymentModeName.toLowerCase() === 'payment gateway' || 
-                        selectedPaymentModeName.toLowerCase().includes('gateway') ||
-                        selectedPaymentModeName.toLowerCase() === 'paymentgateway'
-                      )) && (
+                      {/* Bank Name - Hidden for Payment Gateway or Cash selections */}
+                      {!isGatewayModeSelected && !isCashModeSelected && (
                         <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             *Bank Name

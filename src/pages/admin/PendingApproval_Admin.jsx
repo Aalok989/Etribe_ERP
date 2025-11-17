@@ -947,6 +947,14 @@ export default function PendingApproval() {
   )?.name || paymentModes.find(
     mode => (mode.id || mode.mode_id || mode) == form.paymentMode
   )?.mode || form.paymentMode;
+  const normalizedSelectedPaymentMode = (selectedPaymentModeName || "")
+    .toString()
+    .toLowerCase();
+  const isGatewayModeSelected =
+    normalizedSelectedPaymentMode === "payment gateway" ||
+    normalizedSelectedPaymentMode.includes("gateway") ||
+    normalizedSelectedPaymentMode === "paymentgateway";
+  const isCashModeSelected = normalizedSelectedPaymentMode === "cash";
 
   return (
     <DashboardLayout>
@@ -1368,11 +1376,8 @@ export default function PendingApproval() {
                   </>
                 )}
 
-                {selectedPaymentModeName && (
-                  (selectedPaymentModeName.toLowerCase() !== 'payment gateway' && 
-                   !selectedPaymentModeName.toLowerCase().includes('gateway') &&
-                   selectedPaymentModeName.toLowerCase() !== 'paymentgateway')
-                ) && (
+                {/* Bank Name - Hidden for Payment Gateway or Cash selections */}
+                {selectedPaymentModeName && !isGatewayModeSelected && !isCashModeSelected && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       *Bank Name

@@ -214,6 +214,14 @@ export default function MemberDetail() {
   const [addPaymentError, setAddPaymentError] = useState(null);
   const [addPaymentSuccess, setAddPaymentSuccess] = useState(null);
   const [selectedPaymentModeName, setSelectedPaymentModeName] = useState("");
+  const normalizedSelectedPaymentMode = (selectedPaymentModeName || "")
+    .toString()
+    .toLowerCase();
+  const isGatewayModeSelected =
+    normalizedSelectedPaymentMode === "payment gateway" ||
+    normalizedSelectedPaymentMode.includes("gateway") ||
+    normalizedSelectedPaymentMode === "paymentgateway";
+  const isCashModeSelected = normalizedSelectedPaymentMode === "cash";
   const [deleteLoading, setDeleteLoading] = useState(false);
   
   // ============================================================================
@@ -5055,12 +5063,8 @@ export default function MemberDetail() {
                         </>
                       )}
                       
-                      {/* Bank Name - Hidden when Payment Gateway is selected */}
-                      {!(selectedPaymentModeName && (
-                        selectedPaymentModeName.toLowerCase() === 'payment gateway' || 
-                        selectedPaymentModeName.toLowerCase().includes('gateway') ||
-                        selectedPaymentModeName.toLowerCase() === 'paymentgateway'
-                      )) && (
+                      {/* Bank Name - Hidden for Payment Gateway or Cash selections */}
+                      {!isGatewayModeSelected && !isCashModeSelected && (
                         <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             *Bank Name

@@ -28,6 +28,7 @@ export default function UpcomingEvents() {
         
         return {
           id: e.id || idx,
+          timestamp: eventDate.getTime(),
           day: eventDate.toLocaleDateString('en-US', { weekday: 'short' }),
           date: eventDate.getDate().toString(),
           month: eventDate.toLocaleDateString('en-US', { month: 'short' }),
@@ -40,7 +41,7 @@ export default function UpcomingEvents() {
             ? (e.event_image.startsWith("http") ? e.event_image : BASE_URL + e.event_image)
             : (e.image || e.imageUrl || ""),
         };
-      });
+      }).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
       setEvents(mappedEvents);
       if (mappedEvents.length > 0 && !selected) {
