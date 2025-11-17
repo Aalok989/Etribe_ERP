@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FiCalendar, FiMapPin, FiClock, FiUsers, FiRefreshCw } from "react-icons/fi";
+import { FiCalendar, FiMapPin, FiClock, FiUsers } from "react-icons/fi";
 import { useDashboard } from '../../../context/DashboardContext';
 
 // Utility function to strip HTML tags
@@ -9,10 +9,9 @@ function stripHtmlTags(str) {
 }
 
 export default function UpcomingEvents() {
-  const { data: dashboardData, loading: dashboardLoading, errors, refreshEvents } = useDashboard();
+  const { data: dashboardData, loading: dashboardLoading, errors } = useDashboard();
   const [events, setEvents] = useState([]);
   const [selected, setSelected] = useState(null);
-  const [refreshing, setRefreshing] = useState(false);
 
   // Use data from dashboard context
   const loading = dashboardLoading.events || dashboardLoading.initial;
@@ -52,18 +51,6 @@ export default function UpcomingEvents() {
     }
   }, [rawEvents, selected]);
 
-  const handleRefresh = async () => {
-    if (refreshing) return;
-    setRefreshing(true);
-    try {
-      await refreshEvents();
-    } catch (error) {
-      console.error('Failed to refresh events:', error);
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
   const Header = () => (
     <div className="relative rounded-t-2xl overflow-hidden">
       <div className="absolute inset-0 bg-white dark:bg-[#1E1E1E]" />
@@ -71,23 +58,9 @@ export default function UpcomingEvents() {
         <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 tracking-wide">
           Upcoming Events
         </h2>
-        <button
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition disabled:opacity-60"
-        >
-          {refreshing ? (
-            <>
-              <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-              Refreshing
-            </>
-          ) : (
-            <>
-              <FiRefreshCw />
-              Refresh
-            </>
-          )}
-        </button>
+        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+          {loading ? 'Loading…' : `Total: ${events.length}`}
+        </span>
       </div>
     </div>
   );
