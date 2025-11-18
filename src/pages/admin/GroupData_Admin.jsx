@@ -7,6 +7,7 @@ import api from "../../api/axiosConfig";
 import { toast } from 'react-toastify';
 import { getAuthHeaders } from "../../utils/apiHeaders";
 import { useGroupData, GroupDataProvider } from "../../context/GroupDataContext";
+import { usePermissions } from "../../context/PermissionContext";
 
 const initialData = {};
 
@@ -26,6 +27,12 @@ function GroupDataContent() {
   
   // Use GroupDataContext for immediate updates
   const { fetchGroupData } = useGroupData();
+  
+  // Get permissions for Group Settings module (module_id: 1)
+  const { hasPermission } = usePermissions();
+  const GROUP_SETTINGS_MODULE_ID = 1;
+  const canEdit = hasPermission(GROUP_SETTINGS_MODULE_ID, 'edit');
+  const canView = hasPermission(GROUP_SETTINGS_MODULE_ID, 'view');
 
   // Get API base URL from environment
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -106,6 +113,11 @@ function GroupDataContent() {
   };
 
   const handleEdit = () => {
+    // Check permission before allowing edit mode
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Group Settings.');
+      return;
+    }
     setForm(data);
     setLogoPreview(data.logo);
     setSignaturePreview(data.signature);
@@ -235,6 +247,12 @@ function GroupDataContent() {
 
   // Update handleLogoChange to upload the logo in real time
   const handleLogoChange = (e) => {
+    // Check permission before allowing logo upload
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Group Settings.');
+      return;
+    }
+    
     const file = e.target.files[0];
     if (file) {
       // Validate file type
@@ -376,6 +394,12 @@ function GroupDataContent() {
 
   // Update handleSignatureChange to upload the signature in real time
   const handleSignatureChange = (e) => {
+    // Check permission before allowing signature upload
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Group Settings.');
+      return;
+    }
+    
     const file = e.target.files[0];
     if (file) {
       // Validate file type
@@ -404,6 +428,14 @@ function GroupDataContent() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check permission before submitting
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Group Settings.');
+      setEditMode(false);
+      return;
+    }
+    
     setSaveLoading(true);
     setSaveError(null);
     
@@ -448,8 +480,8 @@ function GroupDataContent() {
   return (
     <DashboardLayout>
       <div className="relative w-full flex flex-col md:flex-row gap-8 items-start">
-          {/* Floating Edit Button */}
-          {!editMode && (
+          {/* Floating Edit Button - Only show if user has edit permission */}
+          {!editMode && canEdit && (
               <button
             className="absolute top-0 right-0 p-2 rounded-full bg-indigo-50 dark:bg-gray-700 text-indigo-600 dark:text-indigo-200 hover:bg-indigo-100 dark:hover:bg-gray-600 hover:text-indigo-800 dark:hover:text-indigo-100 shadow transition"
                 onClick={handleEdit}
@@ -468,7 +500,7 @@ function GroupDataContent() {
                 alt="Admin Logo"
               className="w-28 h-28 rounded-full object-cover border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-[#1E1E1E]"
               />
-        {editMode && (
+        {editMode && canEdit && (
                       <button
                         type="button"
                   className="absolute bottom-2 right-2 bg-indigo-600 text-white p-2 rounded-full shadow hover:bg-indigo-700"
@@ -492,7 +524,7 @@ function GroupDataContent() {
                 alt="Signature"
               className="w-40 h-14 object-contain rounded-lg border-2 border-gray-300 dark:border-gray-700 shadow-md bg-gray-100 dark:bg-[#1E1E1E]"
                       />
-              {editMode && (
+              {editMode && canEdit && (
                       <button
                         type="button"
                   className="absolute bottom-2 right-2 bg-indigo-600 text-white p-2 rounded-full shadow hover:bg-indigo-700"
@@ -563,7 +595,7 @@ function GroupDataContent() {
                     <td className="px-6 py-4 bg-white dark:bg-[#1E1E1E]">
                         {!editMode ? (
                         <span className="text-gray-900 dark:text-gray-100 text-base font-normal">{data[key]}</span>
-                        ) : (
+                        ) : canEdit ? (
                           <input
                             type="text"
                             name={key}
@@ -572,6 +604,8 @@ function GroupDataContent() {
                           className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-indigo-400"
                             required
                           />
+                        ) : (
+                          <span className="text-gray-900 dark:text-gray-100 text-base font-normal">{data[key]}</span>
                         )}
                       </td>
                     </tr>
@@ -579,8 +613,8 @@ function GroupDataContent() {
                 </tbody>
               </table>
             </div>
-            {/* Save/Cancel Buttons in Edit Mode */}
-            {editMode && (
+            {/* Save/Cancel Buttons in Edit Mode - Only show if user has edit permission */}
+            {editMode && canEdit && (
             <form onSubmit={handleSubmit} className="flex justify-end gap-4 mt-6">
                 <button
                   type="button"

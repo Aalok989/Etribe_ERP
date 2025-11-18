@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   FiGrid,
   FiUserPlus,
@@ -14,12 +14,14 @@ import {
   FiChevronLeft,
   FiChevronRight,
   FiChevronDown,
+  FiBriefcase,
 } from "react-icons/fi";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import api from "../../../api/axiosConfig";
 import { getAuthHeaders } from "../../../utils/apiHeaders";
 import { useDashboard } from "../../../context/DashboardContext";
 import { useGroupData } from "../../../context/GroupDataContext";
+import { usePermissions } from "../../../context/PermissionContext";
 
 // Custom logout hook
 const useLogout = () => {
@@ -132,10 +134,17 @@ const menuItems = [
     dropdown: false,
   },
   {
-    label: "Resume",
-    icon: <FiFileText size={20} />,
-    path: "/admin/resume",
-    dropdown: false,
+    label: "Job Portal",
+    icon: <FiBriefcase size={20} />,
+    path: "#",
+    basePath: "/admin/job-portal",
+    dropdown: true,
+    subItems: [
+      { label: "Post Job", path: "/admin/post-job" },
+      { label: "Public Job", path: "/admin/public-job" },
+      { label: "Job Applicants", path: "/admin/job-applicants" },
+      { label: "Resume", path: "/admin/resume" },
+    ],
   },
   {
     label: "Master Settings",
@@ -165,6 +174,9 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
   const navigate = useNavigate();
   const handleLogout = useLogout();
   
+  // Get permissions
+  const { canAccessRoute, loading: permissionsLoading } = usePermissions();
+  
   // Try to use DashboardContext first, fallback to GroupDataContext
   let groupData = {};
   try {
@@ -181,9 +193,46 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
     }
   }
 
+  // Filter menu items based on permissions (memoized for performance)
+  const filteredMenuItems = useMemo(() => {
+    // If permissions are still loading, show all items (will be filtered once loaded)
+    if (permissionsLoading) {
+      return menuItems;
+    }
+
+    return menuItems.map(item => {
+      if (item.dropdown && item.subItems) {
+        // Filter sub-items based on permissions
+        const filteredSubItems = item.subItems.filter(subItem => {
+          // Dashboard and some common routes don't need permission checks
+          if (subItem.path === '/admin/dashboard') return true;
+          // Check if user has access to this route
+          return canAccessRoute(subItem.path);
+        });
+        
+        // If no sub-items remain, hide the parent item
+        if (filteredSubItems.length === 0) {
+          return null;
+        }
+        
+        return {
+          ...item,
+          subItems: filteredSubItems
+        };
+      } else {
+        // For non-dropdown items, check permission
+        if (item.path === '/admin/dashboard') return item;
+        if (canAccessRoute(item.path)) {
+          return item;
+        }
+        return null;
+      }
+    }).filter(item => item !== null);
+  }, [menuItems, canAccessRoute, permissionsLoading]);
+
   // Open the relevant dropdown if inside a nested path
   useEffect(() => {
-    const activeItem = menuItems.find((item) =>
+    const activeItem = filteredMenuItems.find((item) =>
       item.subItems?.some((sub) => {
         // Check exact match first
         if (sub.path === location.pathname) return true;
@@ -199,7 +248,7 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
     if (activeItem) {
       setOpenDropdown(activeItem.label);
     }
-  }, [location.pathname]);
+  }, [location.pathname, filteredMenuItems]);
 
   return (
     <>
@@ -270,7 +319,7 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
       {/* Nav Menu */}
       <nav className="flex-1 px-2 pt-4 pb-4 overflow-y-auto min-h-0 max-h-full">
         <ul className="space-y-1">
-          {menuItems.map((item) => {
+          {filteredMenuItems.map((item) => {
             const isParentActive = item.subItems?.some(
               (sub) => {
                 // Check exact match first
@@ -419,7 +468,7 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
       {/* Mobile Nav Menu - Icons and Text */}
       <nav className="flex-1 px-2 pt-4 overflow-y-auto min-h-0 max-h-full pb-4">
         <ul className="space-y-1">
-          {menuItems.map((item) => {
+          {filteredMenuItems.map((item) => {
             const isParentActive = item.subItems?.some(
               (sub) => location.pathname === sub.path
             );

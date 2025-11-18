@@ -7,6 +7,7 @@ import {
   FiAlertTriangle,
   FiBookOpen,
   FiFileText,
+  FiBriefcase,
   FiLogOut,
   FiChevronLeft,
   FiChevronRight,
@@ -117,10 +118,17 @@ const menuItems = [
     dropdown: false,
   },
   {
-    label: "Resume",
-    icon: <FiFileText size={20} />,
-    path: "/user/resume",
-    dropdown: false,
+    label: "Job Portal",
+    icon: <FiBriefcase size={20} />,
+    path: "#",
+    basePath: "/user/job-portal",
+    dropdown: true,
+    subItems: [
+      { label: "Post Job", path: "/user/post-job" },
+      { label: "Public Job", path: "/user/public-job" },
+      { label: "Job Applicants", path: "/user/job-applicants" },
+      { label: "Resume", path: "/user/resume" },
+    ],
   },
 ];
 

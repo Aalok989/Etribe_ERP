@@ -7,6 +7,7 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { getAuthHeaders } from "../../utils/apiHeaders";
+import { usePermissions } from "../../context/PermissionContext";
 
 // Role color mapping
 const getRoleColor = (role) => {
@@ -54,6 +55,14 @@ export default function AdminAccounts() {
   const [states, setStates] = useState([]);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const isCountriesFetched = useRef(false);
+
+  // Get permissions for System Accounts module (module_id: 5)
+  const { hasPermission, canPerformActionOnRoute } = usePermissions();
+  const SYSTEM_ACCOUNTS_MODULE_ID = 5;
+  const canView = hasPermission(SYSTEM_ACCOUNTS_MODULE_ID, 'view');
+  const canAdd = hasPermission(SYSTEM_ACCOUNTS_MODULE_ID, 'add');
+  const canEdit = hasPermission(SYSTEM_ACCOUNTS_MODULE_ID, 'edit');
+  const canDelete = hasPermission(SYSTEM_ACCOUNTS_MODULE_ID, 'delete');
 
   // Handle click outside for export dropdown
   useEffect(() => {
@@ -589,13 +598,15 @@ export default function AdminAccounts() {
               </div>
               
               {/* Add System User Button - Right Side */}
-              <button
-                className="flex items-center gap-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition flex-shrink-0"
-                onClick={openAddUserModal}
-                title="Add System User"
-              >
-                <FiPlus /> Add
-              </button>
+              {canAdd && (
+                <button
+                  className="flex items-center gap-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition flex-shrink-0"
+                  onClick={openAddUserModal}
+                  title="Add System User"
+                >
+                  <FiPlus /> Add
+                </button>
+              )}
             </div>
           </div>
 
@@ -791,21 +802,25 @@ export default function AdminAccounts() {
                       </span>
                     </td>
                     <td className="p-3">
-                      <div className="flex items-center justify-center">
-                      <button
-                          className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-100 dark:text-blue-300 dark:hover:bg-gray-700 rounded-lg transition-colors border border-blue-200 hover:border-blue-300"
-                          onClick={() => openViewModal(user)}
-                          title="View User"
-                        >
-                          <FiEye size={18} />
-                      </button>
-                      <button
-                          className="p-2 text-green-600 hover:text-green-800 hover:bg-green-100 dark:text-green-300 dark:hover:bg-gray-700 rounded-lg transition-colors border border-green-200 hover:border-green-300"
-                          onClick={() => openPasswordModal(user)}
-                          title="Change Password"
-                        >
-                          <FiKey size={18} />
-                      </button>
+                      <div className="flex items-center justify-center gap-2">
+                        {canView && (
+                          <button
+                            className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-100 dark:text-blue-300 dark:hover:bg-gray-700 rounded-lg transition-colors border border-blue-200 hover:border-blue-300"
+                            onClick={() => openViewModal(user)}
+                            title="View User"
+                          >
+                            <FiEye size={18} />
+                          </button>
+                        )}
+                        {canEdit && (
+                          <button
+                            className="p-2 text-green-600 hover:text-green-800 hover:bg-green-100 dark:text-green-300 dark:hover:bg-gray-700 rounded-lg transition-colors border border-green-200 hover:border-green-300"
+                            onClick={() => openPasswordModal(user)}
+                            title="Change Password"
+                          >
+                            <FiKey size={18} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -834,20 +849,24 @@ export default function AdminAccounts() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <button
-                      className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 transition-colors p-1"
-                      onClick={() => openViewModal(user)}
-                      title="View User"
-                    >
-                      <FiEye size={16} />
-                    </button>
-                    <button
-                      className="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 transition-colors p-1"
-                      onClick={() => openPasswordModal(user)}
-                      title="Change Password"
-                    >
-                      <FiKey size={16} />
-                    </button>
+                    {canView && (
+                      <button
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 transition-colors p-1"
+                        onClick={() => openViewModal(user)}
+                        title="View User"
+                      >
+                        <FiEye size={16} />
+                      </button>
+                    )}
+                    {canEdit && (
+                      <button
+                        className="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 transition-colors p-1"
+                        onClick={() => openPasswordModal(user)}
+                        title="Change Password"
+                      >
+                        <FiKey size={16} />
+                      </button>
+                    )}
                   </div>
                 </div>
                 

@@ -228,16 +228,26 @@ const Login = () => {
           localStorage.setItem('uid', String(uidCandidate));
         }
         
-        // Determine user role based on response data
+        // Extract user_role_id from response
+        const userRoleId = userData.user_role_id ?? data.user_role_id ?? userData.role_id ?? data.role_id;
+        if (userRoleId) {
+          localStorage.setItem('user_role_id', String(userRoleId));
+        }
+        
+        // Determine user role based on user_role_id: if user_role_id !== 2, they can access admin pages
         let userRole = 'user';
-        const u = userData;
-        if (
-          u?.role === 'admin' ||
-          u?.user_type === 'admin' ||
-          u?.is_admin === true ||
-          u?.admin === true ||
-          u?.type === 'admin' ||
-          u?.user_role === 'admin'
+        const roleId = userRoleId ? String(userRoleId) : null;
+        
+        // If user_role_id is not 2, they have admin access
+        if (roleId && roleId !== '2') {
+          userRole = 'admin';
+        } else if (
+          userData?.role === 'admin' ||
+          userData?.user_type === 'admin' ||
+          userData?.is_admin === true ||
+          userData?.admin === true ||
+          userData?.type === 'admin' ||
+          userData?.user_role === 'admin'
         ) {
           userRole = 'admin';
         } else if (String(uidCandidate) === '1') {
@@ -286,15 +296,26 @@ const Login = () => {
           localStorage.setItem('uid', String(uidCandidate));
         }
         
+        // Extract user_role_id from response
+        const userRoleId = userData.user_role_id ?? respData.user_role_id ?? userData.role_id ?? respData.role_id;
+        if (userRoleId) {
+          localStorage.setItem('user_role_id', String(userRoleId));
+        }
+        
+        // Determine user role based on user_role_id: if user_role_id !== 2, they can access admin pages
         let userRole = 'user';
-        const u = userData;
-        if (
-          u?.role === 'admin' ||
-          u?.user_type === 'admin' ||
-          u?.is_admin === true ||
-          u?.admin === true ||
-          u?.type === 'admin' ||
-          u?.user_role === 'admin'
+        const roleId = userRoleId ? String(userRoleId) : null;
+        
+        // If user_role_id is not 2, they have admin access
+        if (roleId && roleId !== '2') {
+          userRole = 'admin';
+        } else if (
+          userData?.role === 'admin' ||
+          userData?.user_type === 'admin' ||
+          userData?.is_admin === true ||
+          userData?.admin === true ||
+          userData?.type === 'admin' ||
+          userData?.user_role === 'admin'
         ) {
           userRole = 'admin';
         } else if (String(uidCandidate) === '1') {

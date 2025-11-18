@@ -253,7 +253,7 @@ export default function ActiveMembers() {
     }
     console.log("Copying data:", dashboardMembers);
     const data = dashboardMembers.map(member => 
-      `${member.name}, ${member.phone_num || member.contact}, ${member.email}, ${member.company_name || member.company}, ${member.ad5 || member.valid_upto}`
+      `${member.name}, ${member.phone_num || member.contact}, ${member.email}, ${member.company_name || member.company}, ${member.valid_upto || member.ad5 || ""}`
     ).join('\n');
     navigator.clipboard.writeText(data);
     toast.success("All members copied to clipboard!");
@@ -271,7 +271,7 @@ export default function ActiveMembers() {
         Contact: member.phone_num || member.contact || '',
         Email: member.email || '',
         Company: member.company_name || member.company || '',
-        'Valid Upto': member.ad5 || member.valid_upto || '',
+        'Valid Upto': member.valid_upto || member.ad5 || '',
         Status: 'Active'
       }));
       console.log("Processed export data:", exportData);
@@ -300,7 +300,7 @@ export default function ActiveMembers() {
       member.phone_num || member.contact,
       member.email,
       member.company_name || member.company,
-      member.ad5 || member.valid_upto,
+      member.valid_upto || member.ad5,
       'Active'
     ]);
     const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
@@ -346,7 +346,7 @@ export default function ActiveMembers() {
       member.phone_num || member.contact,
       member.email,
       member.company_name || member.company,
-      member.ad5 || member.valid_upto,
+      member.valid_upto || member.ad5,
       'Active'
     ]);
     try {
@@ -594,7 +594,7 @@ export default function ActiveMembers() {
                     <td className="p-3 text-left border-r border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100">{member.phone_num || member.contact}</td>
                     <td className="p-3 text-left border-r border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100">{member.email}</td>
                     <td className="p-3 text-left border-r border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100">{member.company_name || member.company}</td>
-                    <td className="p-3 text-left border-r border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100">{member.ad5 || member.valid_upto}</td>
+                    <td className="p-3 text-left border-r border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100">{member.valid_upto || member.ad5 || "N/A"}</td>
                     <td className="p-3 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button
@@ -703,7 +703,7 @@ export default function ActiveMembers() {
                   <div className="flex items-center gap-2">
                     <FiCalendar className="text-gray-400 flex-shrink-0" size={14} />
                     <span className="text-gray-700 dark:text-gray-300 text-xs">
-                      <span className="font-medium">Valid Until:</span> {member.ad5 || member.valid_upto}
+                      <span className="font-medium">Valid Until:</span> {member.valid_upto || member.ad5 || "N/A"}
                     </span>
                   </div>
                 </div>

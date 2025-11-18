@@ -34,6 +34,12 @@ import GrievancesActive_Admin from "./pages/admin/GrievancesActive_Admin";
 import GrievancesPending_Admin from "./pages/admin/GrievancesPending_Admin";
 import GrievancesClosed_Admin from "./pages/admin/GrievancesClosed_Admin";
 import ImportantContacts_Admin from "./pages/admin/ImportantContacts_Admin";
+import PostJob_Admin from "./pages/admin/PostJob_Admin";
+import PublicJob_Admin from "./pages/admin/PublicJob_Admin";
+import JobApplicants_Admin from "./pages/admin/JobApplicants_Admin";
+import PostJob_User from "./pages/user/PostJob_User";
+import PublicJob_User from "./pages/user/PublicJob_User";
+import JobApplicants_User from "./pages/user/JobApplicants_User";
 import AdminAccounts_Admin from "./pages/admin/AdminAccounts_Admin";
 import UserRoles_Admin from "./pages/admin/UserRoles_Admin";
 import RoleManagement_Admin from "./pages/admin/RoleManagement_Admin";
@@ -73,11 +79,13 @@ import SearchResult_User from "./pages/user/SearchResult_User";
 
 // Context Providers
 import { DashboardProvider } from "./context/DashboardContext";
+import { PermissionProvider } from "./context/PermissionContext";
 
 // Authentication hook
 function useAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState("user");
+  const [userRoleId, setUserRoleId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -85,21 +93,32 @@ function useAuth() {
       setIsLoading(true);
       const token = localStorage.getItem("token");
       const role = localStorage.getItem("userRole") || "user";
+      const roleId = localStorage.getItem("user_role_id");
       
-      console.log('Auth check - Token:', !!token, 'Role:', role);
+      console.log('Auth check - Token:', !!token, 'Role:', role, 'Role ID:', roleId);
       
       if (!token) {
         console.log('No token found, user not authenticated');
         setIsAuthenticated(false);
         setUserRole("user");
+        setUserRoleId(null);
         setIsLoading(false);
         return;
+      }
+
+      // Determine role based on user_role_id: if user_role_id !== 2, they can access admin pages
+      let finalRole = role;
+      if (roleId && roleId !== '2') {
+        finalRole = 'admin';
+      } else if (roleId === '2') {
+        finalRole = 'user';
       }
 
       // For now, assume token is valid if it exists
       // In a production app, you might want to validate the token with the server
       setIsAuthenticated(true);
-      setUserRole(role);
+      setUserRole(finalRole);
+      setUserRoleId(roleId);
       setIsLoading(false);
     };
 
@@ -121,7 +140,7 @@ function useAuth() {
     };
   }, []);
 
-  return { isAuthenticated, userRole, isLoading };
+  return { isAuthenticated, userRole, userRoleId, isLoading };
 }
 
 // Protected Route Component
@@ -223,8 +242,9 @@ function App() {
   }
 
   return (
-    <DashboardProvider>
-      <Router>
+    <PermissionProvider>
+      <DashboardProvider>
+        <Router>
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
@@ -288,6 +308,9 @@ function App() {
                   <Route path="grievances-pending" element={<GrievancesPending_Admin />} />
                   <Route path="grievances-closed" element={<GrievancesClosed_Admin />} />
                   <Route path="important-contacts" element={<ImportantContacts_Admin />} />
+                  <Route path="post-job" element={<PostJob_Admin />} />
+                  <Route path="public-job" element={<PublicJob_Admin />} />
+                  <Route path="job-applicants" element={<JobApplicants_Admin />} />
                   <Route path="admin-accounts" element={<AdminAccounts_Admin />} />
                   <Route path="user-roles" element={<UserRoles_Admin />} />
                   <Route path="role-management" element={<RoleManagement_Admin />} />
@@ -323,6 +346,9 @@ function App() {
                   <Route path="circular" element={<Circular_User />} />
                   <Route path="feedback" element={<Feedback_User />} />
                   <Route path="grievance" element={<Grievance_User />} />
+                  <Route path="post-job" element={<PostJob_User />} />
+                  <Route path="public-job" element={<PublicJob_User />} />
+                  <Route path="job-applicants" element={<JobApplicants_User />} />
                   <Route path="enquiry" element={<Enquiry_User />} />
                   <Route path="enquiry-received" element={<EnquiryReceived_User />} />
                   <Route path="enquiries-done" element={<EnquiriesDone_User />} />
@@ -354,8 +380,9 @@ function App() {
           draggable
           pauseOnHover
         />
-      </Router>
-    </DashboardProvider>
+        </Router>
+      </DashboardProvider>
+    </PermissionProvider>
   );
 }
 
