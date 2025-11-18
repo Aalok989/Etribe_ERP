@@ -162,6 +162,61 @@ function ProtectedRoute({ children, requiredRole = "user" }) {
 function App() {
   const { isAuthenticated, userRole, isLoading } = useAuth();
 
+  // Auto-logout when tab/window is closed for security
+  useEffect(() => {
+    // Only set up auto-logout if user is authenticated
+    if (!isAuthenticated) {
+      return;
+    }
+
+    const handleBeforeUnload = (e) => {
+      // Clear authentication data when tab is closed
+      const token = localStorage.getItem('token');
+      if (token) {
+        // Clear all auth data synchronously
+        localStorage.removeItem('token');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('uid');
+        
+        // Dispatch logout event to notify other components
+        // Note: This might not always fire due to browser limitations
+        try {
+          window.dispatchEvent(new Event('logout'));
+        } catch (err) {
+          // Ignore errors if event dispatch fails
+        }
+      }
+    };
+
+    const handlePageHide = (e) => {
+      // This event is more reliable for detecting tab close
+      const token = localStorage.getItem('token');
+      if (token) {
+        // Clear all auth data
+        localStorage.removeItem('token');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('uid');
+        
+        // Dispatch logout event
+        try {
+          window.dispatchEvent(new Event('logout'));
+        } catch (err) {
+          // Ignore errors if event dispatch fails
+        }
+      }
+    };
+
+    // Add event listeners
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handlePageHide);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handlePageHide);
+    };
+  }, [isAuthenticated]);
+
   // Show loading state while checking authentication
   if (isLoading) {
     return <FastPreloader />;
