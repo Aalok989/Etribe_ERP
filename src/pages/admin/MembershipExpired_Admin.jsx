@@ -6,6 +6,7 @@ import api from "../../api/axiosConfig";
 import { toast } from 'react-toastify';
 import { getAuthHeaders } from "../../utils/apiHeaders";
 import { useDashboard } from "../../context/DashboardContext";
+import { usePermissions } from "../../context/PermissionContext";
 import PhonepeLogo from "../../assets/Phonepe.png";
 import RazorpayLogo from "../../assets/Razorpay.png";
 import StripeLogo from "../../assets/Stripe.png";
@@ -324,6 +325,15 @@ const addPaymentDetail = async (payload, isCheque) => {
 
 export default function MembershipExpired() {
   const navigate = useNavigate();
+  
+  // Get permissions for Membership Management module (module_id: 9)
+  const { hasPermission } = usePermissions();
+  const MEMBERSHIP_MANAGEMENT_MODULE_ID = 9;
+  const canView = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'view');
+  const canAdd = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'add');
+  const canEdit = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'edit');
+  const canDelete = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'delete');
+  
   const { plans, loading: plansLoading, refetch: refetchPlans } = useMembershipPlans();
   const { paymentModes, loading: paymentModesLoading, refetch: refetchPaymentModes } = usePaymentModes();
   const { bankDetails, loading: bankDetailsLoading, refetch: refetchBankDetails } = useBankDetails();
@@ -591,6 +601,12 @@ export default function MembershipExpired() {
   };
 
   const openModify = (member) => {
+    // Check permission before allowing modification (edit permission)
+    if (!canEdit) {
+      toast.error('You do not have permission to renew Memberships.');
+      return;
+    }
+    
     setModifyMember(member);
     setForm({
       plan: "",
@@ -1288,13 +1304,15 @@ export default function MembershipExpired() {
                       } else if (header.key === 'actions') {
                         return (
                           <td key={header.key} className="p-3 text-center">
-                      <button
-                              className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-900 p-2 rounded-full hover:bg-indigo-100 dark:hover:bg-gray-700 transition-colors"
-                              title="Renew Membership"
-                        onClick={() => openModify(m)}
-                      >
-                        <FiEdit2 size={18} />
-                      </button>
+                      {canEdit && (
+                        <button
+                          className="text-indigo-600 dark:text-indigo-300 hover:text-indigo-900 p-2 rounded-full hover:bg-indigo-100 dark:hover:bg-gray-700 transition-colors"
+                          title="Renew Membership"
+                          onClick={() => openModify(m)}
+                        >
+                          <FiEdit2 size={18} />
+                        </button>
+                      )}
                     </td>
                         );
                       } else {
@@ -1339,13 +1357,15 @@ export default function MembershipExpired() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <button
-                          className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 transition-colors p-1"
-                          onClick={() => openModify(member)}
-                          title="Renew Membership"
-                        >
-                          <FiEdit2 size={16} />
-                        </button>
+                        {canEdit && (
+                          <button
+                            className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 transition-colors p-1"
+                            onClick={() => openModify(member)}
+                            title="Renew Membership"
+                          >
+                            <FiEdit2 size={16} />
+                          </button>
+                        )}
                       </div>
                     </div>
                     <div className="space-y-2 text-sm">

@@ -15,8 +15,17 @@ import {
 import { toast } from "react-toastify";
 import api from "../../api/axiosConfig";
 import { getAuthHeaders } from "../../utils/apiHeaders";
+import { usePermissions } from "../../context/PermissionContext";
 
 export default function NewRegistration() {
+  // Get permissions for Membership Management module (module_id: 9)
+  const { hasPermission } = usePermissions();
+  const MEMBERSHIP_MANAGEMENT_MODULE_ID = 9;
+  const canView = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'view');
+  const canAdd = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'add');
+  const canEdit = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'edit');
+  const canDelete = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'delete');
+  
   const [formData, setFormData] = useState({
     // User Information Fields
     name: "",
@@ -622,6 +631,11 @@ export default function NewRegistration() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!canAdd) {
+      toast.error('You do not have permission to add new registrations.');
+      return;
+    }
 
     // Validate required fields
     const requiredFields = [

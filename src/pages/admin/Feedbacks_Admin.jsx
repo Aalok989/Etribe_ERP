@@ -7,8 +7,14 @@ import { getAuthHeaders } from "../../utils/apiHeaders";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { usePermissions } from "../../context/PermissionContext";
 
 export default function Feedbacks() {
+  // Get permissions for Notifications module (module_id: 12)
+  const { hasPermission } = usePermissions();
+  const NOTIFICATIONS_MODULE_ID = 12;
+  const canView = hasPermission(NOTIFICATIONS_MODULE_ID, 'view');
+  
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -311,6 +317,21 @@ export default function Feedbacks() {
           <div className="flex items-center gap-3">
             <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
             <p className="text-indigo-700 dark:text-indigo-300">Loading feedbacks...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // If user doesn't have view permission, show unauthorized message
+  if (!canView) {
+    return (
+      <DashboardLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <FiMessageSquare className="mx-auto text-red-500 text-4xl mb-3" />
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Unauthorized Access</h2>
+            <p className="text-gray-600 dark:text-gray-400">You do not have permission to view this page.</p>
           </div>
         </div>
       </DashboardLayout>

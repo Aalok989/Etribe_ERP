@@ -23,9 +23,19 @@ import { getAuthHeaders } from "../../utils/apiHeaders";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { usePermissions } from "../../context/PermissionContext";
 
 export default function GrievancesPending() {
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  
+  // Get permissions for Grievances module (module_id: 13)
+  const { hasPermission } = usePermissions();
+  const GRIEVANCES_MODULE_ID = 13;
+  const canView = hasPermission(GRIEVANCES_MODULE_ID, 'view');
+  const canAdd = hasPermission(GRIEVANCES_MODULE_ID, 'add');
+  const canEdit = hasPermission(GRIEVANCES_MODULE_ID, 'edit');
+  const canDelete = hasPermission(GRIEVANCES_MODULE_ID, 'delete');
+  
   const [grievances, setGrievances] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -235,6 +245,10 @@ export default function GrievancesPending() {
   };
 
   const handleDelete = async (id) => {
+    if (!canDelete) {
+      toast.error('You do not have permission to delete Grievances.');
+      return;
+    }
     if (window.confirm("Are you sure you want to delete this grievance?")) {
       try {
         setGrievances(grievances.filter(grievance => grievance.id !== id));
@@ -246,6 +260,12 @@ export default function GrievancesPending() {
   };
 
   const handleStatusUpdate = async (grievanceId, newStatus) => {
+    // Check permission before updating status (edit permission)
+    if (!canEdit) {
+      toast.error('You do not have permission to update Grievance status.');
+      return;
+    }
+    
     try {
       setIsUpdatingStatus(true);
       const token = localStorage.getItem("token");
@@ -658,13 +678,15 @@ export default function GrievancesPending() {
                     >
                       <FiEye size={14} />
                     </button>
-                    <button
-                      onClick={() => handleDelete(grievance.id)}
-                      className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                      title="Delete"
-                    >
-                      <FiTrash2 size={14} />
-                    </button>
+                    {canDelete && (
+                      <button
+                        onClick={() => handleDelete(grievance.id)}
+                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        title="Delete"
+                      >
+                        <FiTrash2 size={14} />
+                      </button>
+                    )}
                   </div>
                 </div>
                 
@@ -803,7 +825,7 @@ export default function GrievancesPending() {
                           <select
                             value={selectedGrievance.status}
                             onChange={(e) => handleStatusUpdate(selectedGrievance.id, e.target.value)}
-                            disabled={isUpdatingStatus}
+                            disabled={isUpdatingStatus || !canEdit}
                             className="text-xs border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <option value="Active">🟢 Active</option>

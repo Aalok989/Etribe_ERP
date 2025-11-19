@@ -4,6 +4,7 @@ import { FiEdit2, FiX, FiRefreshCw, FiSave, FiMail, FiAlertCircle, FiCheckCircle
 import api from "../../api/axiosConfig";
 import { toast } from 'react-toastify';
 import { getAuthHeaders } from "../../utils/apiHeaders";
+import { usePermissions } from "../../context/PermissionContext";
 
 const initialData = {
   smtpHost: "",
@@ -22,6 +23,12 @@ export default function SMTPSettings() {
   const [form, setForm] = useState(initialData);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  
+  // Get permissions for SMTP Settings module (module_id: 2)
+  const { hasPermission } = usePermissions();
+  const SMTP_SETTINGS_MODULE_ID = 2;
+  const canView = hasPermission(SMTP_SETTINGS_MODULE_ID, 'view');
+  const canEdit = hasPermission(SMTP_SETTINGS_MODULE_ID, 'edit');
 
   // Fetch SMTP settings from API
   const fetchSMTP = async () => {
@@ -202,6 +209,11 @@ export default function SMTPSettings() {
   }, []);
 
   const handleEdit = () => {
+    // Check permission before allowing edit mode
+    if (!canEdit) {
+      toast.error('You do not have permission to edit SMTP Settings.');
+      return;
+    }
     setForm({
       ...data,
       smtpPassword: form.smtpPassword, // Keep the real password value
@@ -224,6 +236,13 @@ export default function SMTPSettings() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check permission before submitting
+    if (!canEdit) {
+      toast.error('You do not have permission to edit SMTP Settings.');
+      setEditMode(false);
+      return;
+    }
     try {
       // Use the provided cURL logic for saving SMTP settings
       setSubmitting(true);
@@ -303,7 +322,7 @@ export default function SMTPSettings() {
               )}
             </div>
             <div className="flex flex-wrap gap-2 items-center justify-between sm:justify-end">
-            {!editMode && (
+            {!editMode && canEdit && (
                 <>
                   <button className="flex items-center gap-1 bg-blue-500 text-white px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-blue-600 transition" onClick={handleRefresh} disabled={loading} title="Refresh Settings">
                     <FiRefreshCw className={loading ? "animate-spin" : ""} /> 

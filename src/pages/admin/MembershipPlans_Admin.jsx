@@ -8,6 +8,7 @@ import { getAuthHeaders } from "../../utils/apiHeaders";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { usePermissions } from "../../context/PermissionContext";
 
 export default function MembershipPlans() {
   const [plans, setPlans] = useState([]);
@@ -30,6 +31,14 @@ export default function MembershipPlans() {
   const [sortField, setSortField] = useState("name");
   const [sortDirection, setSortDirection] = useState("asc");
   const [showExportDropdown, setShowExportDropdown] = useState(false);
+  
+  // Get permissions for Membership Plans module (module_id: 8)
+  const { hasPermission } = usePermissions();
+  const MEMBERSHIP_PLANS_MODULE_ID = 8;
+  const canView = hasPermission(MEMBERSHIP_PLANS_MODULE_ID, 'view');
+  const canAdd = hasPermission(MEMBERSHIP_PLANS_MODULE_ID, 'add');
+  const canEdit = hasPermission(MEMBERSHIP_PLANS_MODULE_ID, 'edit');
+  const canDelete = hasPermission(MEMBERSHIP_PLANS_MODULE_ID, 'delete');
 
   // Fetch membership plans from API
   const fetchPlans = async () => {
@@ -178,6 +187,10 @@ export default function MembershipPlans() {
 
   // Delete membership plan
   const deletePlan = async (planId) => {
+    if (!canDelete) {
+      toast.error('You do not have permission to delete Membership Plans.');
+      return;
+    }
     if (!window.confirm('Are you sure you want to delete this membership plan?')) {
       return;
     }
@@ -258,6 +271,10 @@ export default function MembershipPlans() {
   };
 
   const handleAdd = () => {
+    if (!canAdd) {
+      toast.error('You do not have permission to add Membership Plans.');
+      return;
+    }
     setForm({ name: "", description: "", price: "", validity: "", status: "active" });
     setAddMode(true);
     setEditMode(false);
@@ -266,6 +283,10 @@ export default function MembershipPlans() {
   };
 
   const handleEdit = (plan) => {
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Membership Plans.');
+      return;
+    }
     setForm({
       name: plan.name,
       description: plan.description,
@@ -402,10 +423,12 @@ export default function MembershipPlans() {
                 <FiRefreshCw className={loading ? "animate-spin" : ""} /> 
                 <span>Refresh</span>
               </button>
-              <button className="flex items-center gap-1 bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-green-700 transition" onClick={handleAdd}>
-                <FiPlus /> 
-                <span>Add Plan</span>
-              </button>
+              {canAdd && (
+                <button className="flex items-center gap-1 bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-green-700 transition" onClick={handleAdd}>
+                  <FiPlus /> 
+                  <span>Add Plan</span>
+                </button>
+              )}
             </div>
           </div>
           {/* Table */}

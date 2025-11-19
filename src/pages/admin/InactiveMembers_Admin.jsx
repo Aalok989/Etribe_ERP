@@ -26,8 +26,17 @@ import autoTable from "jspdf-autotable";
 import api from "../../api/axiosConfig";
 import { toast } from "react-toastify";
 import { getAuthHeaders } from "../../utils/apiHeaders";
+import { usePermissions } from "../../context/PermissionContext";
 
 export default function InactiveMembers() {
+  // Get permissions for Membership Management module (module_id: 9)
+  const { hasPermission } = usePermissions();
+  const MEMBERSHIP_MANAGEMENT_MODULE_ID = 9;
+  const canView = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'view');
+  const canAdd = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'add');
+  const canEdit = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'edit');
+  const canDelete = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'delete');
+  
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -260,6 +269,10 @@ export default function InactiveMembers() {
 
   // Modal handlers
   const openAddMemberModal = () => {
+    if (!canAdd) {
+      toast.error('You do not have permission to add Members.');
+      return;
+    }
     setAddMemberForm({
       name: "",
       email: "",
@@ -275,6 +288,10 @@ export default function InactiveMembers() {
   const closeAddMemberModal = () => setShowAddMemberModal(false);
 
   const openEditMemberModal = (member) => {
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Members.');
+      return;
+    }
     setEditMemberForm({
       id: member.id,
       name: member.name,
@@ -291,6 +308,10 @@ export default function InactiveMembers() {
   const closeEditMemberModal = () => setShowEditMemberModal(false);
 
   const openDeleteMemberModal = (member) => {
+    if (!canDelete) {
+      toast.error('You do not have permission to delete Members.');
+      return;
+    }
     setSelectedMember(member);
     setDeleteConfirm("");
     setShowDeleteMemberModal(true);
@@ -311,6 +332,10 @@ export default function InactiveMembers() {
 
   const handleAddMemberSubmit = async (e) => {
     e.preventDefault();
+    if (!canAdd) {
+      toast.error('You do not have permission to add Members.');
+      return;
+    }
     // TODO: Implement add member API call
     toast.success("Member added successfully!");
     closeAddMemberModal();
@@ -319,6 +344,10 @@ export default function InactiveMembers() {
 
   const handleEditMemberSubmit = async (e) => {
     e.preventDefault();
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Members.');
+      return;
+    }
     // TODO: Implement edit member API call
     toast.success("Member updated successfully!");
     closeEditMemberModal();
@@ -326,6 +355,10 @@ export default function InactiveMembers() {
   };
 
   const handleDeleteMember = async () => {
+    if (!canDelete) {
+      toast.error('You do not have permission to delete Members.');
+      return;
+    }
     if (deleteConfirm.trim().toLowerCase() !== "delete") {
       toast.error("Please type 'delete' to confirm");
       return;

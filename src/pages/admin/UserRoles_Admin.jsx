@@ -7,6 +7,7 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { getAuthHeaders } from "../../utils/apiHeaders";
+import { usePermissions } from "../../context/PermissionContext";
 
 export default function UserRoles() {
   const [roles, setRoles] = useState([]);
@@ -23,6 +24,14 @@ export default function UserRoles() {
   const [sortField, setSortField] = useState("role");
   const [sortDirection, setSortDirection] = useState("asc");
   const [showExportDropdown, setShowExportDropdown] = useState(false);
+  
+  // Get permissions for User Roles module (module_id: 3)
+  const { hasPermission } = usePermissions();
+  const USER_ROLES_MODULE_ID = 3;
+  const canView = hasPermission(USER_ROLES_MODULE_ID, 'view');
+  const canAdd = hasPermission(USER_ROLES_MODULE_ID, 'add');
+  const canEdit = hasPermission(USER_ROLES_MODULE_ID, 'edit');
+  const canDelete = hasPermission(USER_ROLES_MODULE_ID, 'delete');
 
   // Handle click outside for export dropdown
   useEffect(() => {
@@ -223,6 +232,10 @@ export default function UserRoles() {
 
   // Edit Role Modal
   const openEditModal = (idx) => {
+    if (!canEdit) {
+      toast.error('You do not have permission to edit User Roles.');
+      return;
+    }
     const role = roles[startIdx + idx];
     setSelectedRoleIdx(idx);
     setEditForm({ role: role.role });
@@ -246,6 +259,10 @@ export default function UserRoles() {
 
   // Add Role Modal
   const openAddModal = () => {
+    if (!canAdd) {
+      toast.error('You do not have permission to add User Roles.');
+      return;
+    }
     setAddForm({ role: "" });
     setShowAddModal(true);
   };
@@ -266,6 +283,10 @@ export default function UserRoles() {
 
   // Delete role handler
   const handleDeleteRole = async (idx) => {
+    if (!canDelete) {
+      toast.error('You do not have permission to delete User Roles.');
+      return;
+    }
     if (window.confirm('Are you sure you want to delete this role?')) {
       try {
         const role = roles[startIdx + idx];
@@ -479,14 +500,16 @@ export default function UserRoles() {
               </div>
               
               {/* Add Role Button - Right Side */}
-              <button
-                className="flex items-center gap-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition flex-shrink-0"
-                onClick={openAddModal}
-                disabled={submitting}
-                title="Add Role"
-              >
-                <FiPlus /> Add
-              </button>
+              {canAdd && (
+                <button
+                  className="flex items-center gap-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition flex-shrink-0"
+                  onClick={openAddModal}
+                  disabled={submitting}
+                  title="Add Role"
+                >
+                  <FiPlus /> Add
+                </button>
+              )}
             </div>
           </div>
 
@@ -556,14 +579,26 @@ export default function UserRoles() {
                     </td>
                     <td className="p-3">
                       <div className="flex items-center justify-center gap-2">
-                      <button
-                          className="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 rounded-lg transition-colors border border-indigo-200 dark:border-indigo-700 hover:border-indigo-300"
-                        onClick={() => openEditModal(idx)}
-                        title="Edit Role"
-                          disabled={submitting}
-                      >
-                          <FiEdit2 size={16} />
-                      </button>
+                        {canEdit && (
+                          <button
+                            className="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 rounded-lg transition-colors border border-indigo-200 dark:border-indigo-700 hover:border-indigo-300"
+                            onClick={() => openEditModal(idx)}
+                            title="Edit Role"
+                            disabled={submitting}
+                          >
+                            <FiEdit2 size={16} />
+                          </button>
+                        )}
+                        {canDelete && (
+                          <button
+                            className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg transition-colors border border-red-200 dark:border-red-700 hover:border-red-300"
+                            onClick={() => handleDeleteRole(idx)}
+                            title="Delete Role"
+                            disabled={submitting}
+                          >
+                            <FiTrash2 size={16} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -589,14 +624,26 @@ export default function UserRoles() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <button
-                      className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 transition-colors p-1"
-                      onClick={() => openEditModal(idx)}
-                      title="Edit Role"
-                      disabled={submitting}
-                    >
-                      <FiEdit2 size={16} />
-                    </button>
+                    {canEdit && (
+                      <button
+                        className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 transition-colors p-1"
+                        onClick={() => openEditModal(idx)}
+                        title="Edit Role"
+                        disabled={submitting}
+                      >
+                        <FiEdit2 size={16} />
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button
+                        className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors p-1"
+                        onClick={() => handleDeleteRole(idx)}
+                        title="Delete Role"
+                        disabled={submitting}
+                      >
+                        <FiTrash2 size={16} />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

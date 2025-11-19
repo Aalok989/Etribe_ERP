@@ -6,6 +6,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useContacts } from "../../context/ContactsContext";
 import { toast } from "react-toastify";
+import { usePermissions } from "../../context/PermissionContext";
 
 export default function ImportantContactsPage() {
   const { contactsData, loading, error, addContact, editContact: editContactAPI, deleteContact: deleteContactAPI, fetchContacts } = useContacts();
@@ -22,6 +23,14 @@ export default function ImportantContactsPage() {
   const [addContactForm, setAddContactForm] = useState({ dept: "", name: "", contact: "", email: "", address: "" });
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [formError, setFormError] = useState(null);
+  
+  // Get permissions for Contacts Management module (module_id: 10)
+  const { hasPermission } = usePermissions();
+  const CONTACTS_MODULE_ID = 10;
+  const canView = hasPermission(CONTACTS_MODULE_ID, 'view');
+  const canAdd = hasPermission(CONTACTS_MODULE_ID, 'add');
+  const canEdit = hasPermission(CONTACTS_MODULE_ID, 'edit');
+  const canDelete = hasPermission(CONTACTS_MODULE_ID, 'delete');
 
   // Handle click outside for export dropdown
   useEffect(() => {
@@ -84,6 +93,11 @@ export default function ImportantContactsPage() {
   };
 
   const handleEditSave = async () => {
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Contacts.');
+      setEditContact(null);
+      return;
+    }
     setFormError(null);
     try {
       await editContactAPI(editForm);
@@ -97,6 +111,12 @@ export default function ImportantContactsPage() {
   };
 
   const handleDelete = async () => {
+    if (!canDelete) {
+      toast.error('You do not have permission to delete Contacts.');
+      setDeleteContact(null);
+      setDeleteConfirm("");
+      return;
+    }
     if (deleteConfirm.trim().toLowerCase() === "delete") {
       setDeleteLoading(true);
       setFormError(null);
@@ -121,6 +141,11 @@ export default function ImportantContactsPage() {
 
   const handleAddContactSubmit = async (e) => {
     e.preventDefault();
+    if (!canAdd) {
+      toast.error('You do not have permission to add Contacts.');
+      setShowAddContactModal(false);
+      return;
+    }
     setFormError(null);
     try {
       await addContact(addContactForm);
@@ -368,14 +393,16 @@ export default function ImportantContactsPage() {
                 )}
               </div>
               
-              <button
-                className="flex items-center gap-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition"
-                onClick={() => setShowAddContactModal(true)}
-              >
-                <FiPlus />
-                <span className="hidden sm:inline">Add Contact</span>
-                <span className="sm:hidden">Add</span>
-              </button>
+              {canAdd && (
+                <button
+                  className="flex items-center gap-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition"
+                  onClick={() => setShowAddContactModal(true)}
+                >
+                  <FiPlus />
+                  <span className="hidden sm:inline">Add Contact</span>
+                  <span className="sm:hidden">Add</span>
+                </button>
+              )}
             </div>
           </div>
           {/* Table - Desktop View */}
@@ -407,8 +434,12 @@ export default function ImportantContactsPage() {
                     <td className="p-3 text-left border-r border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100">{c.email}</td>
                     <td className="p-3 text-left border-r border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100">{c.address}</td>
                     <td className="p-3 text-center">
-                      <button className="text-yellow-600 hover:text-yellow-900 p-2 rounded-full hover:bg-yellow-100 dark:hover:bg-gray-700 transition-colors" onClick={() => setEditContact(c)} title="Edit Contact"><FiEdit2 size={18} /></button>
-                      <button className="text-red-600 hover:text-red-900 p-2 rounded-full hover:bg-red-100 dark:hover:bg-gray-700 transition-colors" onClick={() => setDeleteContact(c)} title="Delete Contact"><FiTrash2 size={18} /></button>
+                      {canEdit && (
+                        <button className="text-yellow-600 hover:text-yellow-900 p-2 rounded-full hover:bg-yellow-100 dark:hover:bg-gray-700 transition-colors" onClick={() => setEditContact(c)} title="Edit Contact"><FiEdit2 size={18} /></button>
+                      )}
+                      {canDelete && (
+                        <button className="text-red-600 hover:text-red-900 p-2 rounded-full hover:bg-red-100 dark:hover:bg-gray-700 transition-colors" onClick={() => setDeleteContact(c)} title="Delete Contact"><FiTrash2 size={18} /></button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -434,20 +465,24 @@ export default function ImportantContactsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <button
-                      className="text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-300 transition-colors p-1" 
-                      onClick={() => setEditContact(c)}
-                      title="Edit Contact"
-                    >
-                      <FiEdit2 size={16} />
-                    </button>
-                    <button 
-                      className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors p-1" 
-                      onClick={() => setDeleteContact(c)}
-                      title="Delete Contact"
-                    >
-                      <FiTrash2 size={16} />
-                    </button>
+                    {canEdit && (
+                      <button
+                        className="text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-300 transition-colors p-1" 
+                        onClick={() => setEditContact(c)}
+                        title="Edit Contact"
+                      >
+                        <FiEdit2 size={16} />
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button 
+                        className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors p-1" 
+                        onClick={() => setDeleteContact(c)}
+                        title="Delete Contact"
+                      >
+                        <FiTrash2 size={16} />
+                      </button>
+                    )}
                   </div>
                 </div>
                 

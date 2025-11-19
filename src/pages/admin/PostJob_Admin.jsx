@@ -8,9 +8,19 @@ import { toast } from "react-toastify";
 import api from "../../api/axiosConfig";
 import { getAuthHeaders } from "../../utils/apiHeaders";
 import { useDashboard } from "../../context/DashboardContext";
+import { usePermissions } from "../../context/PermissionContext";
 
 export default function PostJobPage() {
   const { data: dashboardData, refreshMembers } = useDashboard();
+  
+  // Get permissions for Resume/Job Portal module (module_id: 14)
+  const { hasPermission } = usePermissions();
+  const RESUME_MODULE_ID = 14;
+  const canView = hasPermission(RESUME_MODULE_ID, 'view');
+  const canAdd = hasPermission(RESUME_MODULE_ID, 'add');
+  const canEdit = hasPermission(RESUME_MODULE_ID, 'edit');
+  const canDelete = hasPermission(RESUME_MODULE_ID, 'delete');
+  
   const [jobsData, setJobsData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -155,6 +165,13 @@ export default function PostJobPage() {
   };
 
   const handleEditSave = async () => {
+    // Check permission before saving
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Jobs.');
+      setEditJob(null);
+      return;
+    }
+    
     if (!editForm.job_type || !editForm.company_detail_id) {
       setFormError("Company and job type are required.");
       return;
@@ -191,6 +208,14 @@ export default function PostJobPage() {
   };
 
   const handleDelete = async () => {
+    // Check permission before deleting
+    if (!canDelete) {
+      toast.error('You do not have permission to delete Jobs.');
+      setDeleteJob(null);
+      setDeleteConfirm("");
+      return;
+    }
+    
     if (deleteConfirm.trim().toLowerCase() !== "delete" || !deleteJob?.id) return;
 
     setDeleteLoading(true);
@@ -227,6 +252,13 @@ export default function PostJobPage() {
 
   const handleAddJobSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check permission before submitting
+    if (!canAdd) {
+      toast.error('You do not have permission to add Jobs.');
+      return;
+    }
+    
     setFormError(null);
 
     if (!addJobForm.company_detail_id || !addJobForm.job_type) {
@@ -518,14 +550,16 @@ export default function PostJobPage() {
                 )}
               </div>
               
-              <button
-                className="flex items-center gap-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition"
-                onClick={() => setShowAddJobModal(true)}
-              >
-                <FiPlus />
-                <span className="hidden sm:inline">Add Job</span>
-                <span className="sm:hidden">Add</span>
-              </button>
+              {canAdd && (
+                <button
+                  className="flex items-center gap-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition"
+                  onClick={() => setShowAddJobModal(true)}
+                >
+                  <FiPlus />
+                  <span className="hidden sm:inline">Add Job</span>
+                  <span className="sm:hidden">Add</span>
+                </button>
+              )}
             </div>
           </div>
           {/* Table - Desktop View */}
@@ -560,8 +594,12 @@ export default function PostJobPage() {
                       <td className="p-3 text-left border-r border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100">{j.job_description || ""}</td>
                       <td className="p-3 text-left border-r border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100">{eligibility}</td>
                       <td className="p-3 text-center border-r border-gray-200 dark:border-gray-700">
-                        <button className="text-yellow-600 hover:text-yellow-900 p-2 rounded-full hover:bg-yellow-100 dark:hover:bg-gray-700 transition-colors" onClick={() => setEditJob(j)} title="Edit Job"><FiEdit2 size={18} /></button>
-                        <button className="text-red-600 hover:text-red-900 p-2 rounded-full hover:bg-red-100 dark:hover:bg-gray-700 transition-colors" onClick={() => setDeleteJob(j)} title="Delete Job"><FiTrash2 size={18} /></button>
+                        {canEdit && (
+                          <button className="text-yellow-600 hover:text-yellow-900 p-2 rounded-full hover:bg-yellow-100 dark:hover:bg-gray-700 transition-colors" onClick={() => setEditJob(j)} title="Edit Job"><FiEdit2 size={18} /></button>
+                        )}
+                        {canDelete && (
+                          <button className="text-red-600 hover:text-red-900 p-2 rounded-full hover:bg-red-100 dark:hover:bg-gray-700 transition-colors" onClick={() => setDeleteJob(j)} title="Delete Job"><FiTrash2 size={18} /></button>
+                        )}
                       </td>
                       <td className="p-3 text-center border-r border-gray-200 dark:border-gray-700">
                         <label className="inline-flex items-center cursor-pointer">
@@ -607,20 +645,24 @@ export default function PostJobPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <button
-                      className="text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-300 transition-colors p-1" 
-                      onClick={() => setEditJob(j)}
-                      title="Edit Job"
-                    >
-                      <FiEdit2 size={16} />
-                    </button>
-                    <button 
-                      className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors p-1" 
-                      onClick={() => setDeleteJob(j)}
-                      title="Delete Job"
-                    >
-                      <FiTrash2 size={16} />
-                    </button>
+                    {canEdit && (
+                      <button
+                        className="text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-300 transition-colors p-1" 
+                        onClick={() => setEditJob(j)}
+                        title="Edit Job"
+                      >
+                        <FiEdit2 size={16} />
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button 
+                        className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors p-1" 
+                        onClick={() => setDeleteJob(j)}
+                        title="Delete Job"
+                      >
+                        <FiTrash2 size={16} />
+                      </button>
+                    )}
                     <label className="inline-flex items-center cursor-pointer ml-2">
                       <input
                         type="checkbox"
@@ -896,14 +938,16 @@ export default function PostJobPage() {
                   >
                     Cancel
                   </button>
-                  <button
-                    type="button"
-                    className="flex items-center gap-2 px-6 py-2 rounded-lg bg-indigo-600 dark:bg-indigo-700 text-white font-medium hover:bg-indigo-700 dark:hover:bg-indigo-800 transition-colors"
-                    onClick={handleEditSave}
-                  >
-                    <FiEdit2 />
-                    Save Changes
-                  </button>
+                  {canEdit && (
+                    <button
+                      type="button"
+                      className="flex items-center gap-2 px-6 py-2 rounded-lg bg-indigo-600 dark:bg-indigo-700 text-white font-medium hover:bg-indigo-700 dark:hover:bg-indigo-800 transition-colors"
+                      onClick={handleEditSave}
+                    >
+                      <FiEdit2 />
+                      Save Changes
+                    </button>
+                  )}
                 </div>
               </form>
             </div>
@@ -968,7 +1012,7 @@ export default function PostJobPage() {
                         : 'bg-gray-400 text-white cursor-not-allowed'
                     }`}
                     onClick={handleDelete}
-                    disabled={deleteConfirm.trim().toLowerCase() !== 'delete' || deleteLoading}
+                    disabled={deleteConfirm.trim().toLowerCase() !== 'delete' || deleteLoading || !canDelete}
                   >
                     {deleteLoading ? 'Deleting...' : <><FiTrash2 /> Delete Job</>}
                   </button>

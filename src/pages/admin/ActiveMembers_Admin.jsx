@@ -6,6 +6,7 @@ import api from "../../api/axiosConfig";
 import { toast } from 'react-toastify';
 import { getAuthHeaders } from "../../utils/apiHeaders";
 import { useDashboard } from "../../context/DashboardContext";
+import { usePermissions } from "../../context/PermissionContext";
 
 import * as XLSX from 'xlsx';
 import jsPDF from "jspdf";
@@ -105,6 +106,15 @@ const getMemberCardFields = (additionalFields = []) => {
 
 export default function ActiveMembers() {
   const navigate = useNavigate();
+  
+  // Get permissions for Membership Management module (module_id: 9)
+  const { hasPermission } = usePermissions();
+  const MEMBERSHIP_MANAGEMENT_MODULE_ID = 9;
+  const canView = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'view');
+  const canAdd = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'add');
+  const canEdit = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'edit');
+  const canDelete = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'delete');
+  
   const { data: dashboardData, loading: dashboardLoading, refreshMembers } = useDashboard();
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -160,6 +170,10 @@ export default function ActiveMembers() {
 
   // Disable member function
   const handleDisableMember = async (member) => {
+    if (!canEdit) {
+      toast.error('You do not have permission to disable Members.');
+      return;
+    }
     if (!window.confirm(`Are you sure you want to disable ${member.name}?`)) {
       return;
     }
@@ -604,13 +618,15 @@ export default function ActiveMembers() {
                         >
                           <FiEye size={16} />
                         </button>
-                        <button
-                          className="text-red-600 dark:text-red-400 hover:text-red-900 p-1 rounded-full hover:bg-red-100 dark:hover:bg-gray-700 transition-colors"
-                          title="Disable Member"
-                          onClick={() => handleDisableMember(member)}
-                        >
-                          <FiUserX size={16} />
-                        </button>
+                        {canEdit && (
+                          <button
+                            className="text-red-600 dark:text-red-400 hover:text-red-900 p-1 rounded-full hover:bg-red-100 dark:hover:bg-gray-700 transition-colors"
+                            title="Disable Member"
+                            onClick={() => handleDisableMember(member)}
+                          >
+                            <FiUserX size={16} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -677,13 +693,15 @@ export default function ActiveMembers() {
                     >
                       <FiEye size={16} />
                     </button>
-                    <button
-                      className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors p-1"
-                      onClick={() => handleDisableMember(member)}
-                      title="Disable Member"
-                    >
-                      <FiUserX size={16} />
-                    </button>
+                    {canEdit && (
+                      <button
+                        className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors p-1"
+                        onClick={() => handleDisableMember(member)}
+                        title="Disable Member"
+                      >
+                        <FiUserX size={16} />
+                      </button>
+                    )}
                   </div>
                 </div>
                 <div className="space-y-2 text-sm">

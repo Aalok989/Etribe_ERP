@@ -4,6 +4,7 @@ import { FiFileText, FiRefreshCw, FiSearch, FiUser, FiX } from "react-icons/fi";
 import { toast } from "react-toastify";
 import api from "../../api/axiosConfig";
 import { getAuthHeaders } from "../../utils/apiHeaders";
+import { usePermissions } from "../../context/PermissionContext";
 
 const STATUS_OPTIONS = [
   "Applied",
@@ -28,6 +29,14 @@ const formatDate = (value) => {
 };
 
 export default function JobApplicantsAdminPage() {
+  // Get permissions for Resume/Job Portal module (module_id: 14)
+  const { hasPermission } = usePermissions();
+  const RESUME_MODULE_ID = 14;
+  const canView = hasPermission(RESUME_MODULE_ID, 'view');
+  const canAdd = hasPermission(RESUME_MODULE_ID, 'add');
+  const canEdit = hasPermission(RESUME_MODULE_ID, 'edit');
+  const canDelete = hasPermission(RESUME_MODULE_ID, 'delete');
+  
   const [applicants, setApplicants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -128,6 +137,13 @@ export default function JobApplicantsAdminPage() {
 
   const handleUpdateApplicant = async () => {
     if (!selectedApplicant) return;
+    
+    // Check permission before updating (edit permission)
+    if (!canEdit) {
+      toast.error('You do not have permission to update Job Applicants.');
+      return;
+    }
+    
     setUpdating(true);
     try {
       await api.post(
@@ -413,7 +429,8 @@ export default function JobApplicantsAdminPage() {
                     name="status"
                     value={noteForm.status}
                     onChange={handleNoteChange}
-                    className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-[#1E1E1E] text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-400"
+                    disabled={!canEdit || updating}
+                    className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-[#1E1E1E] text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <option value="">Select status</option>
                     {STATUS_OPTIONS.map((status) => (
@@ -432,7 +449,8 @@ export default function JobApplicantsAdminPage() {
                     rows={4}
                     value={noteForm.recruiter_notes}
                     onChange={handleNoteChange}
-                    className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-[#1E1E1E] text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-400"
+                    disabled={!canEdit || updating}
+                    className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-[#1E1E1E] text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="Add your notes here..."
                   />
                 </div>
@@ -445,13 +463,15 @@ export default function JobApplicantsAdminPage() {
                 >
                   Cancel
                 </button>
-                <button
-                  className="px-6 py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
-                  onClick={handleUpdateApplicant}
-                  disabled={updating || !noteForm.status}
-                >
-                  {updating ? "Saving..." : "Save Changes"}
-                </button>
+                {canEdit && (
+                  <button
+                    className="px-6 py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                    onClick={handleUpdateApplicant}
+                    disabled={updating || !noteForm.status}
+                  >
+                    {updating ? "Saving..." : "Save Changes"}
+                  </button>
+                )}
               </div>
             </div>
           </div>

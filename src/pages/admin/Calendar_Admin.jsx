@@ -5,6 +5,7 @@ import api from "../../api/axiosConfig";
 import { getAuthHeaders, getAuthHeadersFormData } from "../../utils/apiHeaders";
 import RichTextEditor from "../../components/shared/RichTextEditor";
 import { toast } from 'react-toastify';
+import { usePermissions } from "../../context/PermissionContext";
 
 // Helper functions
 function isSameDay(d1, d2) {
@@ -145,6 +146,14 @@ const SimpleCalendar = ({ selectedDate, onDateSelect, events }) => {
 
 
 export default function Calendar() {
+  // Get permissions for Events Management module (module_id: 11)
+  const { hasPermission } = usePermissions();
+  const EVENTS_MODULE_ID = 11;
+  const canView = hasPermission(EVENTS_MODULE_ID, 'view');
+  const canAdd = hasPermission(EVENTS_MODULE_ID, 'add');
+  const canEdit = hasPermission(EVENTS_MODULE_ID, 'edit');
+  const canDelete = hasPermission(EVENTS_MODULE_ID, 'delete');
+  
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -192,6 +201,13 @@ export default function Calendar() {
   };
   const handleAddEventSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check permission before submitting
+    if (!canAdd) {
+      toast.error('You do not have permission to add Events.');
+      return;
+    }
+    
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -242,7 +258,13 @@ export default function Calendar() {
       setLoading(false);
     }
   };
-  const handleShowAddEventForm = () => setShowAddEventForm(true);
+  const handleShowAddEventForm = () => {
+    if (!canAdd) {
+      toast.error('You do not have permission to add Events.');
+      return;
+    }
+    setShowAddEventForm(true);
+  };
   const handleHideAddEventForm = () => setShowAddEventForm(false);
 
   // 1. Add state for Edit Event modal and form
@@ -266,6 +288,10 @@ export default function Calendar() {
 
   // 2. Handler to open Edit modal with event data
   const openEditEventModal = (event) => {
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Events.');
+      return;
+    }
     setEditEventForm({
       id: event.id,
       event: event.name,
@@ -312,6 +338,13 @@ export default function Calendar() {
   // 5. Edit Event API call
   const handleEditEventSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check permission before submitting
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Events.');
+      return;
+    }
+    
     const errors = validateEditForm();
     if (Object.keys(errors).length > 0) {
       setEditFormErrors(errors);
@@ -418,6 +451,10 @@ export default function Calendar() {
 
   // 6. Delete event handler
   const handleDeleteEvent = async (eventId) => {
+    if (!canDelete) {
+      toast.error('You do not have permission to delete Events.');
+      return;
+    }
     if (!window.confirm('Are you sure you want to delete this event?')) return;
     setDeleteLoading(true);
     setDeleteError(null);
@@ -633,7 +670,7 @@ export default function Calendar() {
                 <span className="text-gray-700 dark:text-gray-200 font-semibold ml-2">{time.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
                 <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">{time.toLocaleTimeString([], { hour12: false })}</span>
               </div>
-              {!showAddEventForm && (
+              {!showAddEventForm && canAdd && (
                 <button
                   className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition"
                   onClick={handleShowAddEventForm}
@@ -726,12 +763,16 @@ export default function Calendar() {
                         </div>
                         
                         <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                          <button className="text-blue-600 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-400 transition-colors" title="Edit Event" onClick={() => openEditEventModal(ev)} disabled={editLoading}>
-                            <FiEdit2 size={16} />
-                          </button>
-                          <button className="text-red-600 dark:text-red-300 hover:text-red-900 dark:hover:text-red-400 transition-colors" title="Delete Event" onClick={() => handleDeleteEvent(ev.id)} disabled={deleteLoading}>
-                            <FiTrash2 size={16} />
-                          </button>
+                          {canEdit && (
+                            <button className="text-blue-600 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-400 transition-colors" title="Edit Event" onClick={() => openEditEventModal(ev)} disabled={editLoading}>
+                              <FiEdit2 size={16} />
+                            </button>
+                          )}
+                          {canDelete && (
+                            <button className="text-red-600 dark:text-red-300 hover:text-red-900 dark:hover:text-red-400 transition-colors" title="Delete Event" onClick={() => handleDeleteEvent(ev.id)} disabled={deleteLoading}>
+                              <FiTrash2 size={16} />
+                            </button>
+                          )}
                         </div>
                     </div>
                     ))

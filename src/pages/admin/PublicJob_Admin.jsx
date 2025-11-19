@@ -7,8 +7,17 @@ import autoTable from "jspdf-autotable";
 import { toast } from "react-toastify";
 import api from "../../api/axiosConfig";
 import { getAuthHeaders } from "../../utils/apiHeaders";
+import { usePermissions } from "../../context/PermissionContext";
 
 export default function PublicJobPage() {
+  // Get permissions for Resume/Job Portal module (module_id: 14)
+  const { hasPermission } = usePermissions();
+  const RESUME_MODULE_ID = 14;
+  const canView = hasPermission(RESUME_MODULE_ID, 'view');
+  const canAdd = hasPermission(RESUME_MODULE_ID, 'add');
+  const canEdit = hasPermission(RESUME_MODULE_ID, 'edit');
+  const canDelete = hasPermission(RESUME_MODULE_ID, 'delete');
+  
   const [jobsData, setJobsData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState("All");
@@ -115,6 +124,13 @@ export default function PublicJobPage() {
   };
 
   const handleEditSave = async () => {
+    // Check permission before saving
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Jobs.');
+      setEditJob(null);
+      return;
+    }
+    
     setFormError(null);
     try {
       // TODO: Implement edit API call
@@ -128,6 +144,14 @@ export default function PublicJobPage() {
   };
 
   const handleDelete = async () => {
+    // Check permission before deleting
+    if (!canDelete) {
+      toast.error('You do not have permission to delete Jobs.');
+      setDeleteJob(null);
+      setDeleteConfirm("");
+      return;
+    }
+    
     if (deleteConfirm.trim().toLowerCase() === "delete") {
       setDeleteLoading(true);
       setFormError(null);
@@ -152,6 +176,13 @@ export default function PublicJobPage() {
 
   const handleAddJobSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check permission before submitting
+    if (!canAdd) {
+      toast.error('You do not have permission to add Jobs.');
+      return;
+    }
+    
     setFormError(null);
     try {
       // TODO: Implement add API call
@@ -712,14 +743,16 @@ export default function PublicJobPage() {
                   >
                     Cancel
                   </button>
-                  <button
-                    type="button"
-                    className="flex items-center gap-2 px-6 py-2 rounded-lg bg-indigo-600 dark:bg-indigo-700 text-white font-medium hover:bg-indigo-700 dark:hover:bg-indigo-800 transition-colors"
-                    onClick={handleEditSave}
-                  >
-                    <FiEdit2 />
-                    Save Changes
-                  </button>
+                  {canEdit && (
+                    <button
+                      type="button"
+                      className="flex items-center gap-2 px-6 py-2 rounded-lg bg-indigo-600 dark:bg-indigo-700 text-white font-medium hover:bg-indigo-700 dark:hover:bg-indigo-800 transition-colors"
+                      onClick={handleEditSave}
+                    >
+                      <FiEdit2 />
+                      Save Changes
+                    </button>
+                  )}
                 </div>
               </form>
             </div>
@@ -784,7 +817,7 @@ export default function PublicJobPage() {
                         : 'bg-gray-400 text-white cursor-not-allowed'
                     }`}
                     onClick={handleDelete}
-                    disabled={deleteConfirm.trim().toLowerCase() !== 'delete' || deleteLoading}
+                    disabled={deleteConfirm.trim().toLowerCase() !== 'delete' || deleteLoading || !canDelete}
                   >
                     {deleteLoading ? 'Deleting...' : <><FiTrash2 /> Delete Job</>}
                   </button>

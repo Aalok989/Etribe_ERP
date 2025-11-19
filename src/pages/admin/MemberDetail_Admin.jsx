@@ -9,6 +9,7 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import RichTextEditor from '../../components/shared/RichTextEditor';
+import { usePermissions } from "../../context/PermissionContext";
 import PhonepeLogo from "../../assets/Phonepe.png";
 import RazorpayLogo from "../../assets/Razorpay.png";
 import StripeLogo from "../../assets/Stripe.png";
@@ -17,6 +18,14 @@ export default function MemberDetail_Admin() {
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const { memberId: urlMemberId } = useParams();
   const navigate = useNavigate();
+  
+  // Get permissions for Membership Management module (module_id: 9)
+  const { hasPermission } = usePermissions();
+  const MEMBERSHIP_MANAGEMENT_MODULE_ID = 9;
+  const canView = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'view');
+  const canAdd = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'add');
+  const canEdit = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'edit');
+  const canDelete = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'delete');
   
   // For user panel, always use the current user's ID from localStorage
   const currentUserId = localStorage.getItem("uid");
@@ -1418,6 +1427,12 @@ export default function MemberDetail_Admin() {
   }, []); // Run only once on mount
 
   const handleEditData = () => {
+    // Check permission before allowing edit mode
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Member details.');
+      return;
+    }
+    
     console.log('🔍 handleEditData called');
     console.log('🔍 Active tab:', activeTab);
     console.log('🔍 Member data:', member);
@@ -1518,6 +1533,12 @@ export default function MemberDetail_Admin() {
   };
 
   const handleSave = async () => {
+    // Check permission before saving
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Member details.');
+      return;
+    }
+    
     try {
       setSaving(true);
       
@@ -2619,6 +2640,10 @@ export default function MemberDetail_Admin() {
   };
 
   const handleEdit = (payment) => {
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Payment records.');
+      return;
+    }
     setSelectedPayment(payment);
     setEditForm({
       chequeNo: payment.chequeNo || '',
@@ -2639,6 +2664,10 @@ export default function MemberDetail_Admin() {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Payment records.');
+      return;
+    }
     try {
       // TODO: Implement edit payment API call
       toast.success('Payment updated successfully (API integration pending)');
@@ -2649,6 +2678,12 @@ export default function MemberDetail_Admin() {
   };
 
   const handleDeletePayment = async (paymentId) => {
+    // Check permission before deleting
+    if (!canDelete) {
+      toast.error('You do not have permission to delete Payment records.');
+      return;
+    }
+    
     if (window.confirm("Are you sure you want to delete this payment record?")) {
       try {
         setDeleteLoading(true);
@@ -4310,7 +4345,26 @@ export default function MemberDetail_Admin() {
                             {(payment.status === 'Processing' || payment.status === 'Bounced') ? (
                               <>
                                 <button onClick={() => handleView(payment)} className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors" title="View"><FiEye size={16} /></button>
-                                <button onClick={() => handleEdit(payment)} className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors" title="Edit"><FiEdit size={16} /></button>
+                                {canEdit && (
+                                  <button onClick={() => handleEdit(payment)} className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors" title="Edit"><FiEdit size={16} /></button>
+                                )}
+                                {canDelete && (
+                                  <button 
+                                    onClick={() => handleDeletePayment(payment.id)} 
+                                    className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
+                                    title="Delete"
+                                    disabled={deleteLoading}
+                                  >
+                                    {deleteLoading ? (
+                                      <FiRefreshCw className="animate-spin" size={16} />
+                                    ) : (
+                                      <FiTrash2 size={16} />
+                                    )}
+                                  </button>
+                                )}
+                              </>
+                            ) : (
+                              canDelete && (
                                 <button 
                                   onClick={() => handleDeletePayment(payment.id)} 
                                   className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
@@ -4323,20 +4377,7 @@ export default function MemberDetail_Admin() {
                                     <FiTrash2 size={16} />
                                   )}
                                 </button>
-                              </>
-                            ) : (
-                              <button 
-                                onClick={() => handleDeletePayment(payment.id)} 
-                                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
-                                title="Delete"
-                                disabled={deleteLoading}
-                              >
-                                {deleteLoading ? (
-                                  <FiRefreshCw className="animate-spin" size={16} />
-                                ) : (
-                                  <FiTrash2 size={16} />
-                                )}
-                              </button>
+                              )
                             )}
                           </div>
                         </td>
@@ -4361,7 +4402,26 @@ export default function MemberDetail_Admin() {
                         {(payment.status === 'Processing' || payment.status === 'Bounced') ? (
                           <>
                             <button onClick={() => handleView(payment)} className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors" title="View"><FiEye size={16} /></button>
-                            <button onClick={() => handleEdit(payment)} className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors" title="Edit"><FiEdit size={16} /></button>
+                            {canEdit && (
+                              <button onClick={() => handleEdit(payment)} className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors" title="Edit"><FiEdit size={16} /></button>
+                            )}
+                            {canDelete && (
+                              <button 
+                                onClick={() => handleDeletePayment(payment.id)} 
+                                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
+                                title="Delete"
+                                disabled={deleteLoading}
+                              >
+                                {deleteLoading ? (
+                                  <FiRefreshCw className="animate-spin" size={16} />
+                                ) : (
+                                  <FiTrash2 size={16} />
+                                )}
+                              </button>
+                            )}
+                          </>
+                        ) : (
+                          canDelete && (
                             <button 
                               onClick={() => handleDeletePayment(payment.id)} 
                               className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
@@ -4374,20 +4434,7 @@ export default function MemberDetail_Admin() {
                                 <FiTrash2 size={16} />
                               )}
                             </button>
-                          </>
-                        ) : (
-                          <button 
-                            onClick={() => handleDeletePayment(payment.id)} 
-                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
-                            title="Delete"
-                            disabled={deleteLoading}
-                          >
-                            {deleteLoading ? (
-                              <FiRefreshCw className="animate-spin" size={16} />
-                            ) : (
-                              <FiTrash2 size={16} />
-                            )}
-                          </button>
+                          )
                         )}
                       </div>
                     </div>
@@ -5426,13 +5473,15 @@ export default function MemberDetail_Admin() {
               // Payment details has its own buttons inside the content area
               null
             ) : (
-              <button
-                onClick={handleEditData}
-                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
-              >
-                <FiEdit2 size={16} />
-                Edit Data
-              </button>
+              canEdit && (
+                <button
+                  onClick={handleEditData}
+                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
+                >
+                  <FiEdit2 size={16} />
+                  Edit Data
+                </button>
+              )
             ))}
           </div>
         </div>

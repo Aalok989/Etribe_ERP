@@ -4,6 +4,7 @@ import { FiEdit2, FiX, FiRefreshCw, FiSave, FiMessageSquare, FiAlertCircle, FiCh
 import api from "../../api/axiosConfig";
 import { toast } from 'react-toastify';
 import { getAuthHeaders } from "../../utils/apiHeaders";
+import { usePermissions } from "../../context/PermissionContext";
 
 const initialData = {
   messageUrl: "",
@@ -17,6 +18,12 @@ export default function MessageSettings() {
   const [form, setForm] = useState(initialData);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  
+  // Get permissions for Message Settings module (module_id: 7)
+  const { hasPermission } = usePermissions();
+  const MESSAGE_SETTINGS_MODULE_ID = 7;
+  const canView = hasPermission(MESSAGE_SETTINGS_MODULE_ID, 'view');
+  const canEdit = hasPermission(MESSAGE_SETTINGS_MODULE_ID, 'edit');
 
   // Fetch message settings from API
   const fetchMessageSettings = async () => {
@@ -162,6 +169,11 @@ export default function MessageSettings() {
   }, []);
 
   const handleEdit = () => {
+    // Check permission before allowing edit mode
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Message Settings.');
+      return;
+    }
     setForm(data);
     setEditMode(true);
     // No need to clear error with toast
@@ -178,6 +190,14 @@ export default function MessageSettings() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check permission before submitting
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Message Settings.');
+      setEditMode(false);
+      return;
+    }
+    
     try {
       await saveMessageSettings(form);
     setEditMode(false);
@@ -234,7 +254,7 @@ export default function MessageSettings() {
               )}
             </div>
             <div className="flex flex-wrap items-center justify-between gap-4">
-            {!editMode && (
+            {!editMode && canEdit && (
                 <>
                   <button className="flex items-center gap-1 bg-blue-500 text-white px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-blue-600 transition" onClick={handleRefresh} disabled={loading} title="Refresh Settings">
                     <FiRefreshCw className={loading ? "animate-spin" : ""} /> 

@@ -20,12 +20,22 @@ import {
 import { toast } from "react-toastify";
 import api from "../../api/axiosConfig";
 import { getAuthHeaders } from "../../utils/apiHeaders";
+import { usePermissions } from "../../context/PermissionContext";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 export default function PaymentDetails() {
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  
+  // Get permissions for Membership Management module (module_id: 9)
+  const { hasPermission } = usePermissions();
+  const MEMBERSHIP_MANAGEMENT_MODULE_ID = 9;
+  const canView = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'view');
+  const canAdd = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'add');
+  const canEdit = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'edit');
+  const canDelete = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'delete');
+  
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -456,6 +466,10 @@ export default function PaymentDetails() {
   };
 
   const handleDelete = async (id) => {
+    if (!canDelete) {
+      toast.error('You do not have permission to delete Payment records.');
+      return;
+    }
     if (window.confirm("Are you sure you want to delete this payment record?")) {
       try {
         const token = localStorage.getItem("token");
@@ -551,6 +565,10 @@ export default function PaymentDetails() {
   };
 
   const handleEdit = (payment) => {
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Payment records.');
+      return;
+    }
     console.log('Opening edit modal for payment:', payment);
     
     // Format date for input field (YYYY-MM-DD)
@@ -595,6 +613,11 @@ export default function PaymentDetails() {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Payment records.');
+      return;
+    }
     
     try {
       const token = localStorage.getItem("token");
@@ -962,13 +985,28 @@ export default function PaymentDetails() {
                              >
                                <FiEye size={16} />
                              </button>
-                             <button
-                               onClick={() => handleEdit(payment)}
-                               className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
-                               title="Edit"
-                             >
-                               <FiEdit size={16} />
-                             </button>
+                             {canEdit && (
+                               <button
+                                 onClick={() => handleEdit(payment)}
+                                 className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
+                                 title="Edit"
+                               >
+                                 <FiEdit size={16} />
+                               </button>
+                             )}
+                             {canDelete && (
+                               <button
+                                 onClick={() => handleDelete(payment.id)}
+                                 className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                 title="Delete"
+                               >
+                                 <FiTrash2 size={16} />
+                               </button>
+                             )}
+                           </>
+                         ) : (
+                           /* Show only delete action for Cleared status */
+                           canDelete && (
                              <button
                                onClick={() => handleDelete(payment.id)}
                                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
@@ -976,16 +1014,7 @@ export default function PaymentDetails() {
                              >
                                <FiTrash2 size={16} />
                              </button>
-                           </>
-                         ) : (
-                           /* Show only delete action for Cleared status */
-                           <button
-                             onClick={() => handleDelete(payment.id)}
-                             className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                             title="Delete"
-                           >
-                             <FiTrash2 size={16} />
-                           </button>
+                           )
                          )}
                        </div>
                      </td>
@@ -1020,13 +1049,28 @@ export default function PaymentDetails() {
                          >
                            <FiEye size={16} />
                          </button>
-                         <button
-                           onClick={() => handleEdit(payment)}
-                           className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
-                           title="Edit"
-                         >
-                           <FiEdit size={16} />
-                         </button>
+                         {canEdit && (
+                           <button
+                             onClick={() => handleEdit(payment)}
+                             className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
+                             title="Edit"
+                           >
+                             <FiEdit size={16} />
+                           </button>
+                         )}
+                         {canDelete && (
+                           <button
+                             onClick={() => handleDelete(payment.id)}
+                             className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                             title="Delete"
+                           >
+                             <FiTrash2 size={16} />
+                           </button>
+                         )}
+                       </>
+                     ) : (
+                       /* Show only delete action for Cleared status */
+                       canDelete && (
                          <button
                            onClick={() => handleDelete(payment.id)}
                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
@@ -1034,16 +1078,7 @@ export default function PaymentDetails() {
                          >
                            <FiTrash2 size={16} />
                          </button>
-                       </>
-                     ) : (
-                       /* Show only delete action for Cleared status */
-                       <button
-                         onClick={() => handleDelete(payment.id)}
-                         className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                         title="Delete"
-                       >
-                         <FiTrash2 size={16} />
-                       </button>
+                       )
                      )}
                    </div>
                 </div>

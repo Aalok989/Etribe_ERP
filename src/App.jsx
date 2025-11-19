@@ -243,8 +243,8 @@ function App() {
 
   return (
     <PermissionProvider>
-      <DashboardProvider>
-        <Router>
+    <DashboardProvider>
+      <Router>
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
@@ -380,8 +380,8 @@ function App() {
           draggable
           pauseOnHover
         />
-        </Router>
-      </DashboardProvider>
+      </Router>
+    </DashboardProvider>
     </PermissionProvider>
   );
 }

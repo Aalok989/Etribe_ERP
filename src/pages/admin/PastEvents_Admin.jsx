@@ -30,6 +30,7 @@ import RichTextEditor from "../../components/shared/RichTextEditor";
 import UploadAttendanceModal from "../../components/admin/UploadAttendanceModal";
 import { toast } from "react-toastify";
 import { getAuthHeaders, getAuthHeadersFormData } from "../../utils/apiHeaders";
+import { usePermissions } from "../../context/PermissionContext";
 
 
 // Helper to decode HTML entities
@@ -50,6 +51,15 @@ function stripHtml(html) {
 
 export default function PastEvents() {
   const navigate = useNavigate();
+  
+  // Get permissions for Events Management module (module_id: 11)
+  const { hasPermission } = usePermissions();
+  const EVENTS_MODULE_ID = 11;
+  const canView = hasPermission(EVENTS_MODULE_ID, 'view');
+  const canAdd = hasPermission(EVENTS_MODULE_ID, 'add');
+  const canEdit = hasPermission(EVENTS_MODULE_ID, 'edit');
+  const canDelete = hasPermission(EVENTS_MODULE_ID, 'delete');
+  
   const [events, setEvents] = useState([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -194,6 +204,10 @@ export default function PastEvents() {
 
   // Add Event Modal
   const openAddEventModal = () => {
+    if (!canAdd) {
+      toast.error('You do not have permission to add Events.');
+      return;
+    }
     setAddEventForm({ event: "", agenda: "", venue: "", datetime: "", imageUrl: "" });
     setFormErrors({}); // Clear previous errors
     setShowAddEventModal(true);
@@ -223,6 +237,13 @@ export default function PastEvents() {
   };
   const handleAddEventSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check permission before submitting
+    if (!canAdd) {
+      toast.error('You do not have permission to add Events.');
+      return;
+    }
+    
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -272,11 +293,21 @@ export default function PastEvents() {
       setSaveLoading(false);
     }
   };
-  const handleShowAddEventForm = () => setShowAddEventForm(true);
+  const handleShowAddEventForm = () => {
+    if (!canAdd) {
+      toast.error('You do not have permission to add Events.');
+      return;
+    }
+    setShowAddEventForm(true);
+  };
   const handleHideAddEventForm = () => setShowAddEventForm(false);
 
   // Edit Event Modal
   const openEditEventModal = (event) => {
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Events.');
+      return;
+    }
     setEditEventForm({
       id: event.id,
       event: event.event,
@@ -320,6 +351,13 @@ export default function PastEvents() {
 
   const handleEditEventSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check permission before submitting
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Events.');
+      return;
+    }
+    
     const errors = validateEditForm();
     if (Object.keys(errors).length > 0) {
       setEditFormErrors(errors);
@@ -360,6 +398,10 @@ export default function PastEvents() {
 
   // Delete Event
   const handleDeleteEvent = async (eventId) => {
+    if (!canDelete) {
+      toast.error('You do not have permission to delete Events.');
+      return;
+    }
     if (!window.confirm('Are you sure you want to delete this event?')) return;
     
     setDeleteLoading(true);
@@ -663,14 +705,16 @@ export default function PastEvents() {
               </button>
               </div>
               
-              <button
-                className="flex items-center gap-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition"
-                onClick={handleShowAddEventForm}
-            >
-                <FiPlus />
-                <span className="hidden sm:inline">Add Event</span>
-                <span className="sm:hidden">Add</span>
-            </button>
+              {canAdd && (
+                <button
+                  className="flex items-center gap-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition"
+                  onClick={handleShowAddEventForm}
+                >
+                  <FiPlus />
+                  <span className="hidden sm:inline">Add Event</span>
+                  <span className="sm:hidden">Add</span>
+                </button>
+              )}
             </div>
           </div>
 

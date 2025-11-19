@@ -5,6 +5,7 @@ import { FiSearch, FiRefreshCw, FiDownload, FiEye, FiEdit2, FiFilter, FiCopy, Fi
 import { toast } from "react-toastify";
 import api from "../../api/axiosConfig";
 import { getAuthHeaders } from "../../utils/apiHeaders";
+import { usePermissions } from "../../context/PermissionContext";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -86,6 +87,15 @@ const getMemberCardFields = (additionalFields = []) => {
 
 export default function PendingApproval() {
   const navigate = useNavigate();
+  
+  // Get permissions for Membership Management module (module_id: 9)
+  const { hasPermission } = usePermissions();
+  const MEMBERSHIP_MANAGEMENT_MODULE_ID = 9;
+  const canView = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'view');
+  const canAdd = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'add');
+  const canEdit = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'edit');
+  const canDelete = hasPermission(MEMBERSHIP_MANAGEMENT_MODULE_ID, 'delete');
+  
   const [members, setMembers] = useState([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -387,6 +397,10 @@ export default function PendingApproval() {
   };
 
   const openModify = (member) => {
+    if (!canEdit) {
+      toast.error('You do not have permission to modify Members.');
+      return;
+    }
     setModifyMember(member);
     const initialForm = {
       plan: "",
@@ -731,6 +745,10 @@ export default function PendingApproval() {
 
   const handleUpdate = async () => {
     if (!modifyMember) return;
+    if (!canEdit) {
+      toast.error('You do not have permission to update Members.');
+      return;
+    }
     // Validation
     if (!form.paymentMode) {
       setUpdateError('Please select a payment mode.');

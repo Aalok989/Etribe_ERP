@@ -4,6 +4,7 @@ import { FiFileText, FiFile, FiRefreshCw, FiX, FiShield, FiCheckCircle, FiAlertC
 import api from "../../api/axiosConfig";
 import { toast } from 'react-toastify';
 import { getAuthHeaders } from "../../utils/apiHeaders";
+import { usePermissions } from "../../context/PermissionContext";
 
 const createDefaultPermissions = (modulesList) => modulesList.map((mod) => ({
   module: mod,
@@ -22,6 +23,12 @@ export default function RoleManagement() {
   const [submitting, setSubmitting] = useState(false);
   const [loadingPermissions, setLoadingPermissions] = useState(false);
   const [error, setError] = useState(null);
+  
+  // Get permissions for Role Management module (module_id: 4)
+  const { hasPermission } = usePermissions();
+  const ROLE_MANAGEMENT_MODULE_ID = 4;
+  const canView = hasPermission(ROLE_MANAGEMENT_MODULE_ID, 'view');
+  const canEdit = hasPermission(ROLE_MANAGEMENT_MODULE_ID, 'edit');
 
   // Fetch modules from API
   const fetchModules = async () => {
@@ -252,6 +259,11 @@ export default function RoleManagement() {
   };
 
   const handlePermissionChange = (idx, perm) => {
+    // Check permission before allowing changes
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Role Management.');
+      return;
+    }
     setPermissions((prev) =>
       prev.map((row, i) =>
         i === idx ? { ...row, [perm]: !row[perm] } : row
@@ -261,6 +273,13 @@ export default function RoleManagement() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check permission before submitting
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Role Management.');
+      return;
+    }
+    
     try {
       await saveRolePermissions(selectedRole, permissions);
       // No need to clear error/success with toast
@@ -427,8 +446,8 @@ export default function RoleManagement() {
                         type="checkbox"
                         checked={row.view}
                         onChange={() => handlePermissionChange(idx, "view")}
-                          className="h-5 w-5 text-indigo-600 rounded border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 focus:ring-indigo-500 focus:ring-2 transition-colors"
-                          disabled={submitting}
+                        disabled={!canEdit || submitting}
+                          className="h-5 w-5 text-indigo-600 rounded border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 focus:ring-indigo-500 focus:ring-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                     </td>
                       <td className="p-3 text-center border-r border-gray-200 dark:border-gray-700">
@@ -436,8 +455,8 @@ export default function RoleManagement() {
                         type="checkbox"
                         checked={row.add}
                         onChange={() => handlePermissionChange(idx, "add")}
-                          className="h-5 w-5 text-indigo-600 rounded border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 focus:ring-indigo-500 focus:ring-2 transition-colors"
-                          disabled={submitting}
+                        disabled={!canEdit || submitting}
+                          className="h-5 w-5 text-indigo-600 rounded border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 focus:ring-indigo-500 focus:ring-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                     </td>
                       <td className="p-3 text-center border-r border-gray-200 dark:border-gray-700">
@@ -445,8 +464,8 @@ export default function RoleManagement() {
                         type="checkbox"
                         checked={row.edit}
                         onChange={() => handlePermissionChange(idx, "edit")}
-                          className="h-5 w-5 text-indigo-600 rounded border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 focus:ring-indigo-500 focus:ring-2 transition-colors"
-                          disabled={submitting}
+                        disabled={!canEdit || submitting}
+                          className="h-5 w-5 text-indigo-600 rounded border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 focus:ring-indigo-500 focus:ring-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                     </td>
                       <td className="p-3 text-center">
@@ -454,8 +473,8 @@ export default function RoleManagement() {
                         type="checkbox"
                         checked={row.delete}
                         onChange={() => handlePermissionChange(idx, "delete")}
-                          className="h-5 w-5 text-indigo-600 rounded border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 focus:ring-indigo-500 focus:ring-2 transition-colors"
-                          disabled={submitting}
+                        disabled={!canEdit || submitting}
+                          className="h-5 w-5 text-indigo-600 rounded border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 focus:ring-indigo-500 focus:ring-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                     </td>
                   </tr>
@@ -463,26 +482,28 @@ export default function RoleManagement() {
               </tbody>
             </table>
               
-              {/* Save Button */}
-              <div className="flex justify-end p-6 border-t border-gray-100 dark:border-gray-700">
-              <button
-                  className="flex items-center gap-2 px-6 py-3 rounded-lg font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors disabled:opacity-50 shadow-lg"
-                onClick={handleSubmit}
-                  disabled={submitting || !selectedRole}
-                >
-                  {submitting ? (
-                    <>
-                      <FiRefreshCw className="animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <FiSave />
-                      Save Permissions
-                    </>
-                  )}
-              </button>
-            </div>
+              {/* Save Button - Only show if user has edit permission */}
+              {canEdit && (
+                <div className="flex justify-end p-6 border-t border-gray-100 dark:border-gray-700">
+                  <button
+                    className="flex items-center gap-2 px-6 py-3 rounded-lg font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors disabled:opacity-50 shadow-lg"
+                    onClick={handleSubmit}
+                    disabled={submitting || !selectedRole}
+                  >
+                    {submitting ? (
+                      <>
+                        <FiRefreshCw className="animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <FiSave />
+                        Save Permissions
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
           </div>
 
           {/* Mobile Permissions Cards View */}
@@ -508,8 +529,8 @@ export default function RoleManagement() {
                       type="checkbox"
                       checked={row.view}
                       onChange={() => handlePermissionChange(idx, "view")}
-                      className="h-5 w-5 text-indigo-600 rounded border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 focus:ring-indigo-500 focus:ring-2 transition-colors"
-                      disabled={submitting}
+                      disabled={!canEdit || submitting}
+                      className="h-5 w-5 text-indigo-600 rounded border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 focus:ring-indigo-500 focus:ring-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -518,8 +539,8 @@ export default function RoleManagement() {
                       type="checkbox"
                       checked={row.add}
                       onChange={() => handlePermissionChange(idx, "add")}
-                      className="h-5 w-5 text-indigo-600 rounded border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 focus:ring-indigo-500 focus:ring-2 transition-colors"
-                      disabled={submitting}
+                      disabled={!canEdit || submitting}
+                      className="h-5 w-5 text-indigo-600 rounded border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 focus:ring-indigo-500 focus:ring-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -528,8 +549,8 @@ export default function RoleManagement() {
                       type="checkbox"
                       checked={row.edit}
                       onChange={() => handlePermissionChange(idx, "edit")}
-                      className="h-5 w-5 text-indigo-600 rounded border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 focus:ring-indigo-500 focus:ring-2 transition-colors"
-                      disabled={submitting}
+                      disabled={!canEdit || submitting}
+                      className="h-5 w-5 text-indigo-600 rounded border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 focus:ring-indigo-500 focus:ring-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -538,34 +559,36 @@ export default function RoleManagement() {
                       type="checkbox"
                       checked={row.delete}
                       onChange={() => handlePermissionChange(idx, "delete")}
-                      className="h-5 w-5 text-indigo-600 rounded border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 focus:ring-indigo-500 focus:ring-2 transition-colors"
-                      disabled={submitting}
+                      disabled={!canEdit || submitting}
+                      className="h-5 w-5 text-indigo-600 rounded border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 focus:ring-indigo-500 focus:ring-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
                 </div>
               </div>
             ))}
             
-            {/* Mobile Save Button */}
-            <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
-              <button
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors disabled:opacity-50 shadow-lg"
-                onClick={handleSubmit}
-                disabled={submitting || !selectedRole}
-              >
-                {submitting ? (
-                  <>
-                    <FiRefreshCw className="animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <FiSave />
-                    Save Permissions
-                  </>
-                )}
-              </button>
-            </div>
+            {/* Mobile Save Button - Only show if user has edit permission */}
+            {canEdit && (
+              <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+                <button
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors disabled:opacity-50 shadow-lg"
+                  onClick={handleSubmit}
+                  disabled={submitting || !selectedRole}
+                >
+                  {submitting ? (
+                    <>
+                      <FiRefreshCw className="animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <FiSave />
+                      Save Permissions
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
             </>
           )}

@@ -23,9 +23,19 @@ import { getAuthHeaders } from "../../utils/apiHeaders";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { usePermissions } from "../../context/PermissionContext";
 
 export default function Resume() {
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  
+  // Get permissions for Resume/Job Portal module (module_id: 14)
+  const { hasPermission } = usePermissions();
+  const RESUME_MODULE_ID = 14;
+  const canView = hasPermission(RESUME_MODULE_ID, 'view');
+  const canAdd = hasPermission(RESUME_MODULE_ID, 'add');
+  const canEdit = hasPermission(RESUME_MODULE_ID, 'edit');
+  const canDelete = hasPermission(RESUME_MODULE_ID, 'delete');
+  
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -341,6 +351,10 @@ export default function Resume() {
   };
 
   const handleUploadResume = () => {
+    if (!canAdd) {
+      toast.error('You do not have permission to upload Resumes.');
+      return;
+    }
     setShowUploadForm(true);
   };
 
@@ -354,6 +368,12 @@ export default function Resume() {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check permission before submitting
+    if (!canAdd) {
+      toast.error('You do not have permission to upload Resumes.');
+      return;
+    }
     
     // Validate required fields
     const requiredFields = ['fullName', 'emailAddress', 'contactNumber', 'qualification', 'skills', 'experience'];
@@ -547,6 +567,10 @@ export default function Resume() {
   };
 
   const handleDelete = async (id) => {
+    if (!canDelete) {
+      toast.error('You do not have permission to delete Resumes.');
+      return;
+    }
     if (window.confirm("Are you sure you want to delete this resume?")) {
       try {
         const token = localStorage.getItem("token");
@@ -764,14 +788,16 @@ export default function Resume() {
                 )}
               </div>
               
-              <button
-                className="flex items-center gap-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition"
-                onClick={handleUploadResume}
-              >
-                <FiUpload />
-                <span className="hidden sm:inline">Upload Resume</span>
-                <span className="sm:hidden">Upload</span>
-              </button>
+              {canAdd && (
+                <button
+                  className="flex items-center gap-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition"
+                  onClick={handleUploadResume}
+                >
+                  <FiUpload />
+                  <span className="hidden sm:inline">Upload Resume</span>
+                  <span className="sm:hidden">Upload</span>
+                </button>
+              )}
             </div>
           </div>
           

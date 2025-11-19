@@ -7,6 +7,7 @@ import { getAuthHeaders } from "../../utils/apiHeaders";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { usePermissions } from "../../context/PermissionContext";
 
 
 
@@ -14,6 +15,14 @@ export default function Circulars() {
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [circulars, setCirculars] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Get permissions for Notifications module (module_id: 12)
+  const { hasPermission } = usePermissions();
+  const NOTIFICATIONS_MODULE_ID = 12;
+  const canView = hasPermission(NOTIFICATIONS_MODULE_ID, 'view');
+  const canAdd = hasPermission(NOTIFICATIONS_MODULE_ID, 'add');
+  const canEdit = hasPermission(NOTIFICATIONS_MODULE_ID, 'edit');
+  const canDelete = hasPermission(NOTIFICATIONS_MODULE_ID, 'delete');
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
@@ -342,6 +351,10 @@ export default function Circulars() {
   };
 
   const handleEdit = (id) => {
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Circulars.');
+      return;
+    }
     console.log(`Edit circular ${id}`);
     
     // Find the circular by ID
@@ -366,6 +379,12 @@ export default function Circulars() {
 
   const handleEditFormSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check permission before submitting
+    if (!canEdit) {
+      toast.error('You do not have permission to edit Circulars.');
+      return;
+    }
     
     // Validate required fields
     const requiredFields = ['circularNumber', 'subject', 'body', 'date'];
@@ -509,11 +528,21 @@ export default function Circulars() {
   };
 
   const handleAddCircular = () => {
+    if (!canAdd) {
+      toast.error('You do not have permission to add Circulars.');
+      return;
+    }
     setShowAddForm(true);
   };
 
   const handleAddFormSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check permission before submitting
+    if (!canAdd) {
+      toast.error('You do not have permission to add Circulars.');
+      return;
+    }
     
     try {
       const token = localStorage.getItem("token");
@@ -639,6 +668,12 @@ export default function Circulars() {
   };
 
   const handleDelete = async (id) => {
+    // Check permission before deleting
+    if (!canDelete) {
+      toast.error('You do not have permission to delete Circulars.');
+      return;
+    }
+    
     // Show confirmation dialog
     if (!window.confirm(`Are you sure you want to delete circular ${id}?`)) {
       return;
@@ -908,13 +943,15 @@ export default function Circulars() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h1 className="text-xl sm:text-2xl font-bold text-orange-600">Circulars</h1>
           <div className="flex items-center gap-4">
-            <button
-              onClick={handleAddCircular}
-              className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition"
-            >
-              <FiFileText size={16} />
-              <span>Add Circular</span>
-            </button>
+            {canAdd && (
+              <button
+                onClick={handleAddCircular}
+                className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition"
+              >
+                <FiFileText size={16} />
+                <span>Add Circular</span>
+              </button>
+            )}
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <FiFileText className="text-indigo-600" />
               <span>Total Circulars: {circulars.length}</span>
@@ -1146,20 +1183,24 @@ export default function Circulars() {
                         >
                           <FiEye size={16} />
                         </button>
-                        <button
-                          onClick={() => handleEdit(circular.id)}
-                          className="p-2 text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-100 rounded-full hover:bg-yellow-100 dark:hover:bg-gray-700 transition-colors"
-                          title="Edit Circular"
-                        >
-                          <FiEdit2 size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(circular.id)}
-                          className="p-2 text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-100 rounded-full hover:bg-red-100 dark:hover:bg-gray-700 transition-colors"
-                          title="Delete Circular"
-                        >
-                          <FiTrash2 size={16} />
-                        </button>
+                        {canEdit && (
+                          <button
+                            onClick={() => handleEdit(circular.id)}
+                            className="p-2 text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-100 rounded-full hover:bg-yellow-100 dark:hover:bg-gray-700 transition-colors"
+                            title="Edit Circular"
+                          >
+                            <FiEdit2 size={16} />
+                          </button>
+                        )}
+                        {canDelete && (
+                          <button
+                            onClick={() => handleDelete(circular.id)}
+                            className="p-2 text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-100 rounded-full hover:bg-red-100 dark:hover:bg-gray-700 transition-colors"
+                            title="Delete Circular"
+                          >
+                            <FiTrash2 size={16} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
