@@ -135,13 +135,14 @@ export const PermissionProvider = ({ children }) => {
   };
 
   // Check if user has permission to access a specific route
+  // This checks specifically for 'view' permission to control sidebar visibility
   const canAccessRoute = (route) => {
     const moduleId = getModuleIdFromRoute(route);
     if (!moduleId) {
       // If route is not mapped, allow access (for backward compatibility)
       return true;
     }
-    return hasAnyPermission(moduleId);
+    return hasPermission(moduleId, 'view');
   };
 
   // Check if user has permission for a specific action on a route

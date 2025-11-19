@@ -35,6 +35,12 @@ export const ROUTE_TO_MODULE = {
   '/admin/message-settings': 7,
   '/admin/membership-plans': 8,
   '/admin/membership-expired': 9,
+  '/admin/active-members': 9, // Membership Management
+  '/admin/inactive-members': 9, // Membership Management
+  '/admin/pending-approval': 9, // Membership Management
+  '/admin/new-registration': 9, // Membership Management
+  '/admin/payment-details': 9, // Membership Management
+  '/admin/member-detail': 9, // Membership Management (for dynamic routes like /admin/member-detail/:memberId)
   '/admin/important-contacts': 10,
   '/admin/all-events': 11,
   '/admin/calendar': 11, // Calendar is part of events
