@@ -179,7 +179,7 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
     <>
                 {/* Mobile/Tablet Toggle Button - Always visible on small, medium, and large screens */}
               <button
-          className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-blue-600 dark:bg-gray-700 text-white rounded-lg shadow-lg hover:bg-blue-700 dark:hover:bg-gray-600 transition-colors"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-blue-600 dark:bg-gray-700 text-white rounded-lg shadow-lg hover:bg-blue-700 dark:hover:bg-gray-600 transition-colors"
           onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
           aria-label={mobileSidebarOpen ? "Close sidebar" : "Open sidebar"}
           aria-expanded={mobileSidebarOpen}
@@ -201,7 +201,7 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
 
       {/* Desktop Sidebar */}
       <aside
-        className={`bg-white dark:bg-[#1E1E1E] flex flex-col transition-all duration-200 shadow-lg h-screen max-h-screen overflow-hidden ${
+        className={`bg-white dark:bg-[#1E1E1E] flex flex-col transition-all duration-200 shadow-lg h-screen max-h-screen ${
           collapsed ? "w-20" : "w-72"
         } hidden lg:flex ${className}`}
       >
@@ -366,7 +366,7 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
 
     {/* Mobile/Tablet Sidebar - Full width with icons and text */}
     <aside
-      className={`lg:hidden fixed top-0 left-0 h-screen max-h-screen bg-white dark:bg-[#1E1E1E] flex flex-col transition-all duration-200 shadow-lg z-50 overflow-hidden ${
+      className={`lg:hidden fixed top-0 left-0 h-screen max-h-screen bg-white dark:bg-[#1E1E1E] flex flex-col transition-all duration-200 shadow-lg z-50 ${
         mobileSidebarOpen ? "w-72 md:w-80" : "-translate-x-full"
       }`}
     >
