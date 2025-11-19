@@ -201,7 +201,7 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
 
       {/* Desktop Sidebar */}
       <aside
-        className={`bg-white dark:bg-[#1E1E1E] flex flex-col transition-all duration-200 shadow-lg h-screen max-h-screen ${
+        className={`bg-white dark:bg-[#1E1E1E] flex flex-col transition-all duration-200 shadow-lg h-screen max-h-screen overflow-hidden ${
           collapsed ? "w-20" : "w-72"
         } hidden lg:flex ${className}`}
       >
@@ -353,7 +353,7 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
       </nav>
 
       {/* Logout */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
+      <div className="mt-auto p-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0 sticky bottom-0 bg-white dark:bg-[#1E1E1E]">
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-2 rounded-lg font-medium text-gray-500 dark:text-gray-200 hover:text-red-600 dark:hover:text-red-400 transition-colors"
@@ -366,7 +366,7 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
 
     {/* Mobile/Tablet Sidebar - Full width with icons and text */}
     <aside
-      className={`lg:hidden fixed top-0 left-0 h-screen max-h-screen bg-white dark:bg-[#1E1E1E] flex flex-col transition-all duration-200 shadow-lg z-50 ${
+      className={`lg:hidden fixed top-0 left-0 h-screen max-h-screen bg-white dark:bg-[#1E1E1E] flex flex-col transition-all duration-200 shadow-lg z-50 overflow-hidden ${
         mobileSidebarOpen ? "w-72 md:w-80" : "-translate-x-full"
       }`}
     >
@@ -476,7 +476,7 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
       </nav>
 
               {/* Mobile Logout */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E1E1E] flex-shrink-0">
+        <div className="mt-auto p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E1E1E] flex-shrink-0 sticky bottom-0">
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-2 rounded-lg font-medium text-gray-500 dark:text-gray-200 hover:text-red-600 dark:hover:text-red-400 transition-colors"
