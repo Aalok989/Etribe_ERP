@@ -91,7 +91,6 @@ export default function PostJobUserPage() {
         setJobsData([]);
       }
     } catch (err) {
-      console.error("Failed to fetch post jobs:", err);
       toast.error("Failed to fetch post jobs: " + (err.response?.data?.message || err.message));
       setJobsData([]);
     } finally {
@@ -209,7 +208,6 @@ export default function PostJobUserPage() {
         toast.error(message);
       }
     } catch (err) {
-      console.error("Failed to update job:", err);
       const message = err.response?.data?.message || err.message || "Failed to update job.";
       setFormError(message);
       toast.error(message);
@@ -237,7 +235,6 @@ export default function PostJobUserPage() {
         setFormError(message);
       }
     } catch (err) {
-      console.error("Failed to delete job:", err);
       const message = err.response?.data?.message || err.message || "Failed to delete job";
       toast.error(message);
       setFormError(message);
@@ -288,7 +285,6 @@ export default function PostJobUserPage() {
         toast.error(message);
       }
     } catch (err) {
-      console.error("Failed to add job:", err);
       const message = err.response?.data?.message || err.message || "Failed to add job.";
       setFormError(message);
       toast.error(message);
@@ -391,7 +387,6 @@ export default function PostJobUserPage() {
         toast.error(response.data?.message || "Failed to update status.");
       }
     } catch (err) {
-      console.error("Failed to update status:", err);
       toast.error(err.response?.data?.message || err.message || "Failed to update status.");
     }
   };

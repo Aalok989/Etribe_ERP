@@ -70,7 +70,6 @@ export default function GrievancesPending() {
       }
 
       const uid = localStorage.getItem("uid");
-      console.log('Fetching grievances with credentials:', { uid, token });
       
       const response = await api.get("/grievances", {
         headers: {
@@ -79,25 +78,14 @@ export default function GrievancesPending() {
         },
       });
       
-      console.log('Grievances API response:', response.data);
-      console.log('Response status:', response.status);
-      console.log('Response data type:', typeof response.data);
-      console.log('Response data keys:', Object.keys(response.data || {}));
-      
-      // Handle the API response data
-      console.log('Full API response structure:', response.data);
-      
       let mappedGrievances = [];
       let grievancesFound = false;
       
       // Check for grievances data in the response
       if (response.data?.data && Array.isArray(response.data.data)) {
         const apiGrievances = response.data.data;
-        console.log('Found grievances array with', apiGrievances.length, 'items');
         
         mappedGrievances = apiGrievances.map((grievance, index) => {
-          console.log(`Mapping grievance ${index + 1}:`, grievance);
-          
           return {
             id: grievance.id || index + 1,
             title: grievance.subject || '',
@@ -113,11 +101,8 @@ export default function GrievancesPending() {
       } else if (response.data && Array.isArray(response.data)) {
         // Fallback: if data is directly in response.data
         const apiGrievances = response.data;
-        console.log('Found grievances array with', apiGrievances.length, 'items');
         
         mappedGrievances = apiGrievances.map((grievance, index) => {
-          console.log(`Mapping grievance ${index + 1}:`, grievance);
-          
           return {
             id: grievance.id || index + 1,
             title: grievance.subject || '',
@@ -132,26 +117,19 @@ export default function GrievancesPending() {
         grievancesFound = true;
       } else if (response.data && typeof response.data === 'object') {
         // Check if data is nested differently
-        console.log('Response data is an object, checking for nested arrays...');
-        console.log('All keys in response.data:', Object.keys(response.data));
-        
         // Look for any array in the response
         const allKeys = Object.keys(response.data);
         let foundArray = null;
         
         for (const key of allKeys) {
           if (Array.isArray(response.data[key])) {
-            console.log(`Found array in key: ${key} with ${response.data[key].length} items`);
             foundArray = response.data[key];
             break;
           }
         }
         
         if (foundArray) {
-          console.log('Processing found array:', foundArray);
           mappedGrievances = foundArray.map((grievance, index) => {
-            console.log(`Mapping grievance ${index + 1}:`, grievance);
-            
             return {
               id: grievance.id || index + 1,
               title: grievance.subject || '',
@@ -165,16 +143,10 @@ export default function GrievancesPending() {
           });
           grievancesFound = true;
         } else {
-          // No data found in API response
-          console.log('No array found in response.data');
-          console.log('Available keys in response.data:', Object.keys(response.data || {}));
           setGrievances([]);
           toast.info("No grievances found in the system.");
         }
       } else {
-        // No data found in API response
-        console.log('No data found in API response');
-        console.log('Available keys in response.data:', Object.keys(response.data || {}));
         setGrievances([]);
         toast.info("No grievances found in the system.");
       }
@@ -182,14 +154,10 @@ export default function GrievancesPending() {
       // Set grievances and show success message only once
       if (grievancesFound && !toastShownRef.current) {
         setGrievances(mappedGrievances);
-        console.log('Final mapped grievances:', mappedGrievances);
         toast.success(`Loaded ${mappedGrievances.length} grievances successfully`);
         toastShownRef.current = true;
       }
     } catch (err) {
-      console.error('Error fetching grievances:', err);
-      console.error('Error response:', err.response?.data);
-      console.error('Error status:', err.response?.status);
       
       if (err.response?.status === 401) {
         toast.error("Session expired. Please log in again.");
@@ -270,8 +238,6 @@ export default function GrievancesPending() {
       setIsUpdatingStatus(true);
       const token = localStorage.getItem("token");
       
-      console.log('Status Update - Starting with:', { grievanceId, newStatus, token });
-      
       if (!token) {
         toast.error("Please log in to update grievance status");
         return;
@@ -289,16 +255,9 @@ export default function GrievancesPending() {
         "Content-Type": "text/plain",
       };
 
-      console.log('Status Update - Request body (string):', requestBody);
-      console.log('Status Update - Request headers:', requestHeaders);
-
       const response = await api.post("grievances/update_status", requestBody, {
         headers: requestHeaders,
       });
-
-      console.log('Status Update - Full response:', response);
-      console.log('Status Update - Response status:', response.status);
-      console.log('Status Update - Response data:', response.data);
 
       if (response.data?.status === 'success' || response.status === 200 || response.data?.message?.includes('success')) {
         // Close the modal first
@@ -316,14 +275,9 @@ export default function GrievancesPending() {
           setSelectedGrievance(null);
         }, 100);
       } else {
-        console.log('Status Update - Response status not success:', response.data);
         toast.error(response.data?.message || "Failed to update status");
       }
     } catch (err) {
-      console.error('Status Update - Error details:', err);
-      console.error('Status Update - Error response:', err.response);
-      console.error('Status Update - Error message:', err.message);
-      
       if (err.response?.status === 401) {
         toast.error("Authentication failed. Please log in again.");
       } else if (err.response?.status === 404) {
@@ -487,7 +441,6 @@ export default function GrievancesPending() {
       doc.save("pending_grievances.pdf");
       toast.success("Pending grievances exported to PDF!");
     } catch (err) {
-      console.error("PDF export failed:", err);
       toast.error("PDF export failed: " + err.message);
     }
   };

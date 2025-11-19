@@ -118,7 +118,6 @@ const VisitingCard = ({
           setSocialMediaData(null);
         }
       } catch (error) {
-        console.error('Failed to fetch social media data:', error);
         setSocialMediaData(null);
       } finally {
         setLoadingSocials(false);
@@ -259,7 +258,6 @@ const VisitingCard = ({
         .replace(/=+$/, '');
       return `${window.location.origin}/share/visiting-card/${encoded}`;
     } catch (error) {
-      console.error('Failed to generate share URL', error);
       return null;
     }
   }, [sharePayload]);
@@ -283,7 +281,6 @@ const VisitingCard = ({
           onShare?.({ url: shareUrl, status: 'cancelled' });
           return;
         }
-        console.warn('Native share failed, falling back to clipboard', error);
       }
     }
 
@@ -291,7 +288,6 @@ const VisitingCard = ({
       await navigator.clipboard.writeText(shareUrl);
       onShare?.({ url: shareUrl, status: 'copied' });
     } catch (error) {
-      console.error('Failed to copy share link', error);
       onShare?.({ url: shareUrl, status: 'error', error });
     }
   };
@@ -312,7 +308,6 @@ const VisitingCard = ({
       saveUserTemplateSelection(currentUserId, String(templateToPersist));
       setSaveMessage({ type: 'success', text: `Template ${templateToPersist} saved as default.` });
     } catch (error) {
-      console.error('Failed to save visiting card preference:', error);
       setSaveMessage({ type: 'error', text: 'Failed to save template selection.' });
     } finally {
       setSaving(false);

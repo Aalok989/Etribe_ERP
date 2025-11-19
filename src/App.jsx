@@ -94,11 +94,7 @@ function useAuth() {
       const token = localStorage.getItem("token");
       const role = localStorage.getItem("userRole") || "user";
       const roleId = localStorage.getItem("user_role_id");
-      
-      console.log('Auth check - Token:', !!token, 'Role:', role, 'Role ID:', roleId);
-      
       if (!token) {
-        console.log('No token found, user not authenticated');
         setIsAuthenticated(false);
         setUserRole("user");
         setUserRoleId(null);
@@ -147,32 +143,26 @@ function useAuth() {
 function ProtectedRoute({ children, requiredRole = "user" }) {
   const { isAuthenticated, userRole, isLoading } = useAuth();
   
-  console.log('ProtectedRoute - Required role:', requiredRole, 'User role:', userRole, 'Authenticated:', isAuthenticated, 'Loading:', isLoading);
-  
   // Show loading state while checking authentication
   if (isLoading) {
     return <FastPreloader />;
   }
   
   if (!isAuthenticated) {
-    console.log('Redirecting to login - not authenticated');
     return <Navigate to="/login" replace />;
   }
 
   // Strict role-based access control
   if (requiredRole === "admin" && userRole !== "admin") {
     // Non-admin user trying to access admin route
-    console.log('Redirecting to user dashboard - non-admin trying to access admin route');
     return <Navigate to="/user/dashboard" replace />;
   }
   
   if (requiredRole === "user" && userRole === "admin") {
     // Admin user trying to access user route - redirect to admin dashboard
-    console.log('Redirecting to admin dashboard - admin trying to access user route');
     return <Navigate to="/admin/dashboard" replace />;
   }
   
-  console.log('Access granted to route');
   return children;
 }
 
@@ -203,8 +193,9 @@ function App() {
         
         // Dispatch login event to update auth state
         window.dispatchEvent(new Event('login'));
-      } catch (err) {
-        console.error('Failed to restore auth:', err);
+      } catch {
+        sessionStorage.removeItem('auth_backup');
+        sessionStorage.removeItem('unload_timestamp');
       }
     } else if (!isReload && unloadTimestamp) {
       // Not a reload, clear backup data (it was a tab close)

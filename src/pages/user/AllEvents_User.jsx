@@ -84,7 +84,6 @@ export default function AllEvents() {
         
         setEvents(mappedEvents);
       } catch (error) {
-        console.error("Error fetching events:", error);
         toast.error("Failed to fetch events");
       } finally {
         setLoading(false);

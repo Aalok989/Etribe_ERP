@@ -51,14 +51,11 @@ export default function SearchResult() {
 
     try {
       setLoading(true);
-      console.log('🔍 Searching for:', searchQuery);
       const response = await api.post("/product/search_keyword", {
         keyword: searchQuery.trim()
       }, {
         headers: getAuthHeaders()
       });
-      
-      console.log('📦 API Response:', response.data);
 
       // Handle the API response data - based on the actual API response structure
       if (response.data?.status && response.data?.data?.product) {
@@ -83,8 +80,7 @@ export default function SearchResult() {
             phoneNum: product.phone_num || ''
           };
         });
-        
-        console.log('✅ Mapped products:', mappedProducts);
+
         setSearchResults(mappedProducts);
       } else if (response.data && Array.isArray(response.data)) {
         // Fallback: API returns data directly in response.data as an array

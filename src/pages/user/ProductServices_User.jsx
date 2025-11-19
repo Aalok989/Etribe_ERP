@@ -48,14 +48,10 @@ export default function ProductServices() {
         toast.error("Please log in to view products");
         return;
       }
-
-      console.log('Fetching products for user ID:', uid);
       
       const response = await api.get(`/product/get_product_details_by_id/${uid}`, {
         headers: getAuthHeaders()
       });
-      
-      console.log('Products API response:', response.data);
       
       let apiProducts = [];
       if (response.data?.data && Array.isArray(response.data.data)) {
@@ -82,11 +78,8 @@ export default function ProductServices() {
         companyAddress: product.company_address || ''
       }));
       
-      console.log('Mapped products:', mappedProducts);
       setProducts(mappedProducts);
     } catch (err) {
-      console.error('Error fetching products:', err);
-      console.error('Error response:', err.response?.data);
       toast.error('Failed to fetch products');
       setProducts([]);
     } finally {
@@ -205,8 +198,6 @@ export default function ProductServices() {
           headers: getAuthHeaders()
         });
 
-        console.log('Product edit response:', editResponse.data);
-
         if (editResponse.data?.status === 'success' || editResponse.data?.message || editResponse.status === 200) {
           toast.success('Product updated successfully!');
           await fetchProducts();
@@ -229,8 +220,6 @@ export default function ProductServices() {
           headers: getAuthHeaders()
         });
 
-        console.log('Product add response:', response.data);
-
         if (response.data?.status === 'success' || response.data?.message || response.status === 200) {
           toast.success('Product added successfully!');
           await fetchProducts();
@@ -240,8 +229,6 @@ export default function ProductServices() {
         }
       }
     } catch (error) {
-      console.error('Error saving product:', error);
-      console.error('Error response:', error.response?.data);
       toast.error(`Failed to save product: ${error.response?.data?.message || error.message}`);
     } finally {
       setProductSaving(false);

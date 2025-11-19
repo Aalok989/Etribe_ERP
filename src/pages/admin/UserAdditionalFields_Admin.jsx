@@ -81,7 +81,6 @@ export default function UserAdditionalFields() {
       setData(mappedData);
       setLoading(false);
     } catch (err) {
-      console.error('Failed to fetch user additional fields:', err);
       const errorMessage = err.message || 'Failed to fetch user additional fields';
       toast.error(errorMessage);
       
@@ -172,7 +171,6 @@ export default function UserAdditionalFields() {
         toast.error(response.data?.message || 'Failed to save user additional fields');
       }
     } catch (err) {
-      console.error('Save user additional fields error:', err);
       toast.error(err.message);
     } finally {
       setSubmitting(false);

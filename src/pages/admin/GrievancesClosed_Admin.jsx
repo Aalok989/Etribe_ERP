@@ -70,7 +70,6 @@ export default function GrievancesClosed() {
       }
 
       const uid = localStorage.getItem("uid");
-      console.log('Fetching closed grievances with credentials:', { uid, token });
       
       const response = await api.get("/grievances/closedGrievances", {
         headers: {
@@ -79,25 +78,15 @@ export default function GrievancesClosed() {
         },
       });
       
-      console.log('Closed Grievances API response:', response.data);
-      console.log('Response status:', response.status);
-      console.log('Response data type:', typeof response.data);
-      console.log('Response data keys:', Object.keys(response.data || {}));
-      
       // Handle the API response data
-      console.log('Full API response structure:', response.data);
-      
       let mappedGrievances = [];
       let grievancesFound = false;
       
-      // Based on your console logs, the structure is {status: 200, grievances: Array(1)}
+      // Based on earlier API responses, the structure is {status: 200, grievances: Array(1)}
       if (response.data && response.data.grievances && Array.isArray(response.data.grievances)) {
         const apiGrievances = response.data.grievances;
-        console.log('Found grievances array with', apiGrievances.length, 'items');
         
         mappedGrievances = apiGrievances.map((grievance, index) => {
-          console.log(`Mapping grievance ${index + 1}:`, grievance);
-          
           return {
             id: grievance.id || index + 1,
             title: grievance.subject || '',
@@ -111,7 +100,6 @@ export default function GrievancesClosed() {
         });
         grievancesFound = true;
       } else if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
-        console.log('Response is a single object:', response.data);
         const grievance = response.data;
         mappedGrievances = [{
           id: grievance.id || 1,
@@ -126,11 +114,8 @@ export default function GrievancesClosed() {
         grievancesFound = true;
       } else if (response.data?.data && Array.isArray(response.data.data)) {
         const apiGrievances = response.data.data;
-        console.log('Found grievances array with', apiGrievances.length, 'items');
         
         mappedGrievances = apiGrievances.map((grievance, index) => {
-          console.log(`Mapping grievance ${index + 1}:`, grievance);
-          
           return {
             id: grievance.id || index + 1,
             title: grievance.subject || '',
@@ -146,11 +131,8 @@ export default function GrievancesClosed() {
       } else if (response.data && Array.isArray(response.data)) {
         // Fallback: if data is directly in response.data
         const apiGrievances = response.data;
-        console.log('Found grievances array with', apiGrievances.length, 'items');
         
         mappedGrievances = apiGrievances.map((grievance, index) => {
-          console.log(`Mapping grievance ${index + 1}:`, grievance);
-          
           return {
             id: grievance.id || index + 1,
             title: grievance.subject || '',
@@ -165,26 +147,19 @@ export default function GrievancesClosed() {
         grievancesFound = true;
       } else if (response.data && typeof response.data === 'object') {
         // Check if data is nested differently
-        console.log('Response data is an object, checking for nested arrays...');
-        console.log('All keys in response.data:', Object.keys(response.data));
-        
         // Look for any array in the response
         const allKeys = Object.keys(response.data);
         let foundArray = null;
         
         for (const key of allKeys) {
           if (Array.isArray(response.data[key])) {
-            console.log(`Found array in key: ${key} with ${response.data[key].length} items`);
             foundArray = response.data[key];
             break;
           }
         }
         
         if (foundArray) {
-          console.log('Processing found array:', foundArray);
           mappedGrievances = foundArray.map((grievance, index) => {
-            console.log(`Mapping grievance ${index + 1}:`, grievance);
-            
             return {
               id: grievance.id || index + 1,
               title: grievance.subject || '',
@@ -199,8 +174,6 @@ export default function GrievancesClosed() {
           grievancesFound = true;
         } else {
           // No data found in API response
-          console.log('No array found in response.data');
-          console.log('Available keys in response.data:', Object.keys(response.data || {}));
           setGrievances([]);
           if (!toastShownRef.current) {
             toast.info("No closed grievances found in the system.");
@@ -209,8 +182,6 @@ export default function GrievancesClosed() {
         }
       } else {
         // No data found in API response
-        console.log('No data found in API response');
-        console.log('Available keys in response.data:', Object.keys(response.data || {}));
         setGrievances([]);
         if (!toastShownRef.current) {
           toast.info("No closed grievances found in the system.");
@@ -221,15 +192,10 @@ export default function GrievancesClosed() {
       // Set grievances and show success message only once
       if (grievancesFound && !toastShownRef.current) {
         setGrievances(mappedGrievances);
-        console.log('Final mapped closed grievances:', mappedGrievances);
         toast.success(`Loaded ${mappedGrievances.length} closed grievances successfully`);
         toastShownRef.current = true;
       }
     } catch (err) {
-      console.error('Error fetching closed grievances:', err);
-      console.error('Error response:', err.response?.data);
-      console.error('Error status:', err.response?.status);
-      
       if (err.response?.status === 401) {
         toast.error("Session expired. Please log in again.");
         window.location.href = "/login";
@@ -307,8 +273,6 @@ export default function GrievancesClosed() {
       setIsUpdatingStatus(true);
       const token = localStorage.getItem("token");
       
-      console.log('Status Update - Starting with:', { grievanceId, newStatus, token });
-      
       if (!token) {
         toast.error("Please log in to update grievance status");
         return;
@@ -326,16 +290,9 @@ export default function GrievancesClosed() {
         "Content-Type": "text/plain",
       };
 
-      console.log('Status Update - Request body (string):', requestBody);
-      console.log('Status Update - Request headers:', requestHeaders);
-
       const response = await api.post("grievances/update_status", requestBody, {
         headers: requestHeaders,
       });
-
-      console.log('Status Update - Full response:', response);
-      console.log('Status Update - Response status:', response.status);
-      console.log('Status Update - Response data:', response.data);
 
       if (response.data?.status === 'success' || response.status === 200 || response.data?.message?.includes('success')) {
         // Close the modal first
@@ -353,14 +310,9 @@ export default function GrievancesClosed() {
           setSelectedGrievance(null);
         }, 100);
       } else {
-        console.log('Status Update - Response status not success:', response.data);
         toast.error(response.data?.message || "Failed to update status");
       }
     } catch (err) {
-      console.error('Status Update - Error details:', err);
-      console.error('Status Update - Error response:', err.response);
-      console.error('Status Update - Error message:', err.message);
-      
       if (err.response?.status === 401) {
         toast.error("Authentication failed. Please log in again.");
       } else if (err.response?.status === 404) {
@@ -524,7 +476,6 @@ export default function GrievancesClosed() {
       doc.save("closed_grievances.pdf");
       toast.success("Closed grievances exported to PDF!");
     } catch (err) {
-      console.error("PDF export failed:", err);
       toast.error("PDF export failed: " + err.message);
     }
   };

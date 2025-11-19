@@ -182,46 +182,13 @@ export default function MemberDetail_Admin() {
         }
       );
       let filteredTypes = [];
-      console.log('Document types API response:', response.data);
-      console.log('Filtering for section:', section);
-      
       if (response.data && Array.isArray(response.data.data)) {
-        console.log('Available document types:', response.data.data);
-        
         if (section === 'company') {
           // Filter document types by document_for field from the document types API
           filteredTypes = response.data.data.filter(dt => dt.document_for === 'company');
-          console.log('🔍 DEBUG: Company document types found:', {
-            total: response.data.data.length,
-            company: filteredTypes.length,
-            companyTypes: filteredTypes.map(dt => ({
-              id: dt.id,
-              document_type: dt.document_type,
-              document_for: dt.document_for
-            })),
-            allTypes: response.data.data.map(dt => ({
-              id: dt.id,
-              document_type: dt.document_type,
-              document_for: dt.document_for
-            }))
-          });
         } else if (section === 'personal') {
           // Filter document types by document_for field from the document types API
           filteredTypes = response.data.data.filter(dt => dt.document_for === 'user');
-          console.log('🔍 DEBUG: Personal document types found:', {
-            total: response.data.data.length,
-            personal: filteredTypes.length,
-            personalTypes: filteredTypes.map(dt => ({
-              id: dt.id,
-              document_type: dt.document_type,
-              document_for: dt.document_for
-            })),
-            allTypes: response.data.data.map(dt => ({
-              id: dt.id,
-              document_type: dt.document_type,
-              document_for: dt.document_for
-            }))
-          });
         }
         
         const mappedTypes = [
@@ -234,15 +201,8 @@ export default function MemberDetail_Admin() {
           }))
         ];
         
-        console.log('🔍 DEBUG: Setting document types for section', section, ':', {
-          section: section,
-          mappedTypes: mappedTypes,
-          filteredTypes: filteredTypes,
-          documentSection: documentSection // This will show the current state
-        });
         setDocumentTypes(mappedTypes);
       } else {
-        console.log('No document types data found, setting default');
         setDocumentTypes([{ value: '', label: 'Select', document_for: 'user' }]);
       }
     } catch (err) {
@@ -253,7 +213,6 @@ export default function MemberDetail_Admin() {
   };
 
   const openDocumentModal = (section) => {
-    console.log('🔍 DEBUG: openDocumentModal called with section:', section);
     setDocumentSection(section);
     setShowDocumentModal(true);
     setDocumentType('');
@@ -277,21 +236,7 @@ export default function MemberDetail_Admin() {
       }
 
       // Get the actual document type ID from the fetched document types
-      console.log('🔍 DEBUG: Document type selection:', {
-        availableDocumentTypes: documentTypes,
-        selectedDocumentTypeValue: documentType,
-        documentSection: documentSection,
-        currentTab: activeTab
-      });
-      
       const selectedDocType = documentTypes.find(dt => dt.value === documentType);
-      console.log('🔍 DEBUG: Found selected document type:', {
-        selectedDocType: selectedDocType,
-        document_for: selectedDocType?.document_for,
-        belongs_to: selectedDocType?.belongs_to,
-        value: selectedDocType?.value,
-        label: selectedDocType?.label
-      });
       
       if (!selectedDocType || !selectedDocType.value) {
         toast.error('Please select a valid document type');
@@ -300,11 +245,6 @@ export default function MemberDetail_Admin() {
       
       // Validate that the selected document type has a valid document_for value
       if (!selectedDocType.document_for || (selectedDocType.document_for !== 'company' && selectedDocType.document_for !== 'user')) {
-        console.error('🔍 DEBUG: Invalid document type detected:', {
-          selectedDocType: selectedDocType,
-          document_for: selectedDocType.document_for,
-          documentSection: documentSection
-        });
         toast.error(`Selected document type "${selectedDocType.label}" has an invalid category. Please select a different document type.`);
         return;
       }
@@ -319,29 +259,6 @@ export default function MemberDetail_Admin() {
         ? '/GroupSettings/document_upload'      // Company documents endpoint
         : '/GroupSettings/document_user_upload'; // Personal documents endpoint
       
-      console.log('🔍 DEBUG: Document Upload Analysis:', {
-        documentSection: documentSection,
-        documentForValue: documentForValue,
-        selectedDocType: selectedDocType,
-        selectedDocTypeDocumentFor: selectedDocType?.document_for,
-        selectedDocTypeBelongsTo: selectedDocType?.belongs_to,
-        isCompanyTab: documentSection === 'company',
-        isPersonalTab: documentSection === 'personal',
-        actualValueBeingSent: documentForValue,
-        endpoint: endpoint
-      });
-      
-      console.log('Uploading document with data:', {
-        user_id: memberId || '1',
-        document_type: selectedDocType.value,
-        description: documentDescription,
-        fileName: documentFile.name,
-        fileSize: documentFile.size,
-        documentSection: documentSection,
-        selectedDocType: selectedDocType,
-        endpoint: endpoint
-      });
-
       const formData = new FormData();
       formData.append('user_id', memberId || '1');
       formData.append('document_type', selectedDocType.value);
@@ -349,26 +266,9 @@ export default function MemberDetail_Admin() {
       formData.append('document_file', documentFile);
       // Note: belongs_to field is NOT needed - the backend determines this from the endpoint
 
-      console.log('FormData entries:');
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value);
-      }
-      
-      console.log('🔍 DEBUG: Final upload data being sent:', {
-        user_id: memberId || '1',
-        document_type: selectedDocType.value,
-        description: documentDescription,
-        documentSection: documentSection,
-        selectedDocTypeDocumentFor: selectedDocType.document_for,
-        endpoint: endpoint
-      });
-
       const response = await api.post(endpoint, formData, {
         headers: getAuthHeaders()
       });
-
-      console.log('Upload response:', response.data);
-      console.log('Response status:', response.status);
 
       if (response.data?.status === 'success' || response.data?.message || response.status === 200) {
         toast.success('Document uploaded successfully!');
@@ -378,14 +278,9 @@ export default function MemberDetail_Admin() {
         
         setShowDocumentModal(false);
       } else {
-        console.error('Upload failed - response:', response.data);
         toast.error(response.data?.message || 'Failed to upload document');
       }
     } catch (error) {
-      console.error('Error uploading document:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      console.error('Error headers:', error.response?.headers);
       toast.error(`Failed to upload document: ${error.response?.data?.message || error.message}`);
     }
   };
@@ -396,17 +291,12 @@ export default function MemberDetail_Admin() {
       const token = localStorage.getItem('token');
       const uid = localStorage.getItem('uid');
       
-      console.log('Fetching documents for memberId:', memberId);
-      console.log('Token:', token);
-      console.log('UID:', uid);
-      
       if (!token) {
         toast.error('Please log in to view documents');
         return;
       }
 
       const url = `/UserDetail/getuserdocs/${memberId || '1'}`;
-      console.log('API URL:', url);
 
       const response = await api.get(url, {
         headers: {
@@ -415,60 +305,27 @@ export default function MemberDetail_Admin() {
         },
       });
 
-      console.log('User documents response:', response.data);
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-
       if (response.data && Array.isArray(response.data)) {
-        console.log('Setting documents from response.data:', response.data.length, 'documents');
         // Add default status to documents if not present
         const documentsWithStatus = response.data.map(doc => ({
           ...doc,
           status: doc.status || 'pending'
         }));
-        
-        // Debug: Log the first document to see its structure
-        if (documentsWithStatus.length > 0) {
-          console.log('First document structure:', documentsWithStatus[0]);
-          console.log('All document belongs_to values:', documentsWithStatus.map(doc => doc.belongs_to));
-          console.log('All document fields:', documentsWithStatus.map(doc => Object.keys(doc)));
-        }
-        
+
         setUserDocuments(documentsWithStatus);
       } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
-        console.log('Setting documents from response.data.data:', response.data.data.length, 'documents');
         // Add default status to documents if not present
         const documentsWithStatus = response.data.data.map(doc => ({
           ...doc,
           status: doc.status || 'pending'
         }));
-        
-        // Debug: Log the first document to see its structure
-        if (documentsWithStatus.length > 0) {
-          console.log('First document structure:', documentsWithStatus[0]);
-          console.log('All document belongs_to values:', documentsWithStatus.map(doc => doc.belongs_to));
-          console.log('All document fields:', documentsWithStatus.map(doc => Object.keys(doc)));
-        }
-        
+
         setUserDocuments(documentsWithStatus);
       } else {
-        console.log('No documents found or invalid response format');
-        console.log('Response structure:', {
-          hasData: !!response.data,
-          dataType: typeof response.data,
-          isArray: Array.isArray(response.data),
-          hasDataData: !!(response.data && response.data.data),
-          dataDataType: response.data && response.data.data ? typeof response.data.data : 'N/A',
-          dataDataIsArray: response.data && response.data.data ? Array.isArray(response.data.data) : 'N/A'
-        });
         // Set empty array when no documents exist
         setUserDocuments([]);
       }
     } catch (error) {
-      console.error('Error fetching user documents:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      console.error('Error message:', error.message);
       setUserDocuments([]);
       toast.error('Failed to fetch documents');
     } finally {
@@ -480,66 +337,22 @@ export default function MemberDetail_Admin() {
   const getCompanyDocuments = () => {
     // Filter by belongs_to field from the user documents API
     const companyDocs = userDocuments.filter(doc => doc.belongs_to === 'company');
-    
-    console.log('Company documents filtered by belongs_to:', {
-      total: userDocuments.length,
-      company: companyDocs.length,
-      belongs_to_values: [...new Set(userDocuments.map(doc => doc.belongs_to))],
-      all_documents: userDocuments.map(doc => ({
-        id: doc.id,
-        doc_type: doc.doc_type,
-        document_type: doc.document_type,
-        belongs_to: doc.belongs_to,
-        description: doc.description
-      }))
-    });
-    
     return companyDocs;
   };
 
   const getPersonalDocuments = () => {
     // Filter by belongs_to field from the user documents API
     const personalDocs = userDocuments.filter(doc => doc.belongs_to === 'user');
-    
-    console.log('Personal documents filtered by belongs_to:', {
-      total: userDocuments.length,
-      personal: personalDocs.length,
-      belongs_to_values: [...new Set(userDocuments.map(doc => doc.belongs_to))],
-      all_documents: userDocuments.map(doc => ({
-        id: doc.id,
-        doc_type: doc.doc_type,
-        document_type: doc.document_type,
-        belongs_to: doc.belongs_to,
-        description: doc.description
-      }))
-    });
-    
     return personalDocs;
   };
 
   // Update useEffect to fetch documents when tab changes
   useEffect(() => {
-    console.log('🔍 DEBUG: Document tab useEffect triggered:', {
-      activeTab,
-      memberId: member?.id,
-      member: member,
-      documentSection: documentSection,
-      documentTypes: documentTypes
-    });
-    
     if ((activeTab === 'company-documents' || activeTab === 'personal-documents') && member && member.id) {
-      console.log('🔍 DEBUG: Fetching documents for tab:', activeTab);
       fetchUserDocuments();
       // Also fetch document types for this section
       const section = activeTab === 'company-documents' ? 'company' : 'personal';
-      console.log('🔍 DEBUG: Fetching document types for section:', section);
       fetchDocumentTypes(section);
-    } else {
-      console.log('🔍 DEBUG: Not fetching documents - conditions not met:', {
-        isDocumentTab: activeTab === 'company-documents' || activeTab === 'personal-documents',
-        hasMember: !!member,
-        memberId: member?.id
-      });
     }
     // eslint-disable-next-line
   }, [activeTab, member?.id]);
@@ -590,8 +403,6 @@ export default function MemberDetail_Admin() {
       const response = await api.post("/payment_detail", {}, {
         headers: getAuthHeaders()
       });
-
-      console.log('Payment details API response:', response.data);
       
       let allPayments = [];
       
@@ -604,37 +415,7 @@ export default function MemberDetail_Admin() {
         allPayments = response.data;
       }
 
-      console.log('🔍 Filtering payments for member:', {
-        memberId,
-        memberName: member?.name,
-        memberEmail: member?.email,
-        memberCompany: member?.company_name || member?.company,
-        totalPayments: allPayments.length
-      });
-      
-      // Debug: Log the first few payments to see available fields
-      if (allPayments.length > 0) {
-        console.log('📋 Sample payment data structure:', allPayments[0]);
-        console.log('🔑 Member ID fields available:', {
-          memberId,
-          memberCompanyDetailId: member?.company_detail_id,
-          memberUserId: member?.user_detail_id
-        });
-        
-        // Debug: Check what email-related fields exist in payments
-        const firstPayment = allPayments[0];
-        console.log('📧 Payment email fields check:', {
-          email: firstPayment.email,
-          pemail: firstPayment.pemail,
-          user_email: firstPayment.user_email,
-          member_email: firstPayment.member_email,
-          contact_email: firstPayment.contact_email
-        });
-        
-        // Debug: Check member email
-        console.log('👤 Member email:', member?.email);
-      }
-      
+      // Filter payments for the specific member using COMPANY DETAIL ID MATCHING
       // Filter payments for the specific member using COMPANY DETAIL ID MATCHING
       const memberPayments = allPayments.filter(payment => {
         // Match payments by company_detail_id
@@ -642,20 +423,12 @@ export default function MemberDetail_Admin() {
         const memberCompanyDetailId = String(member?.company_detail_id || '');
         
         if (paymentCompanyId && memberCompanyDetailId && paymentCompanyId === memberCompanyDetailId) {
-          console.log('✅ Payment matched by company ID:', payment.id, 'Company ID:', paymentCompanyId);
           return true;
         }
         
         return false;
       });
       
-      console.log('✅ Filtered payments result:', {
-        totalPayments: allPayments.length,
-        filteredPayments: memberPayments.length,
-        memberId,
-        memberName: member?.name
-      });
-
       // Map the filtered payments to the expected format
       const mappedPayments = memberPayments.map((payment, index) => ({
         id: payment.id || index + 1,
@@ -715,18 +488,7 @@ export default function MemberDetail_Admin() {
         ].includes(bank))
       ]);
       
-      console.log('Member payments:', mappedPayments);
-      console.log('Bank names:', uniqueBankNames);
-      console.log('Filtering details:', {
-        memberName: member?.name,
-        memberCompany: member?.company_name || member?.company,
-        memberId: memberId,
-        totalPayments: allPayments.length,
-        filteredPayments: mappedPayments.length
-      });
-      
     } catch (error) {
-      console.error('Fetch payments error:', error);
       toast.error('Failed to fetch payments');
       setPayments([]);
     } finally {
@@ -791,18 +553,13 @@ export default function MemberDetail_Admin() {
 
       // First try to fetch user profile using get_profile endpoint
       try {
-        console.log('🔍 Fetching user profile for member ID:', memberId);
-        
         const profileResponse = await api.get(`/userDetail/get_user_profile/${memberId}`, {
           headers: getAuthHeaders(),
           timeout: 10000 // 10 second timeout
         });
 
-        console.log('🔍 Profile response:', profileResponse.data);
-
         if (profileResponse.data.status === true && profileResponse.data.data) {
           const profileData = profileResponse.data.data;
-          console.log('🔍 Profile data received:', profileData);
           
           // Map the profile data to match the expected member structure
           foundMember = {
@@ -836,10 +593,8 @@ export default function MemberDetail_Admin() {
             lct: profileData.lct
           };
           
-          console.log('🔍 Mapped member data:', foundMember);
         }
       } catch (err) {
-        console.error('🔍 Error fetching profile:', err);
         if (err.code === 'ECONNRESET' || err.code === 'ECONNREFUSED') {
           // Network connection issue
         }
@@ -847,18 +602,13 @@ export default function MemberDetail_Admin() {
 
       // Fetch company profile data using get_company_profile endpoint
       try {
-        console.log('🔍 Fetching company profile for member ID:', memberId);
-        
         const companyProfileResponse = await api.get(`/userDetail/get_user_company_profile/${memberId}`, {
           headers: getAuthHeaders(),
           timeout: 10000 // 10 second timeout
         });
 
-        console.log('🔍 Company profile response:', companyProfileResponse.data);
-
         if (companyProfileResponse.data.status === true && companyProfileResponse.data.data) {
           const companyData = companyProfileResponse.data.data;
-          console.log('🔍 Company data received:', companyData);
           
           // If we already have user profile data, merge company data
           if (foundMember) {
@@ -932,10 +682,8 @@ export default function MemberDetail_Admin() {
             };
           }
           
-          console.log('🔍 Updated member data with company profile:', foundMember);
         }
       } catch (err) {
-        console.error('🔍 Error fetching company profile:', err);
         if (err.code === 'ECONNRESET' || err.code === 'ECONNREFUSED') {
           // Network connection issue
         }
@@ -943,8 +691,6 @@ export default function MemberDetail_Admin() {
 
       // If profile fetch failed, fallback to original method
       if (!foundMember) {
-        console.log('🔍 Profile fetch failed, trying fallback methods...');
-        
         // First try to fetch from active_members endpoint
         try {
           const activeResponse = await api.post('/userDetail/active_members', {}, {
@@ -981,18 +727,11 @@ export default function MemberDetail_Admin() {
       }
       
       if (foundMember) {
-        console.log('🔍 Final member data being set:', foundMember);
-        console.log('🔍 Member name:', foundMember.name);
-        console.log('🔍 Member email:', foundMember.email);
-        console.log('🔍 Company name:', foundMember.company_name);
-        console.log('🔍 Company email:', foundMember.company_email);
         setMember(foundMember);
       } else {
-        console.log('🔍 Member not found in any endpoint');
         setError('Member not found');
       }
     } catch (err) {
-      console.error('Error fetching member details:', err);
       setError('Failed to fetch member details');
     } finally {
       setLoading(false);
@@ -1025,8 +764,6 @@ export default function MemberDetail_Admin() {
         return [];
       }
     } catch (err) {
-      console.error('❌ Failed to fetch countries:', err);
-      console.error('❌ Error details:', err.response?.data);
       setCountries([]);
       return [];
     }
@@ -1061,8 +798,6 @@ export default function MemberDetail_Admin() {
         return [];
       }
     } catch (err) {
-      console.error('❌ Failed to fetch states:', err);
-      console.error('❌ Error details:', err.response?.data);
       setStates([]);
       return [];
     }
@@ -1076,8 +811,6 @@ export default function MemberDetail_Admin() {
       if (statesCache['India']) {
         const allStates = statesCache['India'];
         setStates(allStates);
-        console.log('🔍 All states loaded from cache:', allStates.length, 'states');
-        
         // Find the state that matches the area_id and update member
         if (member && member.area_id) {
           const memberState = allStates.find(state => state.id === member.area_id);
@@ -1090,7 +823,6 @@ export default function MemberDetail_Admin() {
               state: member.state || memberState.state,
               district: member.district || '' // Preserve existing district
             };
-            console.log('🔍 Updated member with state/country:', updatedMember.state, updatedMember.country, 'district:', updatedMember.district);
             setMember(updatedMember);
           }
         }
@@ -1115,8 +847,6 @@ export default function MemberDetail_Admin() {
           'India': allStates
         }));
         
-        console.log('🔍 All states loaded from API:', allStates.length, 'states');
-        
         // Find the state that matches the area_id and update member
         if (member && member.area_id) {
           const memberState = allStates.find(state => state.id === member.area_id);
@@ -1129,14 +859,11 @@ export default function MemberDetail_Admin() {
               state: member.state || memberState.state,
               district: member.district || '' // Preserve existing district
             };
-            console.log('🔍 Updated member with state/country:', updatedMember.state, updatedMember.country, 'district:', updatedMember.district);
             setMember(updatedMember);
           }
         }
       }
     } catch (err) {
-      console.error('❌ Failed to fetch all states:', err);
-      console.error('❌ Error details:', err.response?.data);
     } finally {
       setStateCountryLoading(false);
     }
@@ -1146,7 +873,6 @@ export default function MemberDetail_Admin() {
   const fetchLocationDataOptimized = async () => {
     try {
       setStateCountryLoading(true);
-      console.log('🚀 Starting optimized location data fetch...');
       
       // Prepare promises for parallel execution
       const promises = [];
@@ -1168,9 +894,6 @@ export default function MemberDetail_Admin() {
       // Execute all API calls in parallel
       if (promises.length > 0) {
         await Promise.all(promises);
-        console.log('🚀 Parallel fetch completed');
-      } else {
-        console.log('🚀 All data loaded from cache');
       }
       
       // Map member state/country after data is loaded
@@ -1183,13 +906,11 @@ export default function MemberDetail_Admin() {
             state: member.state || memberState.state,
             district: member.district || ''
           };
-          console.log('🔍 Updated member with state/country from optimized fetch:', updatedMember.state, updatedMember.country);
           setMember(updatedMember);
         }
       }
       
     } catch (err) {
-      console.error('❌ Failed to fetch location data:', err);
     } finally {
       setStateCountryLoading(false);
     }
@@ -1215,7 +936,6 @@ export default function MemberDetail_Admin() {
   const fetchUserRoles = async () => {
     // Prevent multiple simultaneous calls
     if (isUserRolesLoading.current) {
-      console.log('🔍 User roles already being fetched, skipping...');
       return;
     }
 
@@ -1224,24 +944,16 @@ export default function MemberDetail_Admin() {
       const token = localStorage.getItem('token');
       const uid = localStorage.getItem('uid');
       
-      console.log('🔍 Fetching user roles...');
-      
       const response = await api.post('/userRole', {}, {
         headers: getAuthHeaders()
       });
       
-      console.log('🔍 User roles response:', response.data);
-      
       if (response.data && Array.isArray(response.data.data)) {
         setUserRoles(response.data.data);
-        console.log('🔍 User roles set:', response.data.data);
       } else {
         setUserRoles([]);
-        console.log('🔍 No user roles found, setting empty array');
       }
     } catch (err) {
-      console.error('❌ Failed to fetch user roles:', err);
-      console.error('❌ Error details:', err.response?.data);
       setUserRoles([]);
     } finally {
       isUserRolesLoading.current = false;
@@ -1285,7 +997,6 @@ export default function MemberDetail_Admin() {
       
       setUserAdditionalFields(mappedData);
     } catch (err) {
-      console.error('Failed to fetch user additional fields:', err);
     }
   };
 
@@ -1326,13 +1037,11 @@ export default function MemberDetail_Admin() {
       
       setCompanyAdditionalFields(mappedData);
     } catch (err) {
-      console.error('Failed to fetch company additional fields:', err);
     }
   };
 
   useEffect(() => {
     if (member && !isUserRolesFetched.current) {
-      console.log('🔍 Member loaded, fetching user roles...');
       fetchUserRoles();
       isUserRolesFetched.current = true;
     }
@@ -1347,7 +1056,6 @@ export default function MemberDetail_Admin() {
 
   useEffect(() => {
     if (member && !isAdditionalFieldsFetched.current) {
-      console.log('🔍 Member loaded, fetching additional fields...');
       fetchUserAdditionalFields();
       fetchCompanyAdditionalFields();
       isAdditionalFieldsFetched.current = true;
@@ -1363,7 +1071,6 @@ export default function MemberDetail_Admin() {
 
   useEffect(() => {
     if (member) {
-      console.log('🔍 Member loaded, fetching countries and states with optimization...');
       fetchLocationDataOptimized();
     }
   }, [member]); // Depend on entire member object to trigger after data refresh
@@ -1393,7 +1100,6 @@ export default function MemberDetail_Admin() {
           updatedMember.state = memberState.state;
           updatedMember.country = memberState.country;
           hasChanges = true;
-          console.log('🔍 Mapped state:', memberState.state, 'country:', memberState.country);
         }
       }
       
@@ -1408,7 +1114,6 @@ export default function MemberDetail_Admin() {
       
       // Only update if there are actual changes
       if (hasChanges) {
-        console.log('🔍 Updating member with mapped data:', updatedMember);
         setMember(updatedMember);
       }
     }
@@ -1416,7 +1121,6 @@ export default function MemberDetail_Admin() {
 
   // Preload countries and states data immediately when component mounts
   useEffect(() => {
-    console.log('🚀 Preloading location data on component mount...');
     // Start fetching countries and India states immediately for faster UX
     if (!countriesCache) {
       fetchCountries();
@@ -1433,14 +1137,7 @@ export default function MemberDetail_Admin() {
       return;
     }
     
-    console.log('🔍 handleEditData called');
-    console.log('🔍 Active tab:', activeTab);
-    console.log('🔍 Member data:', member);
-    console.log('🔍 States:', states);
-    console.log('🔍 User roles:', userRoles);
-
     if (!member) {
-      console.error('❌ No member data available');
       return;
     }
 
@@ -1505,7 +1202,6 @@ export default function MemberDetail_Admin() {
       cad10: member.cad10 || '',
     };
 
-    console.log('🔍 Setting edit data:', editDataToSet);
     setEditData(editDataToSet);
 
     // Set appropriate edit mode based on active tab
@@ -1557,10 +1253,6 @@ export default function MemberDetail_Admin() {
         user_role_id: editData.user_role_id || member.user_role_id || '2' // Always ensure user_role_id is set
       };
 
-      console.log('🔍 Saving with editData:', editData);
-      console.log('🔍 Final editData with required fields:', finalEditData);
-      console.log('🔍 User role ID check:', finalEditData.user_role_id);
-
       // Prepare user update payload (user fields only)
       const userPayload = {
         id: member.id,
@@ -1592,13 +1284,6 @@ export default function MemberDetail_Admin() {
         user_detail_id: member.user_detail_id,
       };
 
-      console.log('🔍 User payload (exact curl format):', userPayload);
-      console.log('🔍 Role ID in payload:', userPayload.role_id);
-      console.log('🔍 Final editData user_role_id:', finalEditData.user_role_id);
-      console.log('🔍 Member user_role_id:', member.user_role_id);
-      console.log('🔍 Role ID type:', typeof userPayload.role_id);
-      console.log('🔍 Role ID value:', userPayload.role_id);
-
       // Prepare company update payload (exact curl format for company only)
       const companyPayload = {
         company_name: finalEditData.company_name || "",
@@ -1624,20 +1309,10 @@ export default function MemberDetail_Admin() {
         ad10: finalEditData.cad10 || "", // Map cad10 to ad10 for update
       };
 
-      console.log('🔍 Company payload (exact curl format):', companyPayload);
-      console.log('🔍 Company payload keys:', Object.keys(companyPayload));
-      console.log('🔍 Company payload values:', Object.values(companyPayload));
-      console.log('🔍 Company payload JSON:', JSON.stringify(companyPayload, null, 2));
-      
       // Update user details using the update endpoint
       const userResponse = await api.post('/userDetail/update_user', userPayload, {
         headers: getAuthHeaders()
       });
-
-      console.log('🔍 User update response:', userResponse.data);
-      console.log('🔍 User update status:', userResponse.status);
-      console.log('🔍 User update success field:', userResponse.data.success);
-      console.log('🔍 User update message:', userResponse.data.message);
 
       // Check if the API actually succeeded
       const userSuccess = userResponse.data.success === true || 
@@ -1654,13 +1329,6 @@ export default function MemberDetail_Admin() {
           headers: getAuthHeaders()
         });
 
-        console.log('🔍 Company update response:', companyResponse.data);
-        console.log('🔍 Company update status:', companyResponse.status);
-        console.log('🔍 Company update success field:', companyResponse.data.success);
-        console.log('🔍 Company update message:', companyResponse.data.message);
-        console.log('🔍 Company update full response:', companyResponse);
-        console.log('🔍 Company payload sent:', companyPayload);
-
         companySuccess = companyResponse.data.success === true || 
                         companyResponse.data.status === 'success' || 
                         companyResponse.data.status === true ||
@@ -1669,15 +1337,7 @@ export default function MemberDetail_Admin() {
                         companyResponse.data.message?.toLowerCase().includes('updated') ||
                         companyResponse.data.message?.toLowerCase().includes('added');
 
-        if (companySuccess) {
-          console.log('✅ Company update succeeded');
-        } else {
-          console.error('🔍 Company update failed:', companyResponse.data);
-        }
       } catch (companyError) {
-        console.error('🔍 Company API call failed:', companyError);
-        console.error('🔍 Company error response:', companyError.response?.data);
-        console.error('🔍 Company error status:', companyError.response?.status);
       }
 
       // Show appropriate success/error messages
@@ -1703,9 +1363,6 @@ export default function MemberDetail_Admin() {
         fetchMemberDetails();
       }
     } catch (err) {
-      console.error('🔍 Save error:', err);
-      console.error('🔍 Error response:', err.response?.data);
-      console.error('🔍 Error status:', err.response?.status);
       toast.error(err.response?.data?.message || err.message || 'Failed to save changes');
     } finally {
       setSaving(false);
@@ -1961,7 +1618,6 @@ export default function MemberDetail_Admin() {
       doc.save("payment_details.pdf");
       toast.success("Payment details exported to PDF!");
     } catch (err) {
-      console.error("PDF export failed:", err);
       toast.error("PDF export failed: " + err.message);
     }
   };
@@ -1999,16 +1655,12 @@ export default function MemberDetail_Admin() {
         return;
       }
 
-      console.log('Fetching products for member ID:', memberId);
-      
       const response = await api.get(`/product/get_product_details_by_id/${memberId}`, {
         headers: {
           ...getAuthHeaders(),
           "Authorization": `Bearer ${token}`,
         },
       });
-      
-      console.log('Products API response:', response.data);
       
       let apiProducts = [];
       if (response.data?.data && Array.isArray(response.data.data)) {
@@ -2035,11 +1687,8 @@ export default function MemberDetail_Admin() {
         companyAddress: product.company_address || ''
       }));
       
-      console.log('Mapped products:', mappedProducts);
       setProducts(mappedProducts);
     } catch (err) {
-      console.error('Error fetching products:', err);
-      console.error('Error response:', err.response?.data);
       toast.error('Failed to fetch products');
       setProducts([]);
     } finally {
@@ -2114,8 +1763,6 @@ export default function MemberDetail_Admin() {
         return;
       }
 
-      console.log('Updating document status:', { documentId, newStatus });
-      
       // Call the appropriate API endpoint based on action
       let response;
       if (newStatus === 'approved') {
@@ -2139,8 +1786,6 @@ export default function MemberDetail_Admin() {
           },
         });
       }
-
-      console.log('Document status update response:', response.data);
 
       if (response.data?.status === 'success' || response.status === 200) {
         if (newStatus === 'rejected') {
@@ -2167,8 +1812,6 @@ export default function MemberDetail_Admin() {
         toast.error(response.data?.message || 'Failed to update document status');
       }
     } catch (error) {
-      console.error('Error updating document status:', error);
-      console.error('Error response:', error.response?.data);
       toast.error(`Failed to update document status: ${error.response?.data?.message || error.message}`);
     }
   };
@@ -2252,8 +1895,6 @@ export default function MemberDetail_Admin() {
           withCredentials: true,
         });
 
-        console.log('Product edit response:', editResponse.data);
-
         if (editResponse.data?.status === 'success' || editResponse.data?.message || editResponse.status === 200) {
           toast.success('Product updated successfully!');
           await fetchProducts();
@@ -2280,8 +1921,6 @@ export default function MemberDetail_Admin() {
         withCredentials: true,
       });
 
-      console.log('Product add response:', response.data);
-
       if (response.data?.status === 'success' || response.data?.message || response.status === 200) {
         toast.success('Product added successfully!');
         await fetchProducts();
@@ -2291,8 +1930,6 @@ export default function MemberDetail_Admin() {
         }
       }
     } catch (error) {
-      console.error('Error saving product:', error);
-      console.error('Error response:', error.response?.data);
       toast.error(`Failed to save product: ${error.response?.data?.message || error.message}`);
     } finally {
       setProductSaving(false);
@@ -2358,7 +1995,6 @@ export default function MemberDetail_Admin() {
         toast.error(response.data?.message || 'Failed to update profile image');
       }
     } catch (error) {
-      console.error('Error uploading profile image:', error);
       toast.error(`Failed to update profile image: ${error.response?.data?.message || error.message}`);
     } finally {
       setImageUploading(false);
@@ -2393,7 +2029,6 @@ export default function MemberDetail_Admin() {
         toast.error(response.data?.message || 'Failed to update company logo');
       }
     } catch (error) {
-      console.error('Error uploading company logo:', error);
       toast.error(`Failed to update company logo: ${error.response?.data?.message || error.message}`);
     } finally {
       setImageUploading(false);
@@ -2412,7 +2047,6 @@ export default function MemberDetail_Admin() {
         const uid = localStorage.getItem('uid');
         
         if (!token || !uid) {
-          console.error('Authentication required for fetching payment modes');
           return;
         }
         
@@ -2422,9 +2056,6 @@ export default function MemberDetail_Admin() {
             'Authorization': `Bearer ${token}`,
           },
         });
-        
-        console.log('Payment Modes API Response:', response.data);
-        console.log('Payment Modes Response Structure:', JSON.stringify(response.data, null, 2));
         
         // Handle different possible response structures
         let modesData = [];
@@ -2441,10 +2072,7 @@ export default function MemberDetail_Admin() {
         }
         
         setPaymentModes(modesData);
-        console.log('Payment modes loaded:', modesData);
-        console.log('First mode structure:', modesData[0]);
       } catch (error) {
-        console.error('Failed to fetch payment modes:', error);
         toast.error('Failed to load payment modes');
       } finally {
         setLoading(false);
@@ -2470,7 +2098,6 @@ export default function MemberDetail_Admin() {
         const uid = localStorage.getItem('uid');
       
         if (!token || !uid) {
-          console.error('Authentication required for fetching plans');
           return;
         }
       
@@ -2478,18 +2105,9 @@ export default function MemberDetail_Admin() {
           headers: getAuthHeaders()
         });
       
-        console.log('Membership Plans Response:', response.data);
-        console.log('Membership Plans Response Structure:', JSON.stringify(response.data, null, 2));
-      
         const plansData = Array.isArray(response.data?.data) ? response.data.data : [];
         setPlans(plansData);
-        console.log('Plans loaded:', plansData);
-        if (plansData.length > 0) {
-          console.log('First plan structure:', plansData[0]);
-          console.log('Available fields in plan:', Object.keys(plansData[0]));
-        }
       } catch (error) {
-        console.error('Failed to fetch membership plans:', error);
         toast.error('Failed to load membership plans');
       } finally {
         setLoading(false);
@@ -2515,16 +2133,12 @@ export default function MemberDetail_Admin() {
         const uid = localStorage.getItem('uid');
         
         if (!token || !uid) {
-          console.error('Authentication required for fetching bank details');
           return;
         }
         
         const response = await api.get('/payment_detail/getbankdetails', {
           headers: getAuthHeaders()
         });
-        
-        console.log('Bank Details Response:', response.data);
-        console.log('Bank Details Response Structure:', JSON.stringify(response.data, null, 2));
         
         // Handle different possible response structures
         let bankData = [];
@@ -2541,10 +2155,7 @@ export default function MemberDetail_Admin() {
         }
         
         setBankDetails(bankData);
-        console.log('Bank details loaded:', bankData);
-        console.log('First bank structure:', bankData[0]);
       } catch (error) {
-        console.error('Failed to fetch bank details:', error);
         toast.error('Failed to load bank details');
       } finally {
         setLoading(false);
@@ -2627,7 +2238,6 @@ export default function MemberDetail_Admin() {
       // Refresh payments data after successful update
       await fetchPayments();
     } catch (error) {
-      console.error('Update payment error:', error);
       toast.error(error.response?.data?.message || 'Failed to update payment');
     } finally {
       setSavePaymentLoading(false);
@@ -2696,8 +2306,6 @@ export default function MemberDetail_Admin() {
           return;
         }
 
-        console.log('Deleting payment with ID:', paymentId);
-        
         const response = await api.post("/payment_detail/delete", {
           id: paymentId.toString()
         }, {
@@ -2706,8 +2314,6 @@ export default function MemberDetail_Admin() {
             "Authorization": `Bearer ${token}`,
           },
         });
-        
-        console.log('Delete API response:', response.data);
         
         if (response.data?.status === 'success' || response.status === 200) {
           // Remove the deleted payment from the local state
@@ -2720,10 +2326,6 @@ export default function MemberDetail_Admin() {
           toast.error(response.data?.message || "Failed to delete payment record");
         }
       } catch (err) {
-        console.error('Error deleting payment:', err);
-        console.error('Error response:', err.response?.data);
-        console.error('Error status:', err.response?.status);
-        
         if (err.response?.status === 401) {
           toast.error("Session expired. Please log in again.");
           window.location.href = "/login";
@@ -2821,35 +2423,26 @@ export default function MemberDetail_Admin() {
               // Use startDate if available, otherwise use today
               const baseDate = addPaymentForm.startDate ? new Date(addPaymentForm.startDate) : new Date();
               const validityText = planValidity.toString().toLowerCase();
-              console.log('Base date:', baseDate);
-              console.log('Plan validity:', validityText);
-              
               // If it's just a number (like "1"), assume it's months
               if (validityText.includes('year') || validityText.includes('yr')) {
                 const years = parseInt(validityText.match(/\d+/)?.[0] || 1);
                 baseDate.setFullYear(baseDate.getFullYear() + years);
-                console.log('Added years:', years);
               } else if (validityText.includes('month') || validityText.includes('mon')) {
                 const months = parseInt(validityText.match(/\d+/)?.[0] || 1);
                 baseDate.setMonth(baseDate.getMonth() + months);
-                console.log('Added months:', months);
               } else if (validityText.includes('day')) {
                 const days = parseInt(validityText.match(/\d+/)?.[0] || 1);
                 baseDate.setDate(baseDate.getDate() + days);
-                console.log('Added days:', days);
               } else {
                 // If just a number (like "1"), assume it's months
                 const months = parseInt(validityText);
                 if (!isNaN(months)) {
                   baseDate.setMonth(baseDate.getMonth() + months);
-                  console.log('Added months (default):', months);
                 }
               }
               
               calculatedValidUpto = baseDate.toISOString().split('T')[0];
-              console.log('Calculated valid upto date:', calculatedValidUpto);
             } catch (error) {
-              console.log('Error calculating valid upto date:', error);
               calculatedValidUpto = planValidity; // Fallback to original value
             }
           }
@@ -2867,8 +2460,6 @@ export default function MemberDetail_Admin() {
         // When payment mode is selected, update the selected payment mode name
         const selectedMode = apiPaymentModes.find(mode => mode.id == value);
         const modeName = selectedMode ? (selectedMode.mode_name || selectedMode.payment_mode_name || selectedMode.name || selectedMode.mode || selectedMode) : '';
-        console.log('Selected payment mode:', selectedMode);
-        console.log('Payment mode name:', modeName);
         setSelectedPaymentModeName(modeName);
         // Reset gateway selection when payment mode changes
         setSelectedGateway("");
@@ -2916,7 +2507,7 @@ export default function MemberDetail_Admin() {
             const calculatedValidUpto = baseDate.toISOString().split('T')[0];
             setAddPaymentForm(prev => ({ ...prev, validUpto: calculatedValidUpto }));
           } catch (error) {
-            console.log('Error calculating valid upto date:', error);
+            // ignore calculation errors, keep previous value
           }
         }
       }
@@ -2933,10 +2524,7 @@ export default function MemberDetail_Admin() {
     
     let data;
     let headers = getAuthHeaders();
-    
-    console.log('addPaymentDetail called with payload:', payload);
-    console.log('isCheque:', isCheque);
-    
+
     data = new FormData();
     data.append('company_detail_id', String(payload.company_detail_id));
     data.append('payment_mode', payload.payment_mode);
@@ -2949,20 +2537,11 @@ export default function MemberDetail_Admin() {
     // Remove content-type for FormData
     delete headers['Content-Type'];
     
-    // Log FormData contents
-    console.log('FormData contents:');
-    for (let [key, value] of data.entries()) {
-      console.log(key, ':', value);
-    }
-    
-    console.log('API Headers:', headers);
-    
     const response = await api.post('/payment_detail/add', data, {
       headers,
       timeout: 15000,
     });
     
-    console.log('Payment API Response:', response.data);
     return response.data;
   };
 
@@ -2988,7 +2567,6 @@ export default function MemberDetail_Admin() {
       }
       throw new Error('Failed to create Razorpay order');
     } catch (error) {
-      console.error('Error creating Razorpay order:', error);
       throw new Error('Razorpay order creation failed. Please configure the backend API endpoint: /payment/razorpay/create-order');
     }
   };
@@ -3031,8 +2609,6 @@ export default function MemberDetail_Admin() {
         description: `Membership Plan Payment - ${selectedPlan?.plan_name || selectedPlan?.name || 'Plan'}`,
         order_id: orderData.orderId,
         handler: async function (response) {
-          console.log('Razorpay Payment Success:', response);
-          
           try {
             // Verify payment on backend
             const verifyResponse = await api.post('/payment/razorpay/verify', {
@@ -3100,7 +2676,6 @@ export default function MemberDetail_Admin() {
               throw new Error('Payment verification failed');
             }
           } catch (verifyError) {
-            console.error('Payment verification error:', verifyError);
             toast.error('Payment verification failed. Please contact support.');
             setAddPaymentError('Payment verification failed. Please contact support.');
             setAddPaymentLoading(false);
@@ -3127,7 +2702,6 @@ export default function MemberDetail_Admin() {
       razorpay.open();
       
     } catch (error) {
-      console.error('Razorpay payment error:', error);
       setAddPaymentError(error.message || 'Failed to initiate Razorpay payment. Please try again.');
       toast.error(error.message || 'Failed to initiate Razorpay payment.');
       setAddPaymentLoading(false);
@@ -3217,13 +2791,7 @@ export default function MemberDetail_Admin() {
         valid_upto: addPaymentForm.validUpto, // Use the calculated Valid upto field
       };
       
-      console.log('Payment Payload:', paymentPayload);
-      console.log('Is Cheque:', isCheque);
-      console.log('Selected Plan:', selectedPlan);
-      console.log('Selected Payment Mode:', selectedPaymentModeName);
-      
       const paymentResponse = await addPaymentDetail(paymentPayload, isCheque);
-      console.log('Payment API Response:', paymentResponse);
 
       if (paymentResponse && (paymentResponse.status === true || paymentResponse.success === true || paymentResponse.data)) {
         toast.success('Payment recorded successfully!');
@@ -5519,12 +5087,6 @@ export default function MemberDetail_Admin() {
                 className="w-full border rounded-lg px-3 py-2"
                 value={documentType}
                 onChange={e => {
-                  console.log('🔍 DEBUG: Document type dropdown changed:', {
-                    selectedValue: e.target.value,
-                    documentSection: documentSection,
-                    availableDocumentTypes: documentTypes,
-                    selectedDocumentType: documentTypes.find(dt => dt.value === e.target.value)
-                  });
                   setDocumentType(e.target.value);
                 }}
                 disabled={documentTypesLoading}

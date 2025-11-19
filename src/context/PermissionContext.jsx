@@ -70,7 +70,6 @@ export const PermissionProvider = ({ children }) => {
 
       setPermissions(transformedPermissions);
     } catch (err) {
-      console.error('Failed to fetch permissions:', err);
       setError(err.message || 'Failed to fetch permissions');
       setPermissions([]);
     } finally {

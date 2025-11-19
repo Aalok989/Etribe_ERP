@@ -143,7 +143,6 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
           : [],
       });
     } catch (err) {
-      console.error("Error fetching certificate data:", err);
       // Set default values on error
       const userId = profileData?.id || localStorage.getItem("uid") || "";
       setCertificateData({
@@ -339,7 +338,6 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
       pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
       pdf.save(`Membership-Certificate-${certificateData.membershipId || "Member"}.pdf`);
     } catch (error) {
-      console.error('Error generating PDF:', error);
       alert('Failed to download certificate as PDF. Please try again.');
     }
   };

@@ -35,8 +35,6 @@ const fetchAdditionalFields = async () => {
     const response = await api.post('/groupSettings/get_user_additional_fields', {}, {
       headers: getAuthHeaders()
     });
-
-    console.log('Additional Fields Response:', response.data);
     
     // Map backend data to frontend format
     const backendData = response.data?.data || response.data || {};
@@ -71,7 +69,6 @@ const fetchAdditionalFields = async () => {
     
     return mappedFields;
   } catch (err) {
-    console.error('Fetch additional fields error:', err);
     // Return empty array on error
     return [];
   }
@@ -150,7 +147,6 @@ export default function ActiveMembers() {
         setTableHeaders(getMemberTableHeaders(fields));
         setCardFields(getMemberCardFields(fields));
       } catch (err) {
-        console.error('Failed to load additional fields:', err);
         setTableHeaders(getMemberTableHeaders([]));
         setCardFields(getMemberCardFields([]));
       }
@@ -187,17 +183,12 @@ export default function ActiveMembers() {
         return;
       }
 
-      console.log('Disabling member:', member);
-      console.log('Member ID:', member.id || member.user_id);
-
       // Call API to disable member using the correct endpoint and payload format
       const response = await api.post('/userDetail/disableMembership', {
         user_id: member.id || member.user_id
       }, {
         headers: getAuthHeaders()
       });
-
-      console.log('Disable membership response:', response.data);
 
       if (response.data.success || response.data.status === 'success') {
         toast.success(`${member.name} has been disabled successfully`);
@@ -207,7 +198,6 @@ export default function ActiveMembers() {
         toast.error(response.data.message || 'Failed to disable member');
       }
     } catch (error) {
-      console.error('Disable member error:', error);
       toast.error(error.response?.data?.message || error.message || 'Failed to disable member');
     }
   };
@@ -265,7 +255,6 @@ export default function ActiveMembers() {
       toast.error("No data to export!");
       return;
     }
-    console.log("Copying data:", dashboardMembers);
     const data = dashboardMembers.map(member => 
       `${member.name}, ${member.phone_num || member.contact}, ${member.email}, ${member.company_name || member.company}, ${member.valid_upto || member.ad5 || ""}`
     ).join('\n');
@@ -278,7 +267,6 @@ export default function ActiveMembers() {
       toast.error("No data to export!");
       return;
     }
-    console.log("Exporting Excel with data:", dashboardMembers);
     try {
       const exportData = dashboardMembers.map(member => ({
         Name: member.name || '',
@@ -288,14 +276,12 @@ export default function ActiveMembers() {
         'Valid Upto': member.valid_upto || member.ad5 || '',
         Status: 'Active'
       }));
-      console.log("Processed export data:", exportData);
       const ws = XLSX.utils.json_to_sheet(exportData);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Active Members");
       XLSX.writeFile(wb, "active_members.xlsx");
       toast.success("Members exported to Excel!");
     } catch (error) {
-      console.error("Excel export error:", error);
       toast.error("Excel export failed: " + error.message);
     }
   };
@@ -305,7 +291,6 @@ export default function ActiveMembers() {
       toast.error("No data to export!");
       return;
     }
-    console.log("Exporting CSV with data:", dashboardMembers);
     const headers = [
       "Name", "Contact", "Email", "Company", "Valid Upto", "Status"
     ];
@@ -346,7 +331,6 @@ export default function ActiveMembers() {
       toast.error("No data to export!");
       return;
     }
-    console.log("Exporting PDF with data:", dashboardMembers);
     const doc = new jsPDF({
       orientation: "portrait",
       unit: "pt",
@@ -364,8 +348,6 @@ export default function ActiveMembers() {
       'Active'
     ]);
     try {
-      console.log("PDF headers:", headers);
-      console.log("PDF rows:", rows);
       autoTable(doc, {
         head: headers,
         body: rows,
@@ -376,7 +358,6 @@ export default function ActiveMembers() {
       doc.save("active_members.pdf");
       toast.success("Members exported to PDF!");
     } catch (err) {
-      console.error("autoTable failed:", err);
       toast.error("PDF export failed: " + err.message);
     }
   };

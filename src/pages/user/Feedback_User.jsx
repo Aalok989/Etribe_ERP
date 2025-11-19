@@ -49,26 +49,15 @@ export default function Feedbacks() {
         window.location.href = "/";
         return;
       }
-
-      console.log('Fetching feedbacks with credentials:', { uid, token });
       
       const response = await api.post("/attendance/get_feedback", {}, {
         headers: getAuthHeaders()
       });
       
-      console.log('Feedbacks API response:', response.data);
-      
-      // Handle the API response data
-      console.log('Full API response structure:', response.data);
-      
       // Check for feedback data in the response
       if (response.data?.data && Array.isArray(response.data.data)) {
         const apiFeedbacks = response.data.data;
-        console.log('Found feedbacks array with', apiFeedbacks.length, 'items');
-        
         const mappedFeedbacks = apiFeedbacks.map((feedback, index) => {
-          console.log(`Mapping feedback ${index + 1}:`, feedback);
-          
           return {
             id: feedback.id || index + 1,
             company: feedback.company_name || feedback.company || '',
@@ -79,15 +68,11 @@ export default function Feedbacks() {
         });
         
         setFeedbacks(mappedFeedbacks);
-        console.log('Final mapped feedbacks:', mappedFeedbacks);
       } else if (response.data && Array.isArray(response.data)) {
         // Fallback: if data is directly in response.data
         const apiFeedbacks = response.data;
-        console.log('Found feedbacks array with', apiFeedbacks.length, 'items');
         
         const mappedFeedbacks = apiFeedbacks.map((feedback, index) => {
-          console.log(`Mapping feedback ${index + 1}:`, feedback);
-          
           return {
             id: feedback.id || index + 1,
             company: feedback.company_name || feedback.company || '',
@@ -98,18 +83,11 @@ export default function Feedbacks() {
         });
         
         setFeedbacks(mappedFeedbacks);
-        console.log('Final mapped feedbacks:', mappedFeedbacks);
       } else {
         // No data found in API response
-        console.log('No data found in API response');
-        console.log('Available keys in response.data:', Object.keys(response.data || {}));
         setFeedbacks([]);
       }
     } catch (err) {
-      console.error('Error fetching feedbacks:', err);
-      console.error('Error response:', err.response?.data);
-      console.error('Error status:', err.response?.status);
-      
       if (err.response?.status === 401) {
         toast.error("Session expired. Please log in again.");
         window.location.href = "/login";
@@ -250,14 +228,6 @@ export default function Feedbacks() {
     "Subject" : "${feedbackForm.subject}",
     "Suggestion" : "${feedbackForm.suggestion.replace(/"/g, '\\"')}"
 }`;
-        
-        console.log('Submitting feedback with:', {
-          token,
-          uid,
-          subject: feedbackForm.subject,
-          suggestion: feedbackForm.suggestion,
-          requestBody
-        });
 
       const response = await api.post("/attendance/add_feedback", requestBody, {
         headers: getAuthHeaders()
@@ -268,24 +238,18 @@ export default function Feedbacks() {
         handleCloseModal();
         fetchFeedbacks(); // Refresh the list
       } else {
-        console.error('API Error Response:', response.status, response.statusText);
         let errorMessage = 'Failed to submit feedback';
         try {
           const errorData = response.data;
-          console.error('Error Response Body:', errorData);
           if (errorData) {
             errorMessage = errorData.message || errorData.error || errorMessage;
           }
         } catch (e) {
-          console.error('Error parsing error response:', e);
+          // Ignore JSON parsing errors
         }
         toast.error(errorMessage);
       }
     } catch (err) {
-      console.error('Error submitting feedback:', err);
-      console.error('Error response:', err.response?.data);
-      console.error('Error status:', err.response?.status);
-      
       let errorMessage = 'Failed to submit feedback. Please try again.';
       if (err.response?.data?.message) {
         errorMessage = err.response.data.message;
@@ -377,7 +341,6 @@ export default function Feedbacks() {
       doc.save("feedbacks.pdf");
       toast.success("Feedbacks exported to PDF!");
     } catch (err) {
-      console.error("PDF export failed:", err);
       toast.error("PDF export failed: " + err.message);
     }
   };

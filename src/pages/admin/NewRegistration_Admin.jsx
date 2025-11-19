@@ -110,8 +110,6 @@ export default function NewRegistration() {
         setCountries([]);
       }
     } catch (err) {
-      console.error("❌ Failed to fetch countries:", err);
-      console.error("❌ Error details:", err.response?.data);
       setCountries([]);
     } finally {
       setLoadingCountries(false);
@@ -139,8 +137,6 @@ export default function NewRegistration() {
         setStates([]);
       }
     } catch (err) {
-      console.error("❌ Failed to fetch states:", err);
-      console.error("❌ Error details:", err.response?.data);
       setStates([]);
     } finally {
       setLoadingStates(false);
@@ -168,8 +164,6 @@ export default function NewRegistration() {
         setCompanyStates([]);
       }
     } catch (err) {
-      console.error("❌ Failed to fetch company states:", err);
-      console.error("❌ Error details:", err.response?.data);
       setCompanyStates([]);
     } finally {
       setLoadingCompanyStates(false);
@@ -242,7 +236,6 @@ export default function NewRegistration() {
         setFormData((prev) => ({ ...prev, ...mappedData }));
         toast.success("Form data auto-filled from CSV file!");
       } catch (error) {
-        console.error("Error reading CSV file:", error);
         toast.error("Error reading CSV file. Please check the format.");
       }
     };
@@ -303,7 +296,6 @@ export default function NewRegistration() {
         setFormData((prev) => ({ ...prev, ...mappedData }));
         toast.success("Form data auto-filled from Excel file!");
       } catch (error) {
-        console.error("Error reading Excel file:", error);
         toast.error("Error reading Excel file. Please check the format.");
       }
     };
@@ -392,8 +384,6 @@ export default function NewRegistration() {
         }
       );
 
-      console.log("Excel upload response:", response.data);
-
       if (response.data?.status === "success" || response.data?.message) {
         toast.success("Excel file uploaded successfully!");
         setSelectedFile(null);
@@ -407,8 +397,6 @@ export default function NewRegistration() {
         toast.error(response.data?.message || "Failed to upload Excel file");
       }
     } catch (err) {
-      console.error("Excel upload error:", err);
-      console.error("Error response:", err.response?.data);
 
       if (err.response?.status === 401) {
         toast.error("Session expired. Please log in again.");
@@ -515,8 +503,6 @@ export default function NewRegistration() {
           }
         );
 
-        console.log("User additional fields response:", response.data);
-
         if (response.data?.status === true && response.data?.data) {
           // Convert the ad1, ad2, etc. structure to array format
           const fields = [];
@@ -535,15 +521,11 @@ export default function NewRegistration() {
             }
           }
 
-          console.log("Processed user additional fields:", fields);
           setUserAdditionalFields(fields);
         } else {
-          console.log(
-            "No user additional fields found or different response structure"
-          );
+          setUserAdditionalFields([]);
         }
       } catch (err) {
-        console.error("Error fetching user additional fields:", err);
         // Don't show error toast as this might be expected if no fields are configured
       } finally {
         setLoadingUserFields(false);
@@ -577,8 +559,6 @@ export default function NewRegistration() {
           }
         );
 
-        console.log("Company additional fields response:", response.data);
-
         if (response.data?.status === true && response.data?.data) {
           // Convert the ad1, ad2, etc. structure to array format
           const fields = [];
@@ -597,15 +577,11 @@ export default function NewRegistration() {
             }
           }
 
-          console.log("Processed company additional fields:", fields);
           setCompanyAdditionalFields(fields);
         } else {
-          console.log(
-            "No company additional fields found or different response structure"
-          );
+          setCompanyAdditionalFields([]);
         }
       } catch (err) {
-        console.error("Error fetching company additional fields:", err);
         // Don't show error toast as this might be expected if no fields are configured
       } finally {
         setLoadingCompanyFields(false);
@@ -745,10 +721,6 @@ export default function NewRegistration() {
         company_ad10: formData.company_ad10 || "",
       };
 
-      console.log("Submitting registration with data:", submissionData);
-      console.log("User state (area_id):", formData.state, "->", submissionData.area_id);
-      console.log("Company state (carea_id):", formData.company_state, "->", submissionData.carea_id);
-
       const response = await api.post("/common/registration", submissionData, {
         headers: {
           ...getAuthHeaders(),
@@ -756,9 +728,6 @@ export default function NewRegistration() {
         },
         withCredentials: true,
       });
-
-      console.log("Registration response:", response.data);
-      console.log("Response status:", response.status);
 
       if (response.data?.status === "success" || response.data?.message) {
         toast.success("Registration submitted successfully!");
@@ -815,8 +784,6 @@ export default function NewRegistration() {
         toast.error(response.data?.message || "Failed to submit registration");
       }
     } catch (err) {
-      console.error("Registration error:", err);
-      console.error("Error response:", err.response?.data);
 
       if (err.response?.status === 401) {
         toast.error("Session expired. Please log in again.");

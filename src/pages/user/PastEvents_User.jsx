@@ -67,7 +67,6 @@ export default function PastEvents() {
         
         setEvents(mappedEvents);
       } catch (error) {
-        console.error("Error fetching past events:", error);
         toast.error("Failed to fetch past events");
       } finally {
         setLoading(false);

@@ -75,7 +75,7 @@ export default function PaymentSettings() {
           const methods = JSON.parse(stored);
           setPaymentMethods(methods);
         } catch (e) {
-          console.error('Error parsing stored payment methods:', e);
+          toast.warn('Stored payment methods were invalid. Loading defaults instead.');
           // If parsing fails, use default data
           const defaultMethods = getDefaultPaymentMethods();
           setPaymentMethods(defaultMethods);
@@ -88,7 +88,6 @@ export default function PaymentSettings() {
         localStorage.setItem('paymentMethods', JSON.stringify(defaultMethods));
       }
     } catch (err) {
-      console.error('Fetch payment methods error:', err);
       // Fallback to hardcoded defaults
       const defaultMethods = getDefaultPaymentMethods();
       setPaymentMethods(defaultMethods);
@@ -144,7 +143,6 @@ export default function PaymentSettings() {
     try {
       localStorage.setItem('paymentMethods', JSON.stringify(methods));
     } catch (err) {
-      console.error('Error saving payment methods to localStorage:', err);
       toast.error('Failed to save payment methods');
     }
   };
@@ -199,7 +197,6 @@ export default function PaymentSettings() {
       setLogoPreview("");
       return { success: true };
     } catch (err) {
-      console.error('Save payment method error:', err);
       toast.error(err.message);
     } finally {
       setSubmitting(false);
@@ -226,7 +223,6 @@ export default function PaymentSettings() {
 
       toast.success('Payment method deleted successfully!');
     } catch (err) {
-      console.error('Delete payment method error:', err);
       toast.error(err.message);
     }
   };
@@ -245,7 +241,6 @@ export default function PaymentSettings() {
 
       toast.success('Default payment method updated!');
     } catch (err) {
-      console.error('Set default payment method error:', err);
       toast.error(err.message);
     }
   };
@@ -333,7 +328,6 @@ export default function PaymentSettings() {
       };
       reader.readAsDataURL(file);
     } catch (err) {
-      console.error('Logo upload error:', err);
       toast.error('Failed to upload logo');
     }
   };

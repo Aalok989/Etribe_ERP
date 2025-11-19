@@ -82,7 +82,6 @@ export default function CompanyAdditionalFields() {
       setData(mappedData);
       setForm(mappedData);
     } catch (err) {
-      console.error("Fetch company additional fields error:", err);
       const message = err.message || "Failed to fetch company additional fields";
       toast.error(message);
 
@@ -178,7 +177,6 @@ export default function CompanyAdditionalFields() {
         toast.error(response.data?.message || "Failed to save company additional fields");
       }
     } catch (err) {
-      console.error("Save company additional fields error:", err);
       toast.error(err.message);
     } finally {
       setSubmitting(false);

@@ -85,8 +85,6 @@ export default function PaymentDetails() {
         return;
       }
 
-      console.log('Fetching payment details with credentials:', { uid, token });
-      
       const response = await api.post("/payment_detail", {}, {
         headers: {
           ...getAuthHeaders(),
@@ -94,19 +92,10 @@ export default function PaymentDetails() {
         },
       });
       
-      console.log('Payment details API response:', response.data);
-      
-      // Handle the API response data
-      console.log('Full API response structure:', response.data);
-      
       // Check for payment_detail array in the response
       if (response.data?.data?.payment_detail && Array.isArray(response.data.data.payment_detail)) {
         const apiPayments = response.data.data.payment_detail;
-        console.log('Found payment_detail array with', apiPayments.length, 'items');
-        
         const mappedPayments = apiPayments.map((payment, index) => {
-          console.log(`Mapping payment ${index + 1}:`, payment);
-          
           return {
             id: payment.id || index + 1,
             company: payment.company_name || payment.company || '',
@@ -125,17 +114,11 @@ export default function PaymentDetails() {
             validUpto: payment.valid_upto || ''
           };
         });
-        
         setPayments(mappedPayments);
-        console.log('Final mapped payments:', mappedPayments);
       } else if (response.data?.data && Array.isArray(response.data.data)) {
         // Fallback: if data is directly in response.data.data
         const apiPayments = response.data.data;
-        console.log('Found data array with', apiPayments.length, 'items');
-        
         const mappedPayments = apiPayments.map((payment, index) => {
-          console.log(`Mapping payment ${index + 1}:`, payment);
-          
           return {
             id: payment.id || index + 1,
             company: payment.company_name || payment.company || '',
@@ -154,17 +137,11 @@ export default function PaymentDetails() {
             validUpto: payment.valid_upto || ''
           };
         });
-        
         setPayments(mappedPayments);
-        console.log('Final mapped payments:', mappedPayments);
       } else if (response.data && Array.isArray(response.data)) {
         // Fallback: if data is directly in response.data
         const apiPayments = response.data;
-        console.log('Found data array with', apiPayments.length, 'items');
-        
         const mappedPayments = apiPayments.map((payment, index) => {
-          console.log(`Mapping payment ${index + 1}:`, payment);
-          
           return {
             id: payment.id || index + 1,
             company: payment.company_name || payment.company || '',
@@ -183,23 +160,12 @@ export default function PaymentDetails() {
             validUpto: payment.valid_upto || ''
           };
         });
-        
         setPayments(mappedPayments);
-        console.log('Final mapped payments:', mappedPayments);
       } else {
         // No data found in API response
-        console.log('No data found in API response');
-        console.log('Available keys in response.data:', Object.keys(response.data || {}));
-        if (response.data?.data) {
-          console.log('Available keys in response.data.data:', Object.keys(response.data.data || {}));
-        }
         setPayments([]);
       }
     } catch (err) {
-      console.error('Error fetching payment details:', err);
-      console.error('Error response:', err.response?.data);
-      console.error('Error status:', err.response?.status);
-      
       if (err.response?.status === 401) {
         toast.error("Session expired. Please log in again.");
         window.location.href = "/login";
@@ -223,11 +189,8 @@ export default function PaymentDetails() {
       const uid = localStorage.getItem("uid");
       
       if (!token) {
-        console.log("No token found for bank details fetch");
         return;
       }
-
-      console.log('Fetching bank details with credentials:', { uid, token });
       
       const response = await api.post("/payment_detail/getbankdetails", {}, {
         headers: {
@@ -235,8 +198,6 @@ export default function PaymentDetails() {
           "Authorization": `Bearer ${token}`,
         },
       });
-      
-      console.log('Bank details API response:', response.data);
       
       // Handle the API response data
       let bankData = [];
@@ -250,21 +211,14 @@ export default function PaymentDetails() {
         bankData = Object.values(response.data.data).filter(value => value);
       }
       
-      console.log('Processed bank data:', bankData);
       setBankDetails(bankData);
       
     } catch (error) {
-      console.error("Error fetching bank details:", error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      
       if (error.response?.status === 401) {
-        console.error("Session expired for bank details fetch");
+        toast.error("Session expired for bank details fetch");
       } else {
-        console.error("Failed to fetch bank details:", error.response?.data?.message || error.message);
+        toast.error(error.response?.data?.message || error.message || "Failed to fetch bank details");
       }
-      
-      // Set empty array on error
       setBankDetails([]);
     } finally {
       setBankDetailsLoading(false);
@@ -442,7 +396,6 @@ export default function PaymentDetails() {
       doc.save("payment_details.pdf");
       toast.success("Payment details exported to PDF!");
     } catch (err) {
-      console.error("PDF export failed:", err);
       toast.error("PDF export failed: " + err.message);
     }
   };
@@ -481,8 +434,6 @@ export default function PaymentDetails() {
           return;
         }
 
-        console.log('Deleting payment with ID:', id);
-        
         const response = await api.post("/payment_detail/delete", {
           id: id.toString()
         }, {
@@ -492,8 +443,6 @@ export default function PaymentDetails() {
           },
         });
         
-        console.log('Delete API response:', response.data);
-        
         if (response.data?.status === 'success' || response.status === 200) {
           // Remove the deleted payment from the local state
           setPayments(payments.filter(payment => payment.id !== id));
@@ -502,10 +451,6 @@ export default function PaymentDetails() {
           toast.error(response.data?.message || "Failed to delete payment record");
         }
       } catch (err) {
-        console.error('Error deleting payment:', err);
-        console.error('Error response:', err.response?.data);
-        console.error('Error status:', err.response?.status);
-        
         if (err.response?.status === 401) {
           toast.error("Session expired. Please log in again.");
           window.location.href = "/login";
@@ -569,7 +514,6 @@ export default function PaymentDetails() {
       toast.error('You do not have permission to edit Payment records.');
       return;
     }
-    console.log('Opening edit modal for payment:', payment);
     
     // Format date for input field (YYYY-MM-DD)
     let formattedDate = '';
@@ -578,29 +522,15 @@ export default function PaymentDetails() {
         const date = new Date(payment.updatedDate);
         formattedDate = date.toISOString().split('T')[0];
       } catch (error) {
-        console.error('Error formatting date:', error);
         formattedDate = payment.updatedDate || '';
       }
     }
     
     // Get bank ID
     const bankId = getBankId(payment.depositingBank);
-    console.log('Bank mapping:', {
-      originalBank: payment.depositingBank,
-      mappedBankId: bankId,
-      availableBanks: bankDetails
-    });
     
     setSelectedPayment(payment);
     setEditForm({
-      chequeNo: payment.chequeNo || '',
-      chequeAmount: payment.amount?.toString() || '',
-      depositBank: bankId || '',
-      chequeStatus: payment.status || '',
-      statusUpdateDate: formattedDate
-    });
-    
-    console.log('Edit form initialized:', {
       chequeNo: payment.chequeNo || '',
       chequeAmount: payment.amount?.toString() || '',
       depositBank: bankId || '',
@@ -628,10 +558,6 @@ export default function PaymentDetails() {
         window.location.href = "/";
         return;
       }
-
-      console.log('Updating payment with ID:', selectedPayment.id);
-      console.log('Current edit form data:', editForm);
-      
       // Prepare the update data according to the API specification
       const updateData = {
         payment_id: selectedPayment.id.toString(),
@@ -641,8 +567,6 @@ export default function PaymentDetails() {
         cheque_status: editForm.chequeStatus,
         status_update_date: editForm.statusUpdateDate
       };
-      
-      console.log('Sending update data to API:', updateData);
 
       // Make API call to update payment details using the correct endpoint
       const response = await api.post("/payment_detail/edit", updateData, {
@@ -651,8 +575,6 @@ export default function PaymentDetails() {
           "Authorization": `Bearer ${token}`,
         },
       });
-      
-      console.log('Update API response:', response.data);
       
       if (response.data?.status === 'success' || response.status === 200) {
         // Update the local state with the new data
@@ -677,10 +599,6 @@ export default function PaymentDetails() {
         toast.error(response.data?.message || "Failed to update payment details");
       }
     } catch (error) {
-      console.error("Error updating payment:", error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      
       if (error.response?.status === 401) {
         toast.error("Session expired. Please log in again.");
         window.location.href = "/login";
@@ -693,15 +611,10 @@ export default function PaymentDetails() {
   };
 
   const handleEditFormChange = (field, value) => {
-    console.log('Form field change:', { field, value });
-    setEditForm(prev => {
-      const updated = {
-        ...prev,
-        [field]: value
-      };
-      console.log('Updated edit form:', updated);
-      return updated;
-    });
+    setEditForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const handleRefresh = () => {

@@ -52,21 +52,9 @@ export default function EnquiriesDonePage() {
         window.location.href = "/";
         return;
       }
-
-      console.log('Fetching enquiries with credentials:', { uid, token });
       
       const response = await api.post("/product/enquiry_index", {}, {
         headers: getAuthHeaders()
-      });
-      
-      console.log('Enquiries API response:', response.data);
-      console.log('Response structure:', {
-        hasData: !!response.data,
-        hasDataData: !!response.data?.data,
-        hasDataDataEnquiry: !!response.data?.data?.enquiry,
-        hasEnquiry: !!response.data?.enquiry,
-        dataKeys: response.data ? Object.keys(response.data) : [],
-        dataDataKeys: response.data?.data ? Object.keys(response.data.data) : []
       });
       
       // Handle the API response data
@@ -84,7 +72,6 @@ export default function EnquiriesDonePage() {
         }) : [];
         
         setEnquiries(mappedEnquiries);
-        console.log('Final mapped enquiries:', mappedEnquiries);
       } else if (response.data?.enquiry) {
         // If the API returns data directly in response.data.enquiry
         const apiEnquiries = response.data.enquiry;
@@ -99,7 +86,6 @@ export default function EnquiriesDonePage() {
         }) : [];
         
         setEnquiries(mappedEnquiries);
-        console.log('Final mapped enquiries:', mappedEnquiries);
       } else if (response.data?.data) {
         // Fallback for other data structures
         const apiEnquiries = response.data.data;
@@ -114,7 +100,6 @@ export default function EnquiriesDonePage() {
         }) : [];
         
         setEnquiries(mappedEnquiries);
-        console.log('Final mapped enquiries:', mappedEnquiries);
       } else if (response.data) {
         // If the API returns data directly in response.data
         const apiEnquiries = Array.isArray(response.data) ? response.data : [response.data];
@@ -129,16 +114,10 @@ export default function EnquiriesDonePage() {
         });
         
         setEnquiries(mappedEnquiries);
-        console.log('Final mapped enquiries:', mappedEnquiries);
       } else {
-        console.log('No data found in API response');
         setEnquiries([]);
       }
     } catch (err) {
-      console.error('Error fetching enquiries:', err);
-      console.error('Error response:', err.response?.data);
-      console.error('Error status:', err.response?.status);
-      
       if (err.response?.status === 401) {
         toast.error("Session expired. Please log in again.");
         window.location.href = "/login";

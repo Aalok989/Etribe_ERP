@@ -89,13 +89,10 @@ export default function Grievances() {
 
       // Use the grievance by ID endpoint with the current user's ID
       const currentUid = uid;
-      console.log('Fetching grievances for user ID:', currentUid, 'with credentials:', { uid, token });
       
       const response = await api.get(`/grievances/grevancebyId/${currentUid}`, {
         headers: getAuthHeaders()
       });
-      
-      console.log('Grievances API response:', response.data);
       
       let mappedGrievances = [];
       
@@ -120,11 +117,7 @@ export default function Grievances() {
       }
       
       if (apiGrievances.length > 0) {
-        console.log('Found grievances array with', apiGrievances.length, 'items');
-        
         mappedGrievances = apiGrievances.map((grievance, index) => {
-          console.log(`Mapping grievance ${index + 1}:`, grievance);
-          
           return {
             id: grievance.id || grievance.grievance_id || index + 1,
             title: grievance.subject || grievance.title || '',
@@ -136,19 +129,11 @@ export default function Grievances() {
             file: grievance.file || grievance.grievance_file || grievance.attachment || null
           };
         });
-        
         setGrievances(mappedGrievances);
-        console.log('Final mapped grievances:', mappedGrievances);
       } else {
-        console.log('No grievances found in API response');
-        console.log('Available keys in response.data:', Object.keys(response.data || {}));
         setGrievances([]);
       }
     } catch (err) {
-      console.error('Error fetching grievances:', err);
-      console.error('Error response:', err.response?.data);
-      console.error('Error status:', err.response?.status);
-      
       if (err.response?.status === 401) {
         toast.error("Session expired. Please log in again.");
         window.location.href = "/login";
@@ -215,24 +200,18 @@ export default function Grievances() {
         setShowAddForm(false);
         fetchGrievances(); // Refresh the list
       } else {
-        console.error('API Error Response:', response.status, response.statusText);
         let errorMessage = 'Failed to submit grievance';
         try {
           const errorData = response.data;
-          console.error('Error Response Body:', errorData);
           if (errorData) {
             errorMessage = errorData.message || errorData.error || errorMessage;
           }
         } catch (e) {
-          console.error('Error parsing error response:', e);
+          // Ignore JSON parsing errors
         }
         toast.error(errorMessage);
       }
     } catch (error) {
-      console.error('Error submitting grievance:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      
       let errorMessage = 'Failed to submit grievance. Please try again.';
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
@@ -286,8 +265,6 @@ export default function Grievances() {
       });
 
       if (response.status === 200 && response.data) {
-        console.log('Detailed grievance data:', response.data);
-        
         // Map the detailed data to our format
         const detailedGrievance = {
           ...grievance,
@@ -314,10 +291,9 @@ export default function Grievances() {
         // Fallback to basic grievance data if API fails
         setSelectedGrievance(grievance);
         setShowViewModal(true);
-        console.warn('Failed to fetch detailed grievance, using basic data');
+        toast.warning('Could not fetch detailed grievance data, showing basic information');
       }
     } catch (error) {
-      console.error('Error fetching detailed grievance:', error);
       // Fallback to basic grievance data if API fails
       setSelectedGrievance(grievance);
       setShowViewModal(true);

@@ -65,7 +65,6 @@ export default function RoleManagement() {
         setPermissions([]);
       }
     } catch (err) {
-      console.error('Failed to fetch modules:', err);
       setModules([]);
       setPermissions([]);
     }
@@ -113,7 +112,6 @@ export default function RoleManagement() {
       
       setLoading(false);
     } catch (err) {
-      console.error('Failed to fetch roles:', err);
       setError('Failed to fetch roles');
       setLoading(false);
     }
@@ -172,7 +170,6 @@ export default function RoleManagement() {
 
       setPermissions(transformedPermissions);
     } catch (err) {
-      console.error('Fetch permissions error:', err);
       // If permissions fetch fails, use default permissions (all false)
       setPermissions(modules.map(module => ({
         module: module,
@@ -231,7 +228,6 @@ export default function RoleManagement() {
         throw new Error(response.data?.message || 'Failed to save permissions');
       }
     } catch (err) {
-      console.error('Save permissions error:', err);
       const errorMessage = err.response?.data?.message || err.message || 'Failed to save permissions';
       toast.error(errorMessage);
     } finally {

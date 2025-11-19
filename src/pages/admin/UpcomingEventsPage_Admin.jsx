@@ -432,8 +432,6 @@ export default function UpcomingEventsPage() {
 
   // Attendance functions
   const handleMarkAttendance = (eventId, eventName) => {
-    console.log('Marking attendance for event:', { eventId, eventName });
-    
     if (!eventId) {
       toast.error('Event ID is missing. Cannot mark attendance.');
       return;

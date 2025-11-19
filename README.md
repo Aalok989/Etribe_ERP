@@ -226,7 +226,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Support
 
 If you run into issues or have questions:
-- Check the console for error messages
+- Check your browser's developer tools for error messages
 - Look at the network tab in dev tools for API failures
 - Make sure all environment variables are set correctly
 

@@ -52,47 +52,16 @@ export default function Resume() {
         window.location.href = "/";
         return;
       }
-
-      console.log('Fetching resumes with credentials:', { uid, token });
       
       const response = await api.post("/resume", {}, {
         headers: getAuthHeaders()
       });
-      
-      console.log('Resume API response:', response.data);
-      
-      // Debug: Log the structure of each resume object
-      if (response.data?.data && Array.isArray(response.data.data)) {
-        console.log('Individual resume objects:');
-        response.data.data.forEach((resume, index) => {
-          console.log(`Resume ${index + 1}:`, {
-            id: resume.id,
-            name: resume.name,
-            contact: resume.contact,
-            email_id: resume.email_id,
-            qualification: resume.qualification,
-            skill: resume.skill,
-            skills: resume.skills,
-            experience: resume.experience,
-            uploaded_on: resume.uploaded_on,
-            resume_file: resume.resume_file,
-            // Log all keys to see what's actually available
-            allKeys: Object.keys(resume)
-          });
-        });
-      }
       
       // Handle the API response data
       if (response.data?.data) {
         // If the API returns data in response.data.data format
         const apiResumes = response.data.data;
         const mappedResumes = Array.isArray(apiResumes) ? apiResumes.map((resume, index) => {
-          // Debug each resume mapping
-          console.log(`Mapping resume ${index + 1}:`, {
-            original: resume,
-            mappedSkills: resume.skill || resume.skills || resume.skill_set || resume.skill_set || ''
-          });
-          
           return {
             id: resume.id || index + 1,
             name: resume.name || resume.full_name || resume.fullName || '',
@@ -107,17 +76,10 @@ export default function Resume() {
         }) : [];
         
         setResumes(mappedResumes);
-        console.log('Final mapped resumes:', mappedResumes);
       } else if (response.data) {
         // If the API returns data directly in response.data
         const apiResumes = Array.isArray(response.data) ? response.data : [response.data];
         const mappedResumes = apiResumes.map((resume, index) => {
-          // Debug each resume mapping
-          console.log(`Mapping resume ${index + 1}:`, {
-            original: resume,
-            mappedSkills: resume.skill || resume.skills || resume.skill_set || ''
-          });
-          
           return {
             id: resume.id || index + 1,
             name: resume.name || resume.full_name || resume.fullName || '',
@@ -132,17 +94,11 @@ export default function Resume() {
         });
         
         setResumes(mappedResumes);
-        console.log('Final mapped resumes:', mappedResumes);
       } else {
         // No data found in API response
-        console.log('No data found in API response');
         setResumes([]);
       }
     } catch (err) {
-      console.error('Error fetching resumes:', err);
-      console.error('Error response:', err.response?.data);
-      console.error('Error status:', err.response?.status);
-      
       if (err.response?.status === 401) {
         toast.error("Session expired. Please log in again.");
         window.location.href = "/login";
@@ -321,7 +277,6 @@ export default function Resume() {
       doc.save("resumes.pdf");
       toast.success("Resumes exported to PDF!");
     } catch (err) {
-      console.error("PDF export failed:", err);
       toast.error("PDF export failed: " + err.message);
     }
   };
@@ -353,7 +308,6 @@ export default function Resume() {
         toast.success("Opening resume file...");
       }
     } catch (error) {
-      console.error("Error opening resume file:", error);
       toast.error("Failed to open resume file. Please try again.");
     }
   };
@@ -420,7 +374,6 @@ export default function Resume() {
       
       toast.success("Downloading resume file...");
     } catch (error) {
-      console.error("Error downloading file:", error);
       toast.error("Failed to download file. Please try again.");
     }
   };

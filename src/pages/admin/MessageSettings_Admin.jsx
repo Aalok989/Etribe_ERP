@@ -53,7 +53,6 @@ export default function MessageSettings() {
       setData(mappedData);
       setForm(mappedData);
     } catch (err) {
-      console.error('Fetch message settings error:', err);
       const errorMessage = err.message || 'Failed to fetch message settings';
       toast.error(errorMessage);
       
@@ -154,7 +153,6 @@ export default function MessageSettings() {
         toast.error(response.data?.message || 'Failed to save message settings');
       }
     } catch (err) {
-      console.error('Save message settings error:', err);
       toast.error(err.message);
     } finally {
       setSubmitting(false);

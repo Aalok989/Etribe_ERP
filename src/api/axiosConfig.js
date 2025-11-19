@@ -14,7 +14,6 @@ const getBaseURL = () => {
       // Fail safely - don't use a hardcoded fallback URL for security
       const errorMsg = 'VITE_API_BASE_URL environment variable is required for production builds. ' +
                        'Please set it in your CI/CD pipeline (Jenkins) before running the build.';
-      console.error(errorMsg);
       throw new Error(errorMsg);
     }
     

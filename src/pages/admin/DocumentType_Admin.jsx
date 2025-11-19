@@ -69,22 +69,15 @@ export default function DocumentType() {
         return;
       }
 
-      console.log('Fetching document types with credentials:', { uid, token });
-      
              const response = await api.post("/UserDetail/getDocType", {}, {
          headers: getAuthHeaders()
        });
       
-             console.log('Document types API response:', response.data);
-       console.log('Response status:', response.status);
-       console.log('Response headers:', response.headers);
-       
        let mappedDocumentTypes = [];
        
        // Try different response structures
        if (response.data?.data && Array.isArray(response.data.data)) {
-         const apiDocumentTypes = response.data.data;
-         console.log('Found document types array with', apiDocumentTypes.length, 'items');
+        const apiDocumentTypes = response.data.data;
          
          mappedDocumentTypes = apiDocumentTypes.map((docType, index) => {
            return {
@@ -98,8 +91,7 @@ export default function DocumentType() {
            };
          });
        } else if (response.data && Array.isArray(response.data)) {
-         const apiDocumentTypes = response.data;
-         console.log('Found document types array with', apiDocumentTypes.length, 'items');
+        const apiDocumentTypes = response.data;
          
          mappedDocumentTypes = apiDocumentTypes.map((docType, index) => {
            return {
@@ -114,8 +106,7 @@ export default function DocumentType() {
          });
        } else if (response.data?.document_types && Array.isArray(response.data.document_types)) {
          // Alternative response structure
-         const apiDocumentTypes = response.data.document_types;
-         console.log('Found document types array with', apiDocumentTypes.length, 'items');
+        const apiDocumentTypes = response.data.document_types;
          
          mappedDocumentTypes = apiDocumentTypes.map((docType, index) => {
            return {
@@ -130,19 +121,12 @@ export default function DocumentType() {
          });
        } else {
          // No data found, set empty array
-         console.log('No document types found in response. Response structure:', response.data);
          mappedDocumentTypes = [];
        }
       
       setDocumentTypes(mappedDocumentTypes);
       setFilteredDocumentTypes(mappedDocumentTypes);
-      console.log('Final mapped document types:', mappedDocumentTypes);
-      
          } catch (error) {
-       console.error('Error fetching document types:', error);
-       console.error('Error response:', error.response);
-       console.error('Error message:', error.message);
-       
        let errorMessage = 'Failed to fetch document types';
        if (error.response?.status === 401) {
          errorMessage = 'Authentication failed. Please log in again.';
@@ -238,7 +222,6 @@ export default function DocumentType() {
           toast.error(response.data?.message || 'Failed to delete document type');
         }
       } catch (error) {
-        console.error('Error deleting document type:', error);
         toast.error('Failed to delete document type');
       } finally {
         setSubmitting(false);
@@ -293,7 +276,6 @@ export default function DocumentType() {
         toast.error(response.data?.message || 'Failed to save document type');
       }
     } catch (error) {
-      console.error('Error saving document type:', error);
       toast.error('Failed to save document type');
     } finally {
       setSubmitting(false);

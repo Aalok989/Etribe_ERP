@@ -27,15 +27,6 @@ export default function EnquiryReceived() {
     filterEnquiries();
   }, [enquiries, search]);
 
-  // Debug effect to monitor enquiries state
-  useEffect(() => {
-    console.log('🔍 Enquiries state changed:', enquiries);
-    console.log('🔍 Filtered enquiries:', filteredEnquiries);
-    console.log('🔍 Current entries:', currentEntries);
-  }, [enquiries, filteredEnquiries]);
-
-
-
   // Helper function to strip HTML tags
   const stripHtmlTags = (html) => {
     if (!html) return '';
@@ -53,37 +44,15 @@ export default function EnquiryReceived() {
         return;
       }
 
-      console.log('Fetching enquiries with credentials:', { uid, token });
-      console.log('Making API call to /product/view_enquiry');
-
       const response = await api.post("/product/view_enquiry", {}, {
         headers: getAuthHeaders()
-      });
-      
-      console.log('Enquiries API response:', response.data);
-      console.log('Response status:', response.status);
-      console.log('Response structure:', {
-        hasData: !!response.data,
-        hasDataData: !!response.data?.data,
-        hasDataDataViewEnquiry: !!response.data?.data?.view_enquiry,
-        hasDataDataEnquiry: !!response.data?.data?.enquiry,
-        hasEnquiry: !!response.data?.enquiry,
-        dataKeys: response.data ? Object.keys(response.data) : [],
-        dataDataKeys: response.data?.data ? Object.keys(response.data.data) : [],
-        dataType: typeof response.data,
-        isArray: Array.isArray(response.data),
-        dataLength: response.data ? (Array.isArray(response.data) ? response.data.length : 'not array') : 'no data'
       });
       
       // Handle the API response data - optimized for the actual API structure
       if (response.data?.data?.view_enquiry) {
         // API returns data in response.data.data.view_enquiry format (this is your case)
         const apiEnquiries = response.data.data.view_enquiry;
-        console.log('Found enquiries array with', apiEnquiries.length, 'items');
-        
         const mappedEnquiries = apiEnquiries.map((enquiry, index) => {
-          console.log(`Mapping enquiry ${index + 1}:`, enquiry);
-          
           return {
             id: enquiry.id || index + 1,
             product: enquiry.product_name || enquiry.product || enquiry.name || '',
@@ -94,16 +63,11 @@ export default function EnquiryReceived() {
         });
         
         setEnquiries(mappedEnquiries);
-        console.log('Final mapped enquiries:', mappedEnquiries);
-        console.log('Setting enquiries state with', mappedEnquiries.length, 'items');
       } else if (response.data && Array.isArray(response.data)) {
         // Fallback: API returns data directly in response.data as an array
         const apiEnquiries = response.data;
-        console.log('Found enquiries array with', apiEnquiries.length, 'items');
         
         const mappedEnquiries = apiEnquiries.map((enquiry, index) => {
-          console.log(`Mapping enquiry ${index + 1}:`, enquiry);
-          
           return {
             id: enquiry.id || index + 1,
             product: enquiry.product_name || enquiry.product || enquiry.name || '',
@@ -114,8 +78,6 @@ export default function EnquiryReceived() {
         });
         
         setEnquiries(mappedEnquiries);
-        console.log('Final mapped enquiries:', mappedEnquiries);
-        console.log('Setting enquiries state with', mappedEnquiries.length, 'items');
       } else if (response.data?.data?.enquiry) {
         // Fallback: API returns data in response.data.data.enquiry format
         const apiEnquiries = response.data.data.enquiry;
@@ -130,8 +92,6 @@ export default function EnquiryReceived() {
         }) : [];
         
         setEnquiries(mappedEnquiries);
-        console.log('Final mapped enquiries:', mappedEnquiries);
-        console.log('Setting enquiries state with', mappedEnquiries.length, 'items');
       } else if (response.data?.enquiry) {
         // Fallback: API returns data directly in response.data.enquiry
         const apiEnquiries = response.data.enquiry;
@@ -146,7 +106,6 @@ export default function EnquiryReceived() {
         }) : [];
         
         setEnquiries(mappedEnquiries);
-        console.log('Final mapped enquiries:', mappedEnquiries);
       } else if (response.data?.data) {
         // Fallback for other data structures
         const apiEnquiries = response.data.data;
@@ -161,18 +120,10 @@ export default function EnquiryReceived() {
         }) : [];
         
         setEnquiries(mappedEnquiries);
-        console.log('Final mapped enquiries:', mappedEnquiries);
-        console.log('Setting enquiries state with', mappedEnquiries.length, 'items');
       } else {
-        console.log('No data found in API response');
-        console.log('Response data:', response.data);
         setEnquiries([]);
       }
     } catch (err) {
-      console.error('Error fetching enquiries:', err);
-      console.error('Error response:', err.response?.data);
-      console.error('Error status:', err.response?.status);
-      
       if (err.response?.status === 401) {
         toast.error("Session expired. Please log in again.");
         window.location.href = "/login";
@@ -189,14 +140,12 @@ export default function EnquiryReceived() {
   };
 
   const filterEnquiries = () => {
-    console.log('🔍 Filtering enquiries. Total enquiries:', enquiries.length);
     const filtered = enquiries.filter(
       (enquiry) =>
         (enquiry.product || '').toLowerCase().includes(search.toLowerCase()) ||
         (enquiry.companyName || '').toLowerCase().includes(search.toLowerCase()) ||
         (enquiry.enquiry || '').toLowerCase().includes(search.toLowerCase())
     );
-    console.log('🔍 Filtered results:', filtered.length);
     setFilteredEnquiries(filtered);
     setCurrentPage(1);
   };
@@ -337,7 +286,6 @@ export default function EnquiryReceived() {
               doc.save("enquiries_received.pdf");
         toast.success("Enquiries Received exported to PDF!");
     } catch (err) {
-      console.error("PDF export failed:", err);
       toast.error("PDF export failed: " + err.message);
     }
   };

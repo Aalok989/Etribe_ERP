@@ -341,7 +341,6 @@ export default function Enquiry() {
       doc.save("enquiries.pdf");
       toast.success("Enquiries exported to PDF!");
     } catch (err) {
-      console.error("PDF export failed:", err);
       toast.error("PDF export failed: " + err.message);
     }
   };

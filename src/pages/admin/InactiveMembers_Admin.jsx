@@ -107,7 +107,6 @@ export default function InactiveMembers() {
       });
 
       const data = response.data;
-      console.log('Inactive Members API Response:', data);
 
       if (data && data.status === true && Array.isArray(data.data)) {
         const mappedMembers = data.data.map(member => ({
@@ -128,13 +127,10 @@ export default function InactiveMembers() {
         }));
         
         setMembers(mappedMembers);
-        console.log('Mapped inactive members:', mappedMembers);
       } else {
-        console.log('No valid data structure found:', data);
         setMembers([]);
       }
     } catch (err) {
-      console.error("Failed to fetch inactive members:", err);
       toast.error("Failed to fetch inactive members");
       setMembers([]);
     } finally {

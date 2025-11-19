@@ -96,8 +96,6 @@ export default function AdminAccounts() {
           'uid': uid,
         }
       });
-
-      console.log('System Users - Roles Response:', response.data);
       
       // Handle different response formats
       let rolesData = [];
@@ -119,7 +117,6 @@ export default function AdminAccounts() {
         setAddUserForm(prev => ({ ...prev, role_id: transformedRoles[0]?.id || '' }));
       }
     } catch (err) {
-      console.error('Fetch roles error:', err);
       // Use default roles on error
       setUserRoles([]); // Clear roles on error
     } finally {
@@ -181,7 +178,6 @@ export default function AdminAccounts() {
       });
       if (response.data && Array.isArray(response.data.data)) {
         setCountries(response.data.data);
-        console.log('Fetched countries:', response.data.data);
       }
     } catch (err) {
       // Optionally handle error
@@ -435,7 +431,6 @@ export default function AdminAccounts() {
       doc.save("system_users.pdf");
       toast.success("System users exported to PDF!");
     } catch (err) {
-      console.error("autoTable failed:", err);
       toast.error("PDF export failed: " + err.message);
     }
   };

@@ -417,8 +417,6 @@ export default function PastEvents() {
           headers: getAuthHeaders()
         });
       } catch (removeError) {
-        console.log('Remove endpoint failed, trying delete endpoint...');
-        // Try alternative delete endpoint
         response = await api.delete(`/event/${eventId}`, {
           headers: getAuthHeaders()
         });
@@ -433,8 +431,6 @@ export default function PastEvents() {
       }
       
     } catch (err) {
-      console.error('Delete error:', err);
-      
       // If the API call fails, try optimistic deletion for now
       // This will be reverted when the page refreshes
       setEvents((prevEvents) => prevEvents.filter((e) => e.id !== eventId));
@@ -536,8 +532,6 @@ export default function PastEvents() {
 
   // Attendance functions
   const handleMarkAttendance = (eventId, eventName) => {
-    console.log('Marking attendance for event:', { eventId, eventName });
-    
     if (!eventId) {
       toast.error('Event ID is missing. Cannot mark attendance.');
       return;

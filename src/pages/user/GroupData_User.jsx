@@ -33,13 +33,11 @@ function GroupDataContent() {
   // Test API connectivity
   const testAPI = async () => {
     try {
-      const response = await api.post('/groupSettings', {}, {
+      await api.post('/groupSettings', {}, {
         headers: getAuthHeaders()
       });
-      console.log('API test successful:', response.data);
       return true;
     } catch (error) {
-      console.error('API test failed:', error);
       return false;
     }
   };
@@ -137,29 +135,12 @@ function GroupDataContent() {
       formData.append('id', uid);
       formData.append('file', file);
       
-      console.log('Uploading logo with data:', {
-        id: uid,
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type
-      });
-      
       const response = await api.post('/GroupSettings/upload_logo', formData, {
         headers: {
           ...getAuthHeaders(),
           // Don't set Content-Type for FormData - let browser set it with boundary
         },
         withCredentials: true,
-      });
-      
-      console.log('Logo upload response:', response.data);
-      console.log('Response structure:', {
-        data: response.data,
-        dataData: response.data?.data,
-        logo: response.data?.logo,
-        dataLogo: response.data?.data?.logo,
-        message: response.data?.message,
-        status: response.data?.status
       });
       
       // Try multiple possible paths for the logo
@@ -178,8 +159,6 @@ function GroupDataContent() {
         newLogo = response.data.path;
       }
       
-      console.log('Extracted logo path:', newLogo);
-      
       if (newLogo) {
         const logoUrl = newLogo.startsWith('http') ? newLogo : `${API_BASE_URL}/${newLogo}`;
         setLogoPreview(logoUrl);
@@ -188,7 +167,6 @@ function GroupDataContent() {
         toast.success('Logo uploaded successfully!');
       } else {
         // If no logo path found, try to refresh the data
-        console.log('No logo path found, refreshing data...');
         toast.info('Upload completed. Refreshing data...');
         
         // Refresh the group data to get updated logo
@@ -207,16 +185,10 @@ function GroupDataContent() {
             toast.error('Upload successful but logo not found in refreshed data.');
           }
         } catch (refreshErr) {
-          console.error('Error refreshing data:', refreshErr);
           toast.error('Upload successful but could not refresh data.');
         }
       }
     } catch (err) {
-      console.error('Logo upload error:', err);
-      console.error('Error response:', err.response?.data);
-      console.error('Error status:', err.response?.status);
-      console.error('Error headers:', err.response?.headers);
-      
       if (err.response?.status === 401) {
         toast.error('Session expired. Please log in again.');
       } else if (err.response?.status === 413) {
@@ -274,29 +246,12 @@ function GroupDataContent() {
       formData.append('id', uid);
       formData.append('file', file);
       
-      console.log('Uploading signature with data:', {
-        id: uid,
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type
-      });
-      
       const response = await api.post('/groupSettings/upload_signature', formData, {
         headers: {
           ...getAuthHeaders(),
           // Don't set Content-Type for FormData - let browser set it with boundary
         },
         withCredentials: true,
-      });
-      
-      console.log('Signature upload response:', response.data);
-      console.log('Response structure:', {
-        data: response.data,
-        dataData: response.data?.data,
-        signature: response.data?.signature,
-        dataSignature: response.data?.data?.signature,
-        message: response.data?.message,
-        status: response.data?.status
       });
       
       // Try multiple possible paths for the signature
@@ -315,8 +270,6 @@ function GroupDataContent() {
         newSignature = response.data.path;
       }
       
-      console.log('Extracted signature path:', newSignature);
-      
       if (newSignature) {
         const signatureUrl = newSignature.startsWith('https') ? newSignature : `${API_BASE_URL}/${newSignature}`;
         setSignaturePreview(signatureUrl);
@@ -325,7 +278,6 @@ function GroupDataContent() {
         toast.success('Signature uploaded successfully!');
       } else {
         // If no signature path found, try to refresh the data
-        console.log('No signature path found, refreshing data...');
         toast.info('Upload completed. Refreshing data...');
         
         // Refresh the group data to get updated signature
@@ -344,16 +296,10 @@ function GroupDataContent() {
             toast.error('Upload successful but signature not found in refreshed data.');
           }
         } catch (refreshErr) {
-          console.error('Error refreshing data:', refreshErr);
           toast.error('Upload successful but could not refresh data.');
         }
       }
     } catch (err) {
-      console.error('Signature upload error:', err);
-      console.error('Error response:', err.response?.data);
-      console.error('Error status:', err.response?.status);
-      console.error('Error headers:', err.response?.headers);
-      
       if (err.response?.status === 401) {
         toast.error('Session expired. Please log in again.');
       } else if (err.response?.status === 413) {
@@ -430,7 +376,6 @@ function GroupDataContent() {
       await fetchGroupData();
       
     } catch (err) {
-      console.error('Save group data error:', err);
       toast.error('Failed to update group data.');
     } finally {
       setSaveLoading(false);

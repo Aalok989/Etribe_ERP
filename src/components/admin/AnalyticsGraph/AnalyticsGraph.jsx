@@ -71,13 +71,6 @@ export default function AnalyticsGraph() {
   const loading = dashboardLoading.members;
   const error = errors.members;
 
-  // Debug logging
-  console.log('AnalyticsGraph - analytics data:', data);
-  console.log('AnalyticsGraph - loading state:', loading);
-  console.log('AnalyticsGraph - error state:', error);
-
-
-
   // Process real data to ensure complete year data by filling missing months
   // Use useMemo to prevent recalculation on every render
   const chartData = useMemo(() => {

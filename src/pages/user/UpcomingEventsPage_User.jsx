@@ -67,7 +67,6 @@ export default function UpcomingEventsPage() {
         
         setEvents(mappedEvents);
       } catch (error) {
-        console.error("Error fetching upcoming events:", error);
         toast.error("Failed to fetch upcoming events");
       } finally {
         setLoading(false);

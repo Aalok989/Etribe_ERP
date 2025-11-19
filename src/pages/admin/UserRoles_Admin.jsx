@@ -75,7 +75,6 @@ export default function UserRoles() {
       }));
       setRoles(transformedRoles);
     } catch (err) {
-      console.error('Fetch roles error:', err);
       const errorMessage = err.message || 'Failed to fetch user roles';
       toast.error(errorMessage);
       if (errorMessage.toLowerCase().includes('token') || errorMessage.toLowerCase().includes('unauthorized') || errorMessage.toLowerCase().includes('log in')) {
@@ -112,7 +111,6 @@ export default function UserRoles() {
         throw new Error(response.data?.message || 'Failed to add role');
       }
     } catch (err) {
-      console.error('Add role error:', err);
       toast.error(err.message);
     } finally {
       setSubmitting(false);
@@ -148,7 +146,6 @@ export default function UserRoles() {
         toast.error('Failed to update role');
       }
     } catch (err) {
-      console.error('Update role error:', err);
       toast.error('Failed to update role');
     }
   };
@@ -182,7 +179,6 @@ export default function UserRoles() {
         throw new Error(response.data?.message || 'Failed to delete role');
       }
     } catch (err) {
-      console.error('Delete role error:', err);
       toast.error(err.message);
     } finally {
       setSubmitting(false);
@@ -356,7 +352,6 @@ export default function UserRoles() {
       doc.save("user_roles.pdf");
       toast.success("User roles exported to PDF!");
     } catch (err) {
-      console.error("autoTable failed:", err);
       toast.error("PDF export failed: " + err.message);
     }
   };

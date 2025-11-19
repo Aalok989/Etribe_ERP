@@ -69,22 +69,17 @@ const Login = () => {
         headers: getApiHeaders()
       });
       
-      console.log('Countries response:', response.data);
-      
       if (response.data && Array.isArray(response.data.data)) {
         // Transform the response to match expected format with id and name
         const transformedCountries = response.data.data.map((country, index) => ({
           id: index + 1, // Use index as id since API doesn't provide id
           name: country.country
         }));
-        setCountries(transformedCountries);
-      } else {
-        console.error('Invalid countries response format:', response.data);
+      setCountries(transformedCountries);
+    } else {
         setCountries([]);
       }
     } catch (error) {
-      console.error('Error fetching countries:', error);
-      console.error('Error details:', error.response?.data);
       setCountries([]);
     } finally {
       setLoadingCountries(false);
@@ -93,9 +88,7 @@ const Login = () => {
 
   // Fetch states based on selected country
   const fetchStates = async (countryId) => {
-    console.log('fetchStates called with countryId:', countryId);
     if (!countryId) {
-      console.log('No countryId provided, clearing states');
       setStates([]);
       return;
     }
@@ -107,26 +100,17 @@ const Login = () => {
       
       // For now, hardcode India to test the API
       const countryName = 'India';
-      console.log('Available countries:', countries);
-      console.log('Looking for country with id:', countryId, 'type:', typeof countryId);
-      console.log('Using hardcoded country name:', countryName);
       
       const response = await api.post('/common/states', { country: countryName }, {
         headers: getApiHeaders()
       });
       
-      console.log('States response:', response.data);
-      
       if (response.data && Array.isArray(response.data.data)) {
-        console.log('Raw states data:', response.data.data);
         setStates(response.data.data);
       } else {
-        console.error('Invalid states response format:', response.data);
         setStates([]);
       }
     } catch (error) {
-      console.error('Error fetching states:', error);
-      console.error('Error details:', error.response?.data);
       setStates([]);
     } finally {
       setLoadingStates(false);
@@ -173,7 +157,6 @@ const Login = () => {
     
     try {
       const response = await api.post('/common/login', { username, password });
-      console.log('Login response:', response.data);
       
       // Handle malformed responses that might contain PHP errors mixed with JSON
       let data = response.data || {};
@@ -189,7 +172,6 @@ const Login = () => {
             throw new Error('No valid JSON found in response');
           }
         } catch (parseError) {
-          console.error('Failed to parse response:', parseError);
           toast.error('Server returned invalid response format. Please try again.');
           return;
         }
@@ -280,14 +262,12 @@ const Login = () => {
         toast.error('Invalid email or password.');
       }
     } catch (err) {
-      console.error('Login error:', err);
       const status = err.response?.status;
       const respData = err.response?.data;
 
       // Handle cases where response might contain PHP errors but still have valid data
       if (respData && typeof respData === 'object' && respData.token) {
         // If we somehow got a token despite an error, try to use it
-        console.log('Found token in error response, attempting login...');
         localStorage.setItem('token', respData.token);
         
         const userData = respData.data || respData.user || {};
@@ -416,13 +396,9 @@ const Login = () => {
         pincode: regForm.pincode
       };
       
-      console.log('Registration data:', registrationData);
-      
       const response = await api.post('/common/register', registrationData, {
         headers: getAuthHeaders()
       });
-      
-      console.log('Registration response:', response.data);
       
       if (response.data?.status === 'success' || response.data?.success) {
         toast.success('Registration successful! Please log in.');
@@ -444,7 +420,6 @@ const Login = () => {
         setRegError(response.data?.message || 'Registration failed. Please try again.');
       }
     } catch (err) {
-      console.error('Registration error:', err);
       setRegError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
@@ -507,7 +482,6 @@ const Login = () => {
         setResetError(backendMessage);
       }
     } catch (error) {
-      console.error('Reset password error:', error);
       const backendMessage =
         error?.response?.data?.message ||
         (Array.isArray(error?.response?.data?.errors)
@@ -521,12 +495,10 @@ const Login = () => {
 
   const handleRegChange = (e) => {
     const { name, value } = e.target;
-    console.log('handleRegChange called:', { name, value });
     setRegForm({ ...regForm, [name]: value });
     
     // If country changes, fetch states for that country
     if (name === 'country') {
-      console.log('Country changed, calling fetchStates with value:', value);
       fetchStates(value);
       // Reset state when country changes
       setRegForm(prev => ({ ...prev, state: '' }));

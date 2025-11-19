@@ -39,7 +39,6 @@ export default function PublicJobUserPage() {
       const jobs = response.data?.data || response.data || [];
       setJobsData(Array.isArray(jobs) ? jobs : []);
     } catch (err) {
-      console.error('Error fetching public jobs:', err);
       toast.error("Failed to fetch public jobs: " + (err.response?.data?.message || err.message));
       setJobsData([]);
     } finally {

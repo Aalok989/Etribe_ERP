@@ -43,12 +43,10 @@ export default function AttendanceList() {
     
     if (eventId) {
       setSelectedEventId(eventId);
-      console.log('Setting event ID from URL:', eventId);
     }
     
     if (eventName) {
       setSelectedEventName(decodeURIComponent(eventName));
-      console.log('Setting event name from URL:', eventName);
     }
   }, []);
 
@@ -96,8 +94,6 @@ export default function AttendanceList() {
         }
       });
 
-      console.log('API Response:', response);
-      
       if (response.data && response.data.status === true && response.data.data) {
         // Map the API response to match our table structure
         const mappedRecords = response.data.data.map(member => ({
@@ -110,13 +106,10 @@ export default function AttendanceList() {
         }));
         
         setAttendanceRecords(mappedRecords);
-        console.log('Mapped attendance records:', mappedRecords);
       } else {
-        console.log('No valid data structure found:', response.data);
         setAttendanceRecords([]);
       }
     } catch (err) {
-      console.error("Failed to fetch attendance records:", err);
       toast.error("Failed to fetch attendance records");
       setAttendanceRecords([]);
     } finally {

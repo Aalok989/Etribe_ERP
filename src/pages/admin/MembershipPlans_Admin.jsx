@@ -69,7 +69,6 @@ export default function MembershipPlans() {
 
       setPlans(mappedPlans);
     } catch (err) {
-      console.error('Fetch membership plans error:', err);
       const errorMessage = err.message || 'Failed to fetch membership plans';
       
       if (errorMessage.toLowerCase().includes('token') || errorMessage.toLowerCase().includes('unauthorized') || errorMessage.toLowerCase().includes('log in')) {
@@ -172,7 +171,6 @@ export default function MembershipPlans() {
         throw new Error(response.data?.message || 'Failed to save membership plan');
       }
     } catch (err) {
-      console.error('Save membership plan error:', err, err.response?.data);
       toast.error(
         err.response?.data?.message ||
         err.response?.data?.error ||
@@ -215,7 +213,6 @@ export default function MembershipPlans() {
         throw new Error(response.data?.message || 'Failed to delete membership plan');
       }
     } catch (err) {
-      console.error('Delete membership plan error:', err);
       toast.error(err.message);
     } finally {
       setSubmitting(false);

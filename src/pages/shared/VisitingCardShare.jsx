@@ -30,7 +30,6 @@ const decodeSharePayload = (encoded) => {
 
     return { templateId, cardData };
   } catch (error) {
-    console.error("Failed to decode share payload", error);
     return { error: "Unable to open this visiting card. The share link may be invalid or expired." };
   }
 };

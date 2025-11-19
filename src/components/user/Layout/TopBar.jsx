@@ -78,12 +78,10 @@ export default function TopBar() {
 
       // Fetch both events and enquiries in parallel
       const [eventsResponse, enquiriesResponse] = await Promise.all([
-        api.post('/event/future', {}, { headers: getAuthHeaders() }).catch(err => {
-          console.error('Error fetching events:', err);
+        api.post('/event/future', {}, { headers: getAuthHeaders() }).catch(() => {
           return { data: { events: [] } };
         }),
-        api.post('/product/view_enquiry', {}, { headers: getAuthHeaders() }).catch(err => {
-          console.error('Error fetching enquiries:', err);
+        api.post('/product/view_enquiry', {}, { headers: getAuthHeaders() }).catch(() => {
           return { data: { data: { view_enquiry: [] } } };
         })
       ]);
@@ -148,7 +146,6 @@ export default function TopBar() {
       setNotifications(allNotifications);
       setUnreadCount(allNotifications.filter(n => !n.read).length);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
       setNotifications([]);
       setUnreadCount(0);
     }
@@ -222,7 +219,6 @@ export default function TopBar() {
           foundUser = activeMembers.find(m => m.id === uid || m.company_detail_id === uid || m.user_detail_id === uid);
         }
       } catch (err) {
-        console.error('Error fetching from active members:', err);
       }
 
       // If not found in active members, try not_members endpoint (same as MemberDetail)
@@ -236,22 +232,10 @@ export default function TopBar() {
           const pendingMembers = Array.isArray(pendingResponse.data) ? pendingResponse.data : pendingResponse.data.data || [];
           foundUser = pendingMembers.find(m => m.id === uid || m.company_detail_id === uid || m.user_detail_id === uid);
         } catch (err) {
-          console.error('Error fetching from not members:', err);
         }
       }
 
               if (foundUser) {
-          // Debug: Log the user data to see what fields are available
-          console.log('Found user data:', foundUser);
-          console.log('Photo fields:', {
-            profile_image: foundUser.profile_image,
-            user_image: foundUser.user_image,
-            avatar: foundUser.avatar,
-            logo: foundUser.logo,
-            company_logo: foundUser.company_logo,
-            business_logo: foundUser.business_logo
-          });
-          
           setProfile({
             name: foundUser.name || foundUser.full_name || foundUser.company_name || 'User',
             email: foundUser.email || foundUser.email_id || foundUser.company_email || 'No email',
@@ -264,7 +248,6 @@ export default function TopBar() {
           setError('User profile not found');
         }
     } catch (err) {
-      console.error('Error fetching user profile:', err);
       setError('Failed to load profile');
     } finally {
       setLoading(false);

@@ -98,7 +98,6 @@ export default function UploadAttendanceModal({
         }
       });
 
-      console.log('Upload API Response:', response);
       const data = response.data;
 
       if (data.status === true) {
@@ -113,14 +112,6 @@ export default function UploadAttendanceModal({
         toast.error(data.message || "Failed to upload attendance sheet");
       }
     } catch (error) {
-      console.error("Failed to upload attendance sheet:", error);
-      console.error("Error details:", {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        headers: error.response?.headers
-      });
-      
       if (error.response?.data?.message) {
         toast.error(`API Error: ${error.response.data.message}`);
       } else if (error.response?.status) {

@@ -73,7 +73,6 @@ export default function SMTPSettings() {
       setData(viewData);
       setForm(editData);
     } catch (err) {
-      console.error('Fetch SMTP error:', err);
       const errorMessage = err.message || 'Failed to fetch SMTP settings';
       toast.error(errorMessage);
       
@@ -196,7 +195,6 @@ export default function SMTPSettings() {
         toast.error(response.data?.message || 'Failed to save SMTP settings');
       }
     } catch (err) {
-      console.error('Save SMTP error:', err);
       toast.error(err.message);
     } finally {
       setSubmitting(false);

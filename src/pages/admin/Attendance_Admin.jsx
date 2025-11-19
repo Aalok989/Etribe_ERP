@@ -65,9 +65,6 @@ export default function Attendance() {
     const eventId = searchParams.get('eventId');
     const eventName = searchParams.get('eventName');
     
-    console.log('URL eventId:', eventId);
-    console.log('URL eventName:', eventName);
-    
     if (eventId && eventName) {
       // Create event object from URL parameters
       const selectedEvent = {
@@ -77,7 +74,6 @@ export default function Attendance() {
         name: decodeURIComponent(eventName)
       };
       
-      console.log('Created event from URL:', selectedEvent);
       setSelectedEvent(selectedEvent);
       setAddAttendanceForm(prev => ({
         ...prev,
@@ -110,13 +106,12 @@ export default function Attendance() {
       // setEvents(response.data.data || []);
       setEvents([]);
     } catch (err) {
-      console.error("Failed to fetch events");
+      toast.error("Failed to fetch events");
     }
   };
 
   const fetchMembers = async (eventId = null) => {
     try {
-      console.log('Fetching all active members');
       setLoading(true); // Set loading state
       
       // Get auth headers from localStorage
@@ -131,8 +126,6 @@ export default function Attendance() {
         }
       });
       
-      console.log('API Response:', response);
-      
       // Handle mixed response (PHP error + JSON data)
       let data = response.data;
       
@@ -144,10 +137,9 @@ export default function Attendance() {
           if (jsonStart !== -1) {
             const jsonString = response.data.substring(jsonStart);
             data = JSON.parse(jsonString);
-            console.log('Parsed JSON data:', data);
           }
         } catch (parseError) {
-          console.error('Failed to parse JSON from response:', parseError);
+          toast.error('Failed to parse member data.');
           setMembers([]);
           return;
         }
@@ -165,8 +157,6 @@ export default function Attendance() {
           is_attended: false // Default to false, will be updated with attendance status
         }));
         // Don't set members yet - wait for attendance data
-        console.log('Mapped members:', mappedMembers);
-        
         // After fetching all members, get their attendance status for this specific event
         if (eventId) {
           await fetchEventAttendance(eventId, mappedMembers);
@@ -175,12 +165,10 @@ export default function Attendance() {
           setMembers(mappedMembers);
         }
       } else {
-        console.log('No valid data structure found:', data);
         setMembers([]);
       }
     } catch (err) {
-      console.error("Failed to fetch members:", err);
-      console.log('Error details:', err.message);
+      toast.error("Failed to fetch members.");
       setMembers([]);
     } finally {
       setLoading(false); // Reset loading state
@@ -191,8 +179,6 @@ export default function Attendance() {
   // Fetch attendance status for specific event
   const fetchEventAttendance = async (eventId, mappedMembers) => {
     try {
-      console.log('Fetching attendance for eventId:', eventId);
-      
       // Get auth headers from localStorage
       const uid = localStorage.getItem('uid');
       const token = localStorage.getItem('token');
@@ -207,8 +193,6 @@ export default function Attendance() {
         }
       });
 
-      console.log('Event Attendance API Response:', response);
-      
       if (response.data && response.data.status === true && response.data.data) {
         // Update members with real attendance status from backend
         const updatedMembers = mappedMembers.map(member => {
@@ -225,17 +209,14 @@ export default function Attendance() {
         
         // Set members with attendance status in one go
         setMembers(updatedMembers);
-        console.log('Set members with attendance status:', updatedMembers);
       } else {
         // If no attendance data, just set the members as is
         setMembers(mappedMembers);
-        console.log('Set members without attendance data:', mappedMembers);
       }
     } catch (err) {
-      console.error("Failed to fetch event attendance:", err);
       // If attendance API fails, still show the members
       setMembers(mappedMembers);
-      console.log('Set members after attendance API error:', mappedMembers);
+      toast.error("Failed to fetch attendance for the selected event.");
     }
   };
 
@@ -326,7 +307,6 @@ export default function Attendance() {
         }
       });
 
-      console.log('Attendance API Response:', response);
       const data = response.data;
 
       if (data.status === true) {
@@ -344,13 +324,7 @@ export default function Attendance() {
         toast.error(data.message || "Failed to update attendance");
       }
     } catch (error) {
-      console.error("Failed to update attendance:", error);
-      console.error("Error details:", {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        headers: error.response?.headers
-      });
+      toast.error("Failed to update attendance. Please try again.");
       
       if (error.response?.data?.message) {
         toast.error(`API Error: ${error.response.data.message}`);
@@ -433,7 +407,6 @@ export default function Attendance() {
         }
       });
 
-      console.log('Bulk Attendance API Response:', response);
       const data = response.data;
 
       if (data.status === true) {
@@ -448,13 +421,7 @@ export default function Attendance() {
         toast.error(data.message || "Failed to mark all attendance");
       }
     } catch (error) {
-      console.error("Failed to mark all attendance:", error);
-      console.error("Error details:", {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        headers: error.response?.headers
-      });
+      toast.error("Failed to mark all attendance. Please try again.");
       
       if (error.response?.data?.message) {
         toast.error(`API Error: ${error.response.data.message}`);

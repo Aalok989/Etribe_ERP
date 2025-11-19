@@ -25,7 +25,6 @@ const fetchAdditionalFields = async () => {
     const uid = localStorage.getItem('uid');
 
     if (!token || !uid) {
-      console.error('No token or uid found');
       return [];
     }
 
@@ -59,7 +58,6 @@ const fetchAdditionalFields = async () => {
 
     return mappedFields;
   } catch (err) {
-    console.error('Fetch additional fields error:', err);
     return [];
   }
 };
@@ -140,11 +138,7 @@ export default function PendingApproval() {
 
   // Load additional fields for dynamic headers
   const loadAdditionalFields = async () => {
-    try {
-      setTableHeaders(getMemberTableHeaders());
-    } catch (error) {
-      console.error('Failed to load table headers:', error);
-    }
+    setTableHeaders(getMemberTableHeaders());
   };
 
   // Fetch plans for dropdown with real-time functionality
@@ -159,7 +153,6 @@ export default function PendingApproval() {
           const uid = localStorage.getItem('uid');
         
         if (!token || !uid) {
-          console.error('Authentication required for fetching plans');
           return;
         }
         
@@ -167,18 +160,9 @@ export default function PendingApproval() {
             headers: getAuthHeaders()
           });
         
-        console.log('Membership Plans Response:', response.data);
-        console.log('Membership Plans Response Structure:', JSON.stringify(response.data, null, 2));
-        
           const plansData = Array.isArray(response.data?.data) ? response.data.data : [];
           setPlans(plansData);
-        console.log('Plans loaded:', plansData);
-        if (plansData.length > 0) {
-          console.log('First plan structure:', plansData[0]);
-          console.log('Available fields in plan:', Object.keys(plansData[0]));
-        }
       } catch (error) {
-        console.error('Failed to fetch membership plans:', error);
         toast.error('Failed to load membership plans');
       } finally {
         setLoading(false);
@@ -204,16 +188,12 @@ export default function PendingApproval() {
         const uid = localStorage.getItem('uid');
         
         if (!token || !uid) {
-          console.error('Authentication required for fetching payment modes');
           return;
         }
         
         const response = await api.get('/payment_detail/getmodes', {
           headers: getAuthHeaders()
         });
-        
-        console.log('Payment Modes Response:', response.data);
-        console.log('Payment Modes Response Structure:', JSON.stringify(response.data, null, 2));
         
         // Handle different possible response structures
         let modesData = [];
@@ -230,10 +210,7 @@ export default function PendingApproval() {
         }
         
         setPaymentModes(modesData);
-        console.log('Payment modes loaded:', modesData);
-        console.log('First mode structure:', modesData[0]);
       } catch (error) {
-        console.error('Failed to fetch payment modes:', error);
         toast.error('Failed to load payment modes');
       } finally {
         setLoading(false);
@@ -259,16 +236,12 @@ export default function PendingApproval() {
         const uid = localStorage.getItem('uid');
         
         if (!token || !uid) {
-          console.error('Authentication required for fetching bank details');
           return;
         }
         
         const response = await api.get('/payment_detail/getbankdetails', {
           headers: getAuthHeaders()
         });
-        
-        console.log('Bank Details Response:', response.data);
-        console.log('Bank Details Response Structure:', JSON.stringify(response.data, null, 2));
         
         // Handle different possible response structures
         let bankData = [];
@@ -285,10 +258,7 @@ export default function PendingApproval() {
         }
         
         setBankDetails(bankData);
-        console.log('Bank details loaded:', bankData);
-        console.log('First bank structure:', bankData[0]);
       } catch (error) {
-        console.error('Failed to fetch bank details:', error);
         toast.error('Failed to load bank details');
       } finally {
         setLoading(false);
@@ -469,35 +439,27 @@ export default function PendingApproval() {
               // Use startDate if available, otherwise use today
               const baseDate = form.startDate ? new Date(form.startDate) : new Date();
               const validityText = planValidity.toString().toLowerCase();
-              console.log('Base date:', baseDate);
-              console.log('Plan validity:', validityText);
               
               // If it's just a number (like "1"), assume it's months
               if (validityText.includes('year') || validityText.includes('yr')) {
                 const years = parseInt(validityText.match(/\d+/)?.[0] || 1);
                 baseDate.setFullYear(baseDate.getFullYear() + years);
-                console.log('Added years:', years);
               } else if (validityText.includes('month') || validityText.includes('mon')) {
                 const months = parseInt(validityText.match(/\d+/)?.[0] || 1);
                 baseDate.setMonth(baseDate.getMonth() + months);
-                console.log('Added months:', months);
               } else if (validityText.includes('day')) {
                 const days = parseInt(validityText.match(/\d+/)?.[0] || 1);
                 baseDate.setDate(baseDate.getDate() + days);
-                console.log('Added days:', days);
               } else {
                 // If just a number (like "1"), assume it's months
                 const months = parseInt(validityText);
                 if (!isNaN(months)) {
                   baseDate.setMonth(baseDate.getMonth() + months);
-                  console.log('Added months (default):', months);
                 }
               }
               
               calculatedValidUpto = baseDate.toISOString().split('T')[0];
-              console.log('Calculated valid upto date:', calculatedValidUpto);
             } catch (error) {
-              console.log('Error calculating valid upto date:', error);
               calculatedValidUpto = planValidity; // Fallback to original value
             }
           }
@@ -559,7 +521,6 @@ export default function PendingApproval() {
             const calculatedValidUpto = baseDate.toISOString().split('T')[0];
             setForm(prev => ({ ...prev, validUpto: calculatedValidUpto }));
           } catch (error) {
-            console.log('Error calculating valid upto date:', error);
           }
         }
       }
@@ -648,7 +609,6 @@ export default function PendingApproval() {
       }
       throw new Error('Failed to create Razorpay order');
     } catch (error) {
-      console.error('Error creating Razorpay order:', error);
       throw new Error('Razorpay order creation failed. Please configure the backend API endpoint: /payment/razorpay/create-order');
     }
   };
@@ -686,7 +646,6 @@ export default function PendingApproval() {
         description: `Membership Plan Payment - ${selectedPlan?.plan_name || selectedPlan?.name || 'Plan'}`,
         order_id: orderData.orderId,
         handler: async function (response) {
-          console.log('Razorpay Payment Success:', response);
           try {
             const verifyResponse = await api.post('/payment/razorpay/verify', {
               razorpay_order_id: response.razorpay_order_id,
@@ -728,7 +687,6 @@ export default function PendingApproval() {
               throw new Error('Payment verification failed');
             }
           } catch (verifyError) {
-            console.error('Payment verification error:', verifyError);
             toast.error('Payment verification failed. Please contact support.');
             setUpdateError('Payment verification failed. Please contact support.');
             setUpdateLoading(false);
@@ -741,7 +699,6 @@ export default function PendingApproval() {
       const razorpay = new window.Razorpay(options);
       razorpay.open();
     } catch (error) {
-      console.error('Razorpay payment error:', error);
       setUpdateError(error.message || 'Failed to initiate Razorpay payment. Please try again.');
       toast.error(error.message || 'Failed to initiate Razorpay payment.');
       setUpdateLoading(false);
@@ -917,7 +874,6 @@ export default function PendingApproval() {
       doc.save("pending_approval_members.pdf");
       toast.success("Members exported to PDF!");
     } catch (err) {
-      console.error("autoTable failed:", err);
       toast.error("PDF export failed: " + err.message);
     }
   };

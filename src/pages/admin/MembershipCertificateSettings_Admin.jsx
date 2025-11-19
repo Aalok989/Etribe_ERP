@@ -43,7 +43,6 @@ const readFromStorage = () => {
       signatories,
     };
   } catch (error) {
-    console.error("Failed to read membership certificate settings:", error);
     toast.error("Unable to load saved settings. Using defaults.");
     return defaultSettings;
   }
@@ -189,7 +188,6 @@ const MembershipCertificateSettings = () => {
       setEditMode(false);
       toast.success("Membership certificate settings saved");
     } catch (error) {
-      console.error("Failed to save membership certificate settings:", error);
       toast.error(error.message || "Unable to save settings");
     } finally {
       setSubmitting(false);

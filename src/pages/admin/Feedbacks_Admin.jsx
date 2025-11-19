@@ -46,8 +46,6 @@ export default function Feedbacks() {
         return;
       }
 
-      console.log('Fetching feedbacks with credentials:', { uid, token });
-      
       const response = await api.post("/attendance/get_feedback", {}, {
         headers: {
           ...getAuthHeaders(),
@@ -55,19 +53,12 @@ export default function Feedbacks() {
         },
       });
       
-      console.log('Feedbacks API response:', response.data);
-      
       // Handle the API response data
-      console.log('Full API response structure:', response.data);
-      
       // Check for feedback data in the response
       if (response.data?.data && Array.isArray(response.data.data)) {
         const apiFeedbacks = response.data.data;
-        console.log('Found feedbacks array with', apiFeedbacks.length, 'items');
         
         const mappedFeedbacks = apiFeedbacks.map((feedback, index) => {
-          console.log(`Mapping feedback ${index + 1}:`, feedback);
-          
           return {
             id: feedback.id || index + 1,
             company: feedback.company_name || feedback.company || '',
@@ -78,15 +69,11 @@ export default function Feedbacks() {
         });
         
         setFeedbacks(mappedFeedbacks);
-        console.log('Final mapped feedbacks:', mappedFeedbacks);
       } else if (response.data && Array.isArray(response.data)) {
         // Fallback: if data is directly in response.data
         const apiFeedbacks = response.data;
-        console.log('Found feedbacks array with', apiFeedbacks.length, 'items');
         
         const mappedFeedbacks = apiFeedbacks.map((feedback, index) => {
-          console.log(`Mapping feedback ${index + 1}:`, feedback);
-          
           return {
             id: feedback.id || index + 1,
             company: feedback.company_name || feedback.company || '',
@@ -95,20 +82,12 @@ export default function Feedbacks() {
             date: feedback.feedback_date || feedback.date || ''
           };
         });
-        
         setFeedbacks(mappedFeedbacks);
-        console.log('Final mapped feedbacks:', mappedFeedbacks);
       } else {
         // No data found in API response
-        console.log('No data found in API response');
-        console.log('Available keys in response.data:', Object.keys(response.data || {}));
         setFeedbacks([]);
       }
     } catch (err) {
-      console.error('Error fetching feedbacks:', err);
-      console.error('Error response:', err.response?.data);
-      console.error('Error status:', err.response?.status);
-      
       if (err.response?.status === 401) {
         toast.error("Session expired. Please log in again.");
         window.location.href = "/login";
@@ -272,7 +251,6 @@ export default function Feedbacks() {
       doc.save("feedbacks.pdf");
       toast.success("Feedbacks exported to PDF!");
     } catch (err) {
-      console.error("PDF export failed:", err);
       toast.error("PDF export failed: " + err.message);
     }
   };

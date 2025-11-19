@@ -91,7 +91,6 @@ export const DashboardProvider = ({ children }) => {
 
   // Generic error handler
   const handleError = useCallback((error, type) => {
-    console.error(`Dashboard ${type} error:`, error);
     
     let errorMessage = `Failed to load ${type}`;
     
@@ -198,14 +197,10 @@ export const DashboardProvider = ({ children }) => {
 
     try {
       const headers = { ...getAuthHeaders() };
-      console.log('Fetching enquiries with headers:', headers);
-
       const [receivedRes, doneRes] = await Promise.all([
         api.post('/product/view_enquiry', {}, { headers }),
         api.post('/product/enquiry_index', {}, { headers })
       ]);
-
-      console.log('Enquiry responses:', { receivedRes, doneRes });
 
       // Helper function to extract enquiries from various response formats
       const extractEnquiries = (response) => {
@@ -219,8 +214,6 @@ export const DashboardProvider = ({ children }) => {
 
       const receivedEnquiries = extractEnquiries(receivedRes);
       const doneEnquiries = extractEnquiries(doneRes);
-
-      console.log('Extracted enquiries:', { receivedEnquiries, doneEnquiries });
 
       // Update cache
       setCache(prev => ({
@@ -246,7 +239,6 @@ export const DashboardProvider = ({ children }) => {
       }));
 
     } catch (error) {
-      console.error('Error fetching enquiries:', error);
       // Set default values to prevent loading from being stuck
       setData(prev => ({
         ...prev,
@@ -299,7 +291,6 @@ export const DashboardProvider = ({ children }) => {
         if (result.status === 'fulfilled') {
           return extractEvents(result.value);
         }
-        console.warn('Event fetch failed:', result.reason);
         return [];
       };
 
@@ -513,8 +504,6 @@ export const DashboardProvider = ({ children }) => {
         }))
       ];
 
-      console.log('Generated comprehensive analytics data:', analyticsData);
-
       // Update cache and data
       setCache(prev => ({
         ...prev,
@@ -527,9 +516,9 @@ export const DashboardProvider = ({ children }) => {
       }));
 
     } catch (error) {
-      console.error('Analytics generation error:', error);
+      handleError(error, 'analytics');
     }
-  }, [data.members, data.enquiries]);
+  }, [data.members, data.enquiries, handleError]);
 
   // Update analytics when enquiries or members data changes
   useEffect(() => {
@@ -541,11 +530,6 @@ export const DashboardProvider = ({ children }) => {
       generateAnalytics();
     }
   }, [data.enquiries, data.members, generateAnalytics]);
-
-  // Debug loading states
-  useEffect(() => {
-    console.log('Loading states changed:', loading);
-  }, [loading]);
 
   // Clear cache function
   const clearCache = useCallback(() => {
@@ -625,7 +609,6 @@ export const DashboardProvider = ({ children }) => {
     
     const handleLogin = () => {
       // Refetch data when user logs in - optimized for speed
-      console.log('Login event received, loading data instantly...');
       setFastLoading(true); // Show fast loader immediately
       
       // Load all data simultaneously for fastest loading
@@ -638,7 +621,6 @@ export const DashboardProvider = ({ children }) => {
       ]).then(() => {
         setFastLoading(false);
         setLoading(prev => ({ ...prev, initial: false }));
-        console.log('Login data loaded successfully');
       });
     };
     
@@ -658,7 +640,6 @@ export const DashboardProvider = ({ children }) => {
       const hasData = data.members.active.length > 0 || data.members.inactive.length > 0 || data.members.expired.length > 0;
       
       if (token && !hasData && !loading.initial) {
-        console.log('Token exists but no data, loading data instantly...');
         setLoading(prev => ({ ...prev, initial: true }));
         
         // Load all data simultaneously for fastest loading
@@ -670,7 +651,6 @@ export const DashboardProvider = ({ children }) => {
           fetchContacts()
         ]).then(() => {
           setLoading(prev => ({ ...prev, initial: false }));
-          console.log('Auto-load data completed');
         });
       }
     };
@@ -694,7 +674,6 @@ export const DashboardProvider = ({ children }) => {
   useEffect(() => {
     const loadInitialData = async () => {
       setLoading(prev => ({ ...prev, initial: true }));
-      console.log('Starting instant data load...');
       
       try {
         // Load all data simultaneously for fastest possible loading
@@ -711,10 +690,9 @@ export const DashboardProvider = ({ children }) => {
         
         // Set loading to false immediately after all data is loaded
         setLoading(prev => ({ ...prev, initial: false }));
-        console.log('All data loaded successfully');
         
       } catch (error) {
-        console.error('Error in initial data load:', error);
+        toast.error(error.message || 'Failed to load dashboard data.');
         setLoading(prev => ({ ...prev, initial: false }));
       }
     };

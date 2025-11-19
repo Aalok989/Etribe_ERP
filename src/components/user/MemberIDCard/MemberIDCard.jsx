@@ -34,7 +34,8 @@ const MemberIDCard = ({ isOpen, onClose, profileData }) => {
       const uid = localStorage.getItem('uid');
 
       if (!token || !uid) {
-        console.error('Authentication required');
+        setError('Authentication required');
+        setLoading(false);
         return;
       }
 
@@ -52,7 +53,6 @@ const MemberIDCard = ({ isOpen, onClose, profileData }) => {
           userId = profileResponse.data.data.id;
         }
       } catch (error) {
-        console.error('Error fetching user profile for ID:', error);
       }
 
       // Fetch ID card data from the new API endpoint
@@ -85,7 +85,6 @@ const MemberIDCard = ({ isOpen, onClose, profileData }) => {
           return;
         }
       } catch (error) {
-        console.error('Error fetching ID card from API:', error);
       }
 
       // Fallback to old method if new API fails
@@ -101,7 +100,6 @@ const MemberIDCard = ({ isOpen, onClose, profileData }) => {
           memberData = profileResponse.data.data;
         }
       } catch (error) {
-        console.error('Error fetching user profile:', error);
       }
 
       if (!memberData && profileData) {
@@ -144,7 +142,7 @@ const MemberIDCard = ({ isOpen, onClose, profileData }) => {
         isActive: false
       });
     } catch (error) {
-      console.error('Error fetching ID card data:', error);
+      setError('Failed to load ID card data.');
     } finally {
       setLoading(false);
     }
@@ -180,7 +178,6 @@ const MemberIDCard = ({ isOpen, onClose, profileData }) => {
       // Generate and save PDF
       await html2pdf().set(opt).from(cardElement).save();
     } catch (error) {
-      console.error('Error generating PDF:', error);
       alert('Failed to download ID card as PDF. Please try again.');
     }
   };

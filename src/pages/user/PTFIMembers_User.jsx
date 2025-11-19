@@ -34,8 +34,6 @@ const fetchAdditionalFields = async () => {
     const response = await api.post('/groupSettings/get_user_additional_fields', {}, {
       headers: getAuthHeaders()
     });
-
-    console.log('Additional Fields Response:', response.data);
     
     // Map backend data to frontend format
     const backendData = response.data?.data || response.data || {};
@@ -70,7 +68,6 @@ const fetchAdditionalFields = async () => {
     
     return mappedFields;
   } catch (err) {
-    console.error('Fetch additional fields error:', err);
     // Return empty array on error
     return [];
   }
@@ -142,7 +139,6 @@ export default function PTFIMembers() {
         setTableHeaders(getMemberTableHeaders(fields));
         setCardFields(getMemberCardFields(fields));
       } catch (err) {
-        console.error('Failed to load additional fields:', err);
         setTableHeaders(getMemberTableHeaders([]));
         setCardFields(getMemberCardFields([]));
       }
@@ -216,7 +212,6 @@ export default function PTFIMembers() {
       toast.error("No data to export!");
       return;
     }
-    console.log("Copying data:", dashboardMembers);
     const data = dashboardMembers.map(member => 
       `${member.name}, ${member.phone_num || member.contact}, ${member.email}, ${member.address || member.location || member.ad2 || 'N/A'}, ${member.company_name || member.company}`
     ).join('\n');
@@ -229,7 +224,6 @@ export default function PTFIMembers() {
       toast.error("No data to export!");
       return;
     }
-    console.log("Exporting Excel with data:", dashboardMembers);
     try {
       const exportData = dashboardMembers.map(member => ({
         Name: member.name || '',
@@ -239,14 +233,12 @@ export default function PTFIMembers() {
         Company: member.company_name || member.company || '',
         Status: 'Active'
       }));
-      console.log("Processed export data:", exportData);
       const ws = XLSX.utils.json_to_sheet(exportData);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "PTFI Members");
       XLSX.writeFile(wb, "ptfi_members.xlsx");
       toast.success("PTFI Members exported to Excel!");
     } catch (error) {
-      console.error("Excel export error:", error);
       toast.error("Excel export failed: " + error.message);
     }
   };
@@ -256,7 +248,6 @@ export default function PTFIMembers() {
       toast.error("No data to export!");
       return;
     }
-    console.log("Exporting CSV with data:", dashboardMembers);
     const headers = [
       "Name", "Contact", "Email", "Address", "Company", "Status"
     ];
@@ -297,7 +288,6 @@ export default function PTFIMembers() {
       toast.error("No data to export!");
       return;
     }
-    console.log("Exporting PDF with data:", dashboardMembers);
     const doc = new jsPDF({
       orientation: "portrait",
       unit: "pt",
@@ -315,8 +305,6 @@ export default function PTFIMembers() {
       'Active'
     ]);
     try {
-      console.log("PDF headers:", headers);
-      console.log("PDF rows:", rows);
       autoTable(doc, {
         head: headers,
         body: rows,
@@ -327,7 +315,6 @@ export default function PTFIMembers() {
       doc.save("ptfi_members.pdf");
       toast.success("PTFI Members exported to PDF!");
     } catch (err) {
-      console.error("autoTable failed:", err);
       toast.error("PDF export failed: " + err.message);
     }
   };

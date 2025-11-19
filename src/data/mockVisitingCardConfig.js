@@ -21,7 +21,6 @@ const readFromStorage = () => {
     const parsed = JSON.parse(raw);
     return { ...defaultAssignments, ...parsed };
   } catch (error) {
-    console.warn('[mockVisitingCardConfig] Failed to read from storage:', error);
     return { ...defaultAssignments };
   }
 };
@@ -31,7 +30,6 @@ const writeToStorage = (data) => {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch (error) {
-    console.warn('[mockVisitingCardConfig] Failed to write to storage:', error);
   }
 };
 

@@ -54,7 +54,6 @@ export const GroupDataProvider = ({ children }) => {
       setGroupData(processedData);
     } catch (err) {
       setError('Failed to fetch group data');
-      console.error('Group data fetch error:', err);
     } finally {
       setLoading(false);
     }

@@ -65,7 +65,6 @@ export default function JobApplicantsAdminPage() {
       }
       setApplicants(list.filter(Boolean));
     } catch (err) {
-      console.error("Failed to fetch job applicants:", err);
       toast.error(
         "Failed to fetch job applicants: " +
           (err.response?.data?.message || err.message)
@@ -158,7 +157,6 @@ export default function JobApplicantsAdminPage() {
       closeNoteModal();
       fetchApplicants();
     } catch (err) {
-      console.error("Failed to update applicant:", err);
       toast.error(
         "Failed to update applicant: " +
           (err.response?.data?.message || err.message)

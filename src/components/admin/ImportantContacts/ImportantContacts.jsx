@@ -20,7 +20,6 @@ export default function ImportantContacts() {
     deleteContactAPI = contactsContext.deleteContact;
   } catch (e) {
     // ContactsContext not available, CRUD operations will be disabled
-    console.log('ContactsContext not available, CRUD operations disabled');
   }
   
   // Use dashboard data for display (faster loading)

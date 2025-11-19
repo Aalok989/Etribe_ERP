@@ -49,13 +49,6 @@ export default function Circulars() {
       document: circular.document || circular.file || circular.file_path || circular.attachment || ''
     };
     
-    console.log(`Mapping circular ${index + 1}:`, {
-      original: circular,
-      mappedSubject: mappedCircular.subject,
-      mappedBody: mappedCircular.body,
-      mappedDescription: mappedCircular.description
-    });
-    
     return mappedCircular;
   };
 
@@ -69,47 +62,10 @@ export default function Circulars() {
         window.location.href = "/";
         return;
       }
-
-      console.log('Fetching circulars with credentials:', { uid, token });
       
       const response = await api.post("/notifications/get_all_circulars", {}, {
         headers: getAuthHeaders()
       });
-      
-      console.log('Circulars API response:', response.data);
-      
-      // Debug: Log the structure of each circular object
-      if (response.data?.data && Array.isArray(response.data.data)) {
-        console.log('Individual circular objects:');
-        response.data.data.forEach((circular, index) => {
-          console.log(`Circular ${index + 1}:`, {
-            id: circular.id,
-            circular_no: circular.circular_no,
-            circularNo: circular.circularNo,
-            circular_number: circular.circular_number,
-            subject: circular.subject,
-            title: circular.title,
-            name: circular.name,
-            date: circular.date,
-            created_at: circular.created_at,
-            uploaded_on: circular.uploaded_on,
-            description: circular.description,
-            content: circular.content,
-            body: circular.body,
-            body_content: circular.body_content,
-            message: circular.message,
-            text: circular.text,
-            file: circular.file,
-            file_path: circular.file_path,
-            document: circular.document,
-            attachment: circular.attachment,
-            // Log all keys to see what's actually available
-            allKeys: Object.keys(circular),
-            // Log all values to see what's actually in the data
-            allValues: Object.values(circular)
-          });
-        });
-      }
       
       // Handle the API response data
       if (response.data?.data) {
@@ -118,24 +74,17 @@ export default function Circulars() {
         const mappedCirculars = Array.isArray(apiCirculars) ? apiCirculars.map((circular, index) => mapCircularData(circular, index)) : [];
         
         setCirculars(mappedCirculars);
-        console.log('Final mapped circulars:', mappedCirculars);
       } else if (response.data) {
         // If the API returns data directly in response.data
         const apiCirculars = Array.isArray(response.data) ? response.data : [response.data];
         const mappedCirculars = apiCirculars.map((circular, index) => mapCircularData(circular, index));
         
         setCirculars(mappedCirculars);
-        console.log('Final mapped circulars:', mappedCirculars);
       } else {
         // No data found in API response
-        console.log('No data found in API response');
         setCirculars([]);
       }
     } catch (err) {
-      console.error('Error fetching circulars:', err);
-      console.error('Error response:', err.response?.data);
-      console.error('Error status:', err.response?.status);
-      
       if (err.response?.status === 401) {
         toast.error("Session expired. Please log in again.");
         window.location.href = "/login";
@@ -170,26 +119,12 @@ export default function Circulars() {
   };
 
   const handleView = (id) => {
-    console.log(`View circular ${id}`);
-    
     // Find the circular by ID
     const circular = circulars.find(c => c.id === id);
     if (!circular) {
       toast.error("Circular not found");
       return;
     }
-
-    console.log("Circular data for view:", circular);
-    console.log("Circular description:", circular.description);
-    console.log("Circular body:", circular.body);
-    console.log("Circular file fields:", {
-      file: circular.file,
-      file_path: circular.file_path,
-      document: circular.document,
-      attachment: circular.attachment
-    });
-    console.log("All circular properties:", Object.keys(circular));
-    console.log("Circular values:", Object.values(circular));
 
     // Always show the modal first, regardless of whether there's a file or not
     setSelectedCircular(circular);
@@ -198,9 +133,6 @@ export default function Circulars() {
 
   const downloadCircularFile = async (fileUrl, fileName) => {
     try {
-      console.log("Attempting to download file:", fileUrl);
-      console.log("File name:", fileName);
-      
       // Get authentication token
       const token = localStorage.getItem("token");
       const uid = localStorage.getItem("uid");
@@ -217,14 +149,12 @@ export default function Circulars() {
       });
 
       if (!response.ok) {
-        console.error("File download failed:", response.status, response.statusText);
         toast.error(`Failed to download file: ${response.status} ${response.statusText}`);
         return;
       }
 
       // Get the file blob
       const blob = await response.blob();
-      console.log("File blob received:", blob.size, "bytes");
 
       // Create a download link
       const url = window.URL.createObjectURL(blob);
@@ -242,11 +172,8 @@ export default function Circulars() {
       
       toast.success("File downloaded successfully!");
     } catch (error) {
-      console.error("Error downloading file:", error);
-      
       // Fallback: try direct link approach
       try {
-        console.log("Trying fallback download method...");
         const link = document.createElement('a');
         link.href = fileUrl;
         link.download = fileName || 'circular';
@@ -258,7 +185,6 @@ export default function Circulars() {
         
         toast.success("Download initiated...");
       } catch (fallbackError) {
-        console.error("Fallback download also failed:", fallbackError);
         toast.error("Failed to download file. Please try again or contact support.");
       }
     }
@@ -272,14 +198,10 @@ export default function Circulars() {
     }
 
     try {
-      console.log("Attempting to open circular file:", filePath);
-      
       // Construct the full URL for the circular file
       const fileUrl = filePath.startsWith('http') 
         ? filePath 
         : `${import.meta.env.VITE_API_BASE_URL}/${filePath}`;
-      
-      console.log("Full file URL:", fileUrl);
       
       // Get authentication token
       const token = localStorage.getItem("token");
@@ -292,7 +214,6 @@ export default function Circulars() {
       
       // Check file extension to determine how to handle it
       const fileExtension = filePath.split('.').pop()?.toLowerCase();
-      console.log("File extension:", fileExtension);
       
       if (fileExtension === 'pdf') {
         // For PDF files, try to open in new tab with authentication
@@ -308,13 +229,11 @@ export default function Circulars() {
             window.open(url, '_blank');
             toast.success("Opening PDF circular...");
           } else {
-            console.error("Failed to fetch PDF:", response.status);
             // Fallback to direct URL
             window.open(fileUrl, '_blank');
             toast.success("Opening PDF circular...");
           }
         } catch (error) {
-          console.error("Error opening PDF:", error);
           // Fallback to direct URL
           window.open(fileUrl, '_blank');
           toast.success("Opening PDF circular...");
@@ -338,41 +257,20 @@ export default function Circulars() {
             window.open(url, '_blank');
             toast.success("Opening circular file...");
           } else {
-            console.error("Failed to fetch file:", response.status);
             // Fallback to direct URL
             window.open(fileUrl, '_blank');
             toast.success("Opening circular file...");
           }
         } catch (error) {
-          console.error("Error opening file:", error);
           // Fallback to direct URL
           window.open(fileUrl, '_blank');
           toast.success("Opening circular file...");
         }
       }
     } catch (error) {
-      console.error("Error opening circular file:", error);
       toast.error("Failed to open circular file. Please try again.");
     }
   };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   const exportToExcel = () => {
     const exportData = filteredCirculars.map((circular, index) => ({
@@ -500,7 +398,6 @@ export default function Circulars() {
       doc.save("circulars.pdf");
       toast.success("Circulars exported to PDF!");
     } catch (err) {
-      console.error("PDF export failed:", err);
       toast.error("PDF export failed: " + err.message);
     }
   };
