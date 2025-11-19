@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { FiSun, FiMoon, FiUser, FiBell, FiClock, FiCalendar, FiCheckCircle, FiRefreshCw, FiSearch, FiMessageSquare, FiCreditCard, FiSettings, FiAward } from "react-icons/fi";
+import { FiSun, FiMoon, FiUser, FiBell, FiClock, FiCalendar, FiCheckCircle, FiRefreshCw, FiMessageSquare, FiCreditCard, FiSettings, FiAward } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import api from "../../../api/axiosConfig";
 import { getAuthHeaders } from "../../../utils/apiHeaders";
@@ -289,25 +289,6 @@ export default function TopBar() {
     <header className="flex items-center justify-between bg-white dark:bg-[#1E1E1E] border-b border-gray-200 dark:border-gray-700 shadow px-3 sm:px-6 py-2 mb-2 rounded-xl min-h-[45px]">
       <div className="font-bold text-lg sm:text-xl text-gray-800 dark:text-gray-100 truncate">Dashboard Overview</div>
       <div className="flex items-center gap-2 sm:gap-4">
-        {/* Direct Search Input */}
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search products..."
-            className="w-48 sm:w-64 md:w-80 px-4 py-2 pl-10 pr-4 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1E1E1E] text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all"
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                const searchQuery = e.target.value.trim();
-                if (searchQuery) {
-                  localStorage.setItem('globalSearchQuery', searchQuery);
-                  window.location.href = '/user/search-results';
-                }
-              }
-            }}
-          />
-          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={18} />
-        </div>
-        
         <button
           className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none flex items-center justify-center"
           title="Toggle theme"
