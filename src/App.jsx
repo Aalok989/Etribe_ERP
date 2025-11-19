@@ -181,7 +181,39 @@ function ProtectedRoute({ children, requiredRole = "user" }) {
 function App() {
   const { isAuthenticated, userRole, isLoading } = useAuth();
 
-  // Auto-logout when tab/window is closed for security
+  // Check on page load if this is a reload and restore auth if needed
+  useEffect(() => {
+    const navigation = performance.getEntriesByType('navigation')[0];
+    const isReload = navigation && navigation.type === 'reload';
+    const unloadTimestamp = sessionStorage.getItem('unload_timestamp');
+    const authBackup = sessionStorage.getItem('auth_backup');
+    
+    // If it's a reload and we have a backup, restore auth
+    if (isReload && authBackup && unloadTimestamp) {
+      try {
+        const authData = JSON.parse(authBackup);
+        localStorage.setItem('token', authData.token);
+        if (authData.userRole) localStorage.setItem('userRole', authData.userRole);
+        if (authData.uid) localStorage.setItem('uid', authData.uid);
+        if (authData.user_role_id) localStorage.setItem('user_role_id', authData.user_role_id);
+        
+        // Clear backup data
+        sessionStorage.removeItem('auth_backup');
+        sessionStorage.removeItem('unload_timestamp');
+        
+        // Dispatch login event to update auth state
+        window.dispatchEvent(new Event('login'));
+      } catch (err) {
+        console.error('Failed to restore auth:', err);
+      }
+    } else if (!isReload && unloadTimestamp) {
+      // Not a reload, clear backup data (it was a tab close)
+      sessionStorage.removeItem('auth_backup');
+      sessionStorage.removeItem('unload_timestamp');
+    }
+  }, []); // Run only on mount
+
+  // Auto-logout when tab/window is closed for security (but NOT on page reload)
   useEffect(() => {
     // Only set up auto-logout if user is authenticated
     if (!isAuthenticated) {
@@ -189,40 +221,41 @@ function App() {
     }
 
     const handleBeforeUnload = (e) => {
-      // Clear authentication data when tab is closed
+      // Save current auth state to sessionStorage as backup
+      // This allows us to restore it if it's a reload
       const token = localStorage.getItem('token');
+      const userRole = localStorage.getItem('userRole');
+      const uid = localStorage.getItem('uid');
+      const userRoleId = localStorage.getItem('user_role_id');
+      
       if (token) {
-        // Clear all auth data synchronously
+        sessionStorage.setItem('auth_backup', JSON.stringify({
+          token,
+          userRole,
+          uid,
+          user_role_id: userRoleId
+        }));
+        
+        // Set timestamp to detect if it's a reload (reloads happen very quickly)
+        sessionStorage.setItem('unload_timestamp', Date.now().toString());
+        
+        // Clear auth data (will be restored on reload if needed)
         localStorage.removeItem('token');
         localStorage.removeItem('userRole');
         localStorage.removeItem('uid');
-        
-        // Dispatch logout event to notify other components
-        // Note: This might not always fire due to browser limitations
-        try {
-          window.dispatchEvent(new Event('logout'));
-        } catch (err) {
-          // Ignore errors if event dispatch fails
-        }
+        localStorage.removeItem('user_role_id');
       }
     };
 
     const handlePageHide = (e) => {
-      // This event is more reliable for detecting tab close
-      const token = localStorage.getItem('token');
-      if (token) {
-        // Clear all auth data
-        localStorage.removeItem('token');
-        localStorage.removeItem('userRole');
-        localStorage.removeItem('uid');
-        
-        // Dispatch logout event
-        try {
-          window.dispatchEvent(new Event('logout'));
-        } catch (err) {
-          // Ignore errors if event dispatch fails
-        }
+      // If page is being persisted (kept in memory), it's likely navigation/reload
+      // Don't do anything, let the next page load handle it
+      if (e.persisted) {
+        return;
       }
+      
+      // For non-persisted pagehide, auth was already cleared in beforeunload
+      // The next page load will determine if it should be restored
     };
 
     // Add event listeners
