@@ -103,11 +103,11 @@ export default function PendingApproval() {
   const [modifyMember, setModifyMember] = useState(null);
   const [form, setForm] = useState({ 
     plan: "", 
-    validUpto: "", 
+    startDate: "", // Date field (calendar) - not sent to backend
     paymentMode: "", 
     bankName: "", 
     price: "", 
-    validTill: "",
+    validUpto: "", // Valid upto field (calculated) - sent to backend as valid_upto
     chequeNo: "",
     chequeImg: null,
     chequeAmount: "",
@@ -402,13 +402,15 @@ export default function PendingApproval() {
       return;
     }
     setModifyMember(member);
+    // Set today's date as default for startDate (calendar date field)
+    const today = new Date().toISOString().split('T')[0];
     const initialForm = {
       plan: "",
-      validUpto: "",
+      startDate: today,
       paymentMode: "",
       bankName: "",
       price: "",
-      validTill: "",
+      validUpto: "",
       chequeNo: "",
       chequeImg: null,
       chequeAmount: "" // Added chequeAmount
@@ -421,11 +423,11 @@ export default function PendingApproval() {
     setModifyMember(null);
     setForm({ 
       plan: "", 
-      validUpto: "", 
+      startDate: "", 
       paymentMode: "", 
       bankName: "", 
       price: "", 
-      validTill: "",
+      validUpto: "",
       chequeNo: "",
       chequeImg: null,
       chequeAmount: "" // Added chequeAmount
@@ -460,38 +462,39 @@ export default function PendingApproval() {
             
 
           
-          // Calculate valid upto date based on today's date + plan validity
+          // Calculate valid upto date based on startDate (or today if not set) + plan validity
           let calculatedValidUpto = '';
           if (planValidity) {
             try {
-              const today = new Date();
+              // Use startDate if available, otherwise use today
+              const baseDate = form.startDate ? new Date(form.startDate) : new Date();
               const validityText = planValidity.toString().toLowerCase();
-              console.log('Today\'s date:', today);
+              console.log('Base date:', baseDate);
               console.log('Plan validity:', validityText);
               
               // If it's just a number (like "1"), assume it's months
               if (validityText.includes('year') || validityText.includes('yr')) {
                 const years = parseInt(validityText.match(/\d+/)?.[0] || 1);
-                today.setFullYear(today.getFullYear() + years);
+                baseDate.setFullYear(baseDate.getFullYear() + years);
                 console.log('Added years:', years);
               } else if (validityText.includes('month') || validityText.includes('mon')) {
                 const months = parseInt(validityText.match(/\d+/)?.[0] || 1);
-                today.setMonth(today.getMonth() + months);
+                baseDate.setMonth(baseDate.getMonth() + months);
                 console.log('Added months:', months);
               } else if (validityText.includes('day')) {
                 const days = parseInt(validityText.match(/\d+/)?.[0] || 1);
-                today.setDate(today.getDate() + days);
+                baseDate.setDate(baseDate.getDate() + days);
                 console.log('Added days:', days);
               } else {
                 // If just a number (like "1"), assume it's months
                 const months = parseInt(validityText);
                 if (!isNaN(months)) {
-                  today.setMonth(today.getMonth() + months);
+                  baseDate.setMonth(baseDate.getMonth() + months);
                   console.log('Added months (default):', months);
                 }
               }
               
-              calculatedValidUpto = today.toISOString().split('T')[0];
+              calculatedValidUpto = baseDate.toISOString().split('T')[0];
               console.log('Calculated valid upto date:', calculatedValidUpto);
             } catch (error) {
               console.log('Error calculating valid upto date:', error);
@@ -503,7 +506,7 @@ export default function PendingApproval() {
               ...prev,
               [name]: value,
               price: planPrice,
-              validTill: calculatedValidUpto
+              validUpto: calculatedValidUpto
             }));
         } else {
           setForm(prev => ({ ...prev, [name]: value }));
@@ -516,14 +519,14 @@ export default function PendingApproval() {
 
   const handleDateChange = (e) => {
     const selectedDate = e.target.value;
-    setForm(prev => ({ ...prev, validUpto: selectedDate }));
+    setForm(prev => ({ ...prev, startDate: selectedDate }));
     
     // Clear error when user makes changes
     if (updateError) {
       setUpdateError(null);
     }
     
-    // If we have a selected plan, recalculate the valid till based on the selected date
+    // If we have a selected plan, recalculate the valid upto based on the selected date
     if (form.plan) {
       const selectedPlan = plans.find(plan => plan.id == form.plan);
       if (selectedPlan) {
@@ -554,7 +557,7 @@ export default function PendingApproval() {
             }
             
             const calculatedValidUpto = baseDate.toISOString().split('T')[0];
-            setForm(prev => ({ ...prev, validTill: calculatedValidUpto }));
+            setForm(prev => ({ ...prev, validUpto: calculatedValidUpto }));
           } catch (error) {
             console.log('Error calculating valid upto date:', error);
           }
@@ -600,6 +603,7 @@ export default function PendingApproval() {
       data.append('cheque_amount', String(payload.cheque_amount));
       data.append('cheque_no', String(payload.cheque_no));
       data.append('cheque_date', payload.cheque_date);
+      if (payload.valid_upto) data.append('valid_upto', payload.valid_upto);
       if (payload.file) data.append('file', payload.file);
       if (payload.razorpay_order_id) data.append('razorpay_order_id', payload.razorpay_order_id);
       if (payload.razorpay_payment_id) data.append('razorpay_payment_id', payload.razorpay_payment_id);
@@ -707,7 +711,8 @@ export default function PendingApproval() {
                 cheque_date: '',
                 file: undefined,
                 razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id
+                razorpay_payment_id: response.razorpay_payment_id,
+                valid_upto: form.validUpto, // Use the calculated Valid upto field
               };
 
               await addPaymentDetail(paymentPayload, false);
@@ -759,15 +764,15 @@ export default function PendingApproval() {
       return;
     }
     if (!form.validUpto) {
-      setUpdateError('Please select a valid until date.');
+      setUpdateError('Please select a membership plan to calculate valid upto date.');
       return;
     }
-    // Check if date is in future
-    const selectedDate = new Date(form.validUpto);
+    // Check if valid upto date is in future
+    const validUptoDate = new Date(form.validUpto);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    if (selectedDate <= today) {
-      setUpdateError('Please select a future date for membership validity.');
+    if (validUptoDate <= today) {
+      setUpdateError('Valid upto date must be in the future. Please select a membership plan.');
       return;
     }
     
@@ -783,8 +788,9 @@ export default function PendingApproval() {
       return;
     }
     
-    // Validate bank name for non-gateway payments
-    if (!isPaymentGateway && !form.bankName) {
+    // Validate bank name for non-gateway payments (except Cash)
+    const isCash = selectedPaymentModeName && selectedPaymentModeName.toLowerCase() === 'cash';
+    if (!isPaymentGateway && !isCash && !form.bankName) {
       setUpdateError('Please select a bank name.');
       return;
     }
@@ -820,6 +826,7 @@ export default function PendingApproval() {
         cheque_no: isCheque ? form.chequeNo : undefined,
         cheque_date: isCheque ? form.chequeDate : undefined,
         file: isCheque ? form.chequeImg : undefined,
+        valid_upto: form.validUpto, // Use the calculated Valid upto field
       };
       await addPaymentDetail(paymentPayload, isCheque);
       toast.success('Membership activated and payment recorded successfully!');
@@ -1470,8 +1477,8 @@ export default function PendingApproval() {
                   </label>
                   <input
                     type="date"
-                    name="validUpto"
-                    value={form.validUpto}
+                    name="startDate"
+                    value={form.startDate}
                     onChange={handleDateChange}
                     min={new Date().toISOString().split('T')[0]}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 dark:bg-gray-700 dark:text-gray-100"
@@ -1500,12 +1507,12 @@ export default function PendingApproval() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Valid Till
+                    Valid upto
                   </label>
                   <input
                     type="text"
-                    name="validTill"
-                    value={form.validTill || ''}
+                    name="validUpto"
+                    value={form.validUpto || ''}
                     onChange={handleFormChange}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-600 text-gray-700 dark:text-gray-300 cursor-not-allowed"
                     placeholder="Auto-filled from membership plan"

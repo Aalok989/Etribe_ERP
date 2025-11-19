@@ -144,11 +144,11 @@ export default function MemberDetail_Admin() {
   const [showAddPaymentModal, setShowAddPaymentModal] = useState(false);
   const [addPaymentForm, setAddPaymentForm] = useState({
     plan: "",
-    validUpto: "",
+    startDate: "", // Date field (calendar) - not sent to backend
     paymentMode: "",
     bankName: "",
     price: "",
-    validTill: "",
+    validUpto: "", // Valid upto field (calculated) - sent to backend as valid_upto
     chequeNo: "",
     chequeImg: null,
     chequeAmount: "",
@@ -2754,13 +2754,15 @@ export default function MemberDetail_Admin() {
   // --- Add Payment Functions ---
   const openAddPaymentModal = () => {
     setShowAddPaymentModal(true);
+    // Set today's date as default for startDate (calendar date field)
+    const today = new Date().toISOString().split('T')[0];
     setAddPaymentForm({
       plan: "",
-      validUpto: "",
+      startDate: today,
       paymentMode: "",
       bankName: "",
       price: "",
-      validTill: "",
+      validUpto: "",
       chequeNo: "",
       chequeImg: null,
       chequeAmount: "",
@@ -2776,11 +2778,11 @@ export default function MemberDetail_Admin() {
     setShowAddPaymentModal(false);
     setAddPaymentForm({
       plan: "",
-      validUpto: "",
+      startDate: "",
       paymentMode: "",
       bankName: "",
       price: "",
-      validTill: "",
+      validUpto: "",
       chequeNo: "",
       chequeImg: null,
       chequeAmount: "",
@@ -2807,38 +2809,39 @@ export default function MemberDetail_Admin() {
           const planPrice = selectedPlan.price || selectedPlan.plan_price || selectedPlan.cost || selectedPlan.amount || '';
           const planValidity = selectedPlan.plan_validity || selectedPlan.valid_till || selectedPlan.validity || selectedPlan.duration || selectedPlan.valid_upto || selectedPlan.valid_until || selectedPlan.period || '';
           
-          // Calculate valid upto date based on today's date + plan validity
+          // Calculate valid upto date based on startDate (or today if not set) + plan validity
           let calculatedValidUpto = '';
           if (planValidity) {
             try {
-              const today = new Date();
+              // Use startDate if available, otherwise use today
+              const baseDate = addPaymentForm.startDate ? new Date(addPaymentForm.startDate) : new Date();
               const validityText = planValidity.toString().toLowerCase();
-              console.log('Today\'s date:', today);
+              console.log('Base date:', baseDate);
               console.log('Plan validity:', validityText);
               
               // If it's just a number (like "1"), assume it's months
               if (validityText.includes('year') || validityText.includes('yr')) {
                 const years = parseInt(validityText.match(/\d+/)?.[0] || 1);
-                today.setFullYear(today.getFullYear() + years);
+                baseDate.setFullYear(baseDate.getFullYear() + years);
                 console.log('Added years:', years);
               } else if (validityText.includes('month') || validityText.includes('mon')) {
                 const months = parseInt(validityText.match(/\d+/)?.[0] || 1);
-                today.setMonth(today.getMonth() + months);
+                baseDate.setMonth(baseDate.getMonth() + months);
                 console.log('Added months:', months);
               } else if (validityText.includes('day')) {
                 const days = parseInt(validityText.match(/\d+/)?.[0] || 1);
-                today.setDate(today.getDate() + days);
+                baseDate.setDate(baseDate.getDate() + days);
                 console.log('Added days:', days);
               } else {
                 // If just a number (like "1"), assume it's months
                 const months = parseInt(validityText);
                 if (!isNaN(months)) {
-                  today.setMonth(today.getMonth() + months);
+                  baseDate.setMonth(baseDate.getMonth() + months);
                   console.log('Added months (default):', months);
                 }
               }
               
-              calculatedValidUpto = today.toISOString().split('T')[0];
+              calculatedValidUpto = baseDate.toISOString().split('T')[0];
               console.log('Calculated valid upto date:', calculatedValidUpto);
             } catch (error) {
               console.log('Error calculating valid upto date:', error);
@@ -2850,7 +2853,7 @@ export default function MemberDetail_Admin() {
             ...prev,
             [name]: value,
             price: planPrice,
-            validTill: calculatedValidUpto
+            validUpto: calculatedValidUpto
           }));
         } else {
           setAddPaymentForm(prev => ({ ...prev, [name]: value }));
@@ -2873,9 +2876,9 @@ export default function MemberDetail_Admin() {
 
   const handleAddPaymentDateChange = (e) => {
     const selectedDate = e.target.value;
-    setAddPaymentForm(prev => ({ ...prev, validUpto: selectedDate }));
+    setAddPaymentForm(prev => ({ ...prev, startDate: selectedDate }));
     
-    // If we have a selected plan, recalculate the valid till based on the selected date
+    // If we have a selected plan, recalculate the valid upto based on the selected date
     if (addPaymentForm.plan) {
       const selectedPlan = plans.find(plan => plan.id == addPaymentForm.plan);
       if (selectedPlan) {
@@ -2906,7 +2909,7 @@ export default function MemberDetail_Admin() {
             }
             
             const calculatedValidUpto = baseDate.toISOString().split('T')[0];
-            setAddPaymentForm(prev => ({ ...prev, validTill: calculatedValidUpto }));
+            setAddPaymentForm(prev => ({ ...prev, validUpto: calculatedValidUpto }));
           } catch (error) {
             console.log('Error calculating valid upto date:', error);
           }
@@ -2936,6 +2939,7 @@ export default function MemberDetail_Admin() {
     data.append('cheque_amount', String(payload.cheque_amount));
     data.append('cheque_no', String(payload.cheque_no));
     data.append('cheque_date', payload.cheque_date);
+    if (payload.valid_upto) data.append('valid_upto', payload.valid_upto);
     if (payload.file) data.append('file', payload.file);
     // Remove content-type for FormData
     delete headers['Content-Type'];
@@ -3050,7 +3054,8 @@ export default function MemberDetail_Admin() {
                 cheque_date: '',
                 file: undefined,
                 razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id
+                razorpay_payment_id: response.razorpay_payment_id,
+                valid_upto: addPaymentForm.validUpto, // Use the calculated Valid upto field
               };
 
               const paymentResponse = await addPaymentDetail(paymentPayload, false);
@@ -3130,15 +3135,15 @@ export default function MemberDetail_Admin() {
       return;
     }
     if (!addPaymentForm.validUpto) {
-      setAddPaymentError('Please select a valid until date.');
+      setAddPaymentError('Please select a membership plan to calculate valid upto date.');
       return;
     }
-    // Check if date is in future
-    const selectedDate = new Date(addPaymentForm.validUpto);
+    // Check if valid upto date is in future
+    const validUptoDate = new Date(addPaymentForm.validUpto);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    if (selectedDate <= today) {
-      setAddPaymentError('Please select a future date for membership validity.');
+    if (validUptoDate <= today) {
+      setAddPaymentError('Valid upto date must be in the future. Please select a membership plan.');
       return;
     }
     
@@ -3204,6 +3209,7 @@ export default function MemberDetail_Admin() {
         cheque_no: isCheque ? addPaymentForm.chequeNo : '',
         cheque_date: isCheque ? addPaymentForm.chequeDate : '',
         file: isCheque ? addPaymentForm.chequeImg : undefined,
+        valid_upto: addPaymentForm.validUpto, // Use the calculated Valid upto field
       };
       
       console.log('Payment Payload:', paymentPayload);
@@ -3232,11 +3238,11 @@ export default function MemberDetail_Admin() {
         // Reset form
         setAddPaymentForm({
           plan: "",
-          validUpto: "",
+          startDate: "",
           paymentMode: "",
           bankName: "",
           price: "",
-          validTill: "",
+          validUpto: "",
           chequeNo: "",
           chequeImg: null,
           chequeAmount: "",
@@ -4910,8 +4916,8 @@ export default function MemberDetail_Admin() {
                         </label>
                         <input
                           type="date"
-                          name="validUpto"
-                          value={addPaymentForm.validUpto}
+                          name="startDate"
+                          value={addPaymentForm.startDate}
                           onChange={handleAddPaymentDateChange}
                           min={new Date().toISOString().split('T')[0]}
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 dark:bg-gray-700 dark:text-gray-100"
@@ -4940,12 +4946,12 @@ export default function MemberDetail_Admin() {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Valid Till
+                          Valid upto
                         </label>
                         <input
                           type="text"
-                          name="validTill"
-                          value={addPaymentForm.validTill || ''}
+                          name="validUpto"
+                          value={addPaymentForm.validUpto || ''}
                           onChange={handleAddPaymentFormChange}
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-600 text-gray-700 dark:text-gray-300 cursor-not-allowed"
                           placeholder="Auto-filled from membership plan"
