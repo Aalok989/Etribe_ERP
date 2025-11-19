@@ -210,22 +210,15 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
           {groupData?.signature ? (
             <img
               src={groupData.signature}
-              alt="Signature Logo"
+              alt="Organization Logo"
               className={`object-contain ${collapsed ? "w-16 h-6" : "w-32 h-8"}`}
             />
           ) : (
-            <div className="flex items-center gap-3">
-              <img
-                src="/src/assets/Etribe-logo.jpg"
-                alt="Etribe Logo"
-                className={`rounded-lg ${collapsed ? "w-8 h-8" : "w-8 h-8"}`}
+            <div
+              className={`rounded-lg bg-gray-100 dark:bg-gray-800 ${
+                collapsed ? "w-12 h-8" : "w-32 h-10"
+              }`}
               />
-              {!collapsed && (
-                <span className="text-lg font-bold text-gray-800 dark:text-white">
-                  Etribe
-                </span>
-              )}
-            </div>
           )}
         <button
           className="ml-auto p-2 bg-blue-600 dark:bg-gray-700 text-white rounded-lg shadow-lg hover:bg-blue-700 dark:hover:bg-gray-600 transition-colors"
@@ -373,14 +366,15 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
       {/* Mobile Logo Section */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div className="flex items-center gap-3">
+          {groupData?.signature ? (
           <img
-            src="/src/assets/Etribe-logo.jpg"
-            alt="Etribe Logo"
-            className="w-8 h-8 rounded-lg"
+              src={groupData.signature}
+              alt="Organization Logo"
+              className="w-12 h-8 object-contain"
           />
-          <span className="text-lg font-bold text-gray-800 dark:text-white">
-            Etribe
-          </span>
+          ) : (
+            <div className="w-16 h-10 rounded-lg bg-gray-100 dark:bg-gray-800" />
+          )}
         </div>
         <button
           className="p-2 bg-blue-600 dark:bg-gray-700 text-white rounded-lg shadow-lg hover:bg-blue-700 dark:hover:bg-gray-600 transition-colors"

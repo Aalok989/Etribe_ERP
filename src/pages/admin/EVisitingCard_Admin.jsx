@@ -79,8 +79,8 @@ export default function EVisitingCard_Admin() {
           });
 
         setUsers(formatted);
-    } catch (error) {
-      toast.error("Unable to load users. Please try again.");
+      } catch (error) {
+        toast.error("Unable to load users. Please try again.");
       } finally {
         setLoadingUsers(false);
       }

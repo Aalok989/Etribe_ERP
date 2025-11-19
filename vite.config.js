@@ -2,8 +2,15 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  logLevel: 'error',
+  logLevel: 'error',      // Hide internal Vite logs
+  clearScreen: false,     // Prevent Vite from clearing console
+
+  client: {
+    logging: "error",     // Hides: [vite] hot updated ... (ONLY errors will show)
+  },
+
   plugins: [react()],
+
   server: {
     proxy: {
       '/api': {
@@ -13,9 +20,12 @@ export default defineConfig({
         secure: false,
       },
     },
+    hmr: {
+      overlay: false,     // Stop error overlay popping on screen
+    },
   },
+
   build: {
-    // Optimize build for better performance
     target: 'es2015',
     minify: 'terser',
     terserOptions: {
@@ -26,7 +36,6 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        // Split chunks for better caching
         manualChunks: {
           vendor: ['react', 'react-dom'],
           router: ['react-router-dom'],
@@ -35,12 +44,10 @@ export default defineConfig({
         },
       },
     },
-    // Enable source maps for debugging
     sourcemap: false,
-    // Optimize chunk size
     chunkSizeWarningLimit: 1000,
   },
-  // Optimize dependencies
+
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom', 'html2pdf.js'],
   },
