@@ -450,14 +450,17 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
       {/* Mobile Logo Section */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div className="flex items-center gap-3">
-          <img
-            src="/src/assets/Etribe-logo.jpg"
-            alt="Etribe Logo"
-            className="w-8 h-8 rounded-lg"
-          />
-          <span className="text-lg font-bold text-gray-800 dark:text-white">
-            Etribe
-          </span>
+          {groupData?.signature ? (
+            <div className="w-16 h-12 flex items-center justify-center">
+              <img
+                src={groupData.signature}
+                alt="Organization Logo"
+                className="w-full h-full object-contain"
+              />
+            </div>
+          ) : (
+            <div className="w-16 h-12 rounded-lg bg-gray-100 dark:bg-gray-800" />
+          )}
         </div>
         <button
           className="p-2 bg-blue-600 dark:bg-gray-700 text-white rounded-lg shadow-lg hover:bg-blue-700 dark:hover:bg-gray-600 transition-colors"

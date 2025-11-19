@@ -328,7 +328,7 @@ export default function AnalyticsGraph() {
       </div>
 
       {/* Chart Container */}
-      <div className="flex-1 min-h-0 h-0 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center" style={{ minHeight: 320 }}>
         {loading ? (
           <div className="flex items-center justify-center h-full w-full">
             <div className="text-center">
@@ -368,7 +368,7 @@ export default function AnalyticsGraph() {
             </div>
           </div>
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
+          <div className="w-full h-full flex items-center justify-center" style={{ minHeight: 320 }}>
             <ResponsiveContainer width="100%" height="100%">
               {getChartComponent()}
             </ResponsiveContainer>

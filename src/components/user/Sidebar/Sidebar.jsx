@@ -366,15 +366,17 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
       {/* Mobile Logo Section */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div className="flex items-center gap-3">
-          {groupData?.signature ? (
-          <img
-              src={groupData.signature}
-              alt="Organization Logo"
-              className="w-12 h-8 object-contain"
-          />
-          ) : (
-            <div className="w-16 h-10 rounded-lg bg-gray-100 dark:bg-gray-800" />
-          )}
+          <div className="w-16 h-12 flex items-center justify-center">
+            {groupData?.signature ? (
+              <img
+                src={groupData.signature}
+                alt="Organization Logo"
+                className="max-w-full max-h-full object-contain"
+              />
+            ) : (
+              <div className="w-full h-full rounded-lg bg-gray-100 dark:bg-gray-800" />
+            )}
+          </div>
         </div>
         <button
           className="p-2 bg-blue-600 dark:bg-gray-700 text-white rounded-lg shadow-lg hover:bg-blue-700 dark:hover:bg-gray-600 transition-colors"
