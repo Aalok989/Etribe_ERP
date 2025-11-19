@@ -2753,6 +2753,11 @@ export default function MemberDetail_Admin() {
 
   // --- Add Payment Functions ---
   const openAddPaymentModal = () => {
+    // Check permission before opening add payment modal
+    if (!canAdd) {
+      toast.error('You do not have permission to add Payment records.');
+      return;
+    }
     setShowAddPaymentModal(true);
     // Set today's date as default for startDate (calendar date field)
     const today = new Date().toISOString().split('T')[0];
@@ -4208,14 +4213,16 @@ export default function MemberDetail_Admin() {
                   <FiUsers className="text-indigo-600" />
                   <span>Total Payments: {payments.length}</span>
                 </div>
-                <button
-                  onClick={openAddPaymentModal}
-                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                  title="Add New Payment"
-                >
-                  <FiPlus size={16} />
-                  Add Payment
-                </button>
+                {canAdd && (
+                  <button
+                    onClick={openAddPaymentModal}
+                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    title="Add New Payment"
+                  >
+                    <FiPlus size={16} />
+                    Add Payment
+                  </button>
+                )}
               </div>
             </div>
             <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] w-full">

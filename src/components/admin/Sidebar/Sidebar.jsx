@@ -175,7 +175,7 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
   const handleLogout = useLogout();
   
   // Get permissions
-  const { canAccessRoute, loading: permissionsLoading } = usePermissions();
+  const { canAccessRoute, canPerformActionOnRoute, loading: permissionsLoading } = usePermissions();
   
   // Try to use DashboardContext first, fallback to GroupDataContext
   let groupData = {};
@@ -222,13 +222,22 @@ export default function Sidebar({ className = "", collapsed, setCollapsed }) {
       } else {
         // For non-dropdown items, check permission
         if (item.path === '/admin/dashboard') return item;
+        
+        // Special case: "New Registration" requires 'add' permission, not just 'view'
+        if (item.path === '/admin/new-registration') {
+          if (canPerformActionOnRoute(item.path, 'add')) {
+            return item;
+          }
+          return null;
+        }
+        
         if (canAccessRoute(item.path)) {
           return item;
         }
         return null;
       }
     }).filter(item => item !== null);
-  }, [menuItems, canAccessRoute, permissionsLoading]);
+  }, [menuItems, canAccessRoute, canPerformActionOnRoute, permissionsLoading]);
 
   // Open the relevant dropdown if inside a nested path
   useEffect(() => {
