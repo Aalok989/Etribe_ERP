@@ -1,11 +1,20 @@
 import React from 'react';
-import { FaFacebook, FaInstagram, FaLinkedin, FaYoutube } from 'react-icons/fa';
+import { FaFacebook, FaInstagram, FaLinkedin, FaYoutube, FaPinterest } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import parentLogo from '../../../../assets/logos/parent.jpg';
 import memberPhoto from '../../../../assets/Aashish.png';
 
 const Template2 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }) => {
   const visitingCardData = cardData || {};
+  
+  const socialIconsData = [
+    { Icon: FaFacebook, url: visitingCardData.facebookUrl },
+    { Icon: FaInstagram, url: visitingCardData.instagramUrl },
+    { Icon: FaLinkedin, url: visitingCardData.linkedinUrl },
+    { Icon: FaYoutube, url: visitingCardData.youtubeUrl },
+    { Icon: FaXTwitter, url: visitingCardData.twitterUrl || visitingCardData.xUrl },
+    { Icon: FaPinterest, url: visitingCardData.pinterestUrl },
+  ].filter(({ url }) => url && url.trim() !== ''); // Only show icons with valid URLs
 
   return (
     <div
@@ -330,11 +339,26 @@ const Template2 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
             zIndex: 10
           }}
         >
-          <FaFacebook size={18} color="#FFFFFF" style={{ cursor: 'pointer' }} />
-          <FaInstagram size={18} color="#FFFFFF" style={{ cursor: 'pointer' }} />
-          <FaLinkedin size={18} color="#FFFFFF" style={{ cursor: 'pointer' }} />
-          <FaYoutube size={18} color="#FFFFFF" style={{ cursor: 'pointer' }} />
-          <FaXTwitter size={18} color="#FFFFFF" style={{ cursor: 'pointer' }} />
+          {socialIconsData.map(({ Icon, url }, index) => (
+            <a
+              key={index}
+              href={url || '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => {
+                if (!url) {
+                  e.preventDefault();
+                }
+              }}
+              style={{ display: 'inline-flex', alignItems: 'center' }}
+            >
+              <Icon 
+                size={18} 
+                color="#FFFFFF"
+                style={{ cursor: url ? 'pointer' : 'not-allowed', opacity: url ? 1 : 0.6 }}
+              />
+            </a>
+          ))}
         </div>
       </div>
     </div>

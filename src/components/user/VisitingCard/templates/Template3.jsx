@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaFacebook, FaInstagram, FaLinkedin, FaYoutube } from 'react-icons/fa';
+import { FaFacebook, FaInstagram, FaLinkedin, FaYoutube, FaPinterest } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import memberPhoto from '../../../../assets/Aashish.png';
 import parentLogo from '../../../../assets/company-logo/parent.jpg';
@@ -19,7 +19,14 @@ const Template3 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
   const ribbonHeight = cardHeight - ribbonTop;
   const ribbonTopOffsetLeft = ribbonTopLeftY - ribbonTop;
   const ribbonTopOffsetRight = ribbonTopRightY - ribbonTop;
-  const socialIcons = [FaFacebook, FaInstagram, FaLinkedin, FaYoutube, FaXTwitter];
+  const socialIconsData = [
+    { Icon: FaFacebook, url: visitingCardData.facebookUrl },
+    { Icon: FaInstagram, url: visitingCardData.instagramUrl },
+    { Icon: FaLinkedin, url: visitingCardData.linkedinUrl },
+    { Icon: FaYoutube, url: visitingCardData.youtubeUrl },
+    { Icon: FaXTwitter, url: visitingCardData.twitterUrl || visitingCardData.xUrl },
+    { Icon: FaPinterest, url: visitingCardData.pinterestUrl },
+  ].filter(({ url }) => url && url.trim() !== ''); // Only show icons with valid URLs
   const availableRightWidth = Math.max(cardWidth - ribbonRight, 0);
   const profileSize = cardHeight * 0.28;
   const profileBorderWidth = 6;
@@ -315,8 +322,25 @@ const Template3 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
               gap: '24px'
             }}
           >
-            {socialIcons.map((Icon, index) => (
-              <Icon key={index} size={20} color="#FFFFFF" />
+            {socialIconsData.map(({ Icon, url }, index) => (
+              <a
+                key={index}
+                href={url || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => {
+                  if (!url) {
+                    e.preventDefault();
+                  }
+                }}
+                style={{ display: 'inline-flex', alignItems: 'center' }}
+              >
+                <Icon 
+                  size={20} 
+                  color="#FFFFFF"
+                  style={{ cursor: url ? 'pointer' : 'not-allowed', opacity: url ? 1 : 0.6 }}
+                />
+              </a>
             ))}
           </div>
         </div>

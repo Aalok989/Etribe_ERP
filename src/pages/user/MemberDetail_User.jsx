@@ -8,7 +8,7 @@ import {
   FiShield, FiFileText, FiGlobe, FiAlertCircle, FiChevronLeft, FiRefreshCw, 
   FiBriefcase, FiX, FiSearch, FiUsers, FiCopy, FiDownload, FiFile, FiChevronDown, 
   FiEye, FiShare2, FiEdit, FiTrash2, FiChevronRight, FiChevronUp, FiImage, FiFolder, 
-  FiPlus, FiUpload 
+  FiPlus, FiUpload, FiCheck
 } from "react-icons/fi";
 import DashboardLayout from "../../components/user/Layout/DashboardLayout";
 import api from "../../api/axiosConfig";
@@ -82,6 +82,23 @@ export default function MemberDetail() {
     toast.error('Unable to share the visiting card right now.');
   }, []);
   const [showVisitingCard, setShowVisitingCard] = useState(false);
+  
+  // ============================================================================
+  // SOCIAL MEDIA LINKS STATE
+  // ============================================================================
+  const [socialMediaData, setSocialMediaData] = useState(null);
+  const [socialMediaLoading, setSocialMediaLoading] = useState(false);
+  const [socialMediaSaving, setSocialMediaSaving] = useState(false);
+  const [editSocialMedia, setEditSocialMedia] = useState(false);
+  const [socialMediaForm, setSocialMediaForm] = useState({
+    fb: '',
+    instagram: '',
+    linkedin: '',
+    youtube: '',
+    twitter: '',
+    pinterest: '',
+  });
+  const [socialMediaId, setSocialMediaId] = useState(null);
 
   // ============================================================================
   // LOCATION AND ADDITIONAL FIELDS STATE
@@ -1463,12 +1480,166 @@ export default function MemberDetail() {
     };
   }, [member?.id]); // Only depend on member ID
 
+  // ============================================================================
+  // SOCIAL MEDIA FUNCTIONS
+  // ============================================================================
+  const fetchSocialMedia = useCallback(async () => {
+    if (!memberId) return;
+    
+    try {
+      setSocialMediaLoading(true);
+      const headers = getAuthHeaders();
+      const response = await api.get('Socials/index/', { headers });
+      
+      if (response.data?.status && response.data?.data?.contact) {
+        const userSocialData = response.data.data.contact.find(
+          (contact) => String(contact.user_id) === String(memberId)
+        );
+        
+        if (userSocialData) {
+          setSocialMediaData(userSocialData);
+          setSocialMediaId(userSocialData.id);
+          setSocialMediaForm({
+            fb: userSocialData.fb || '',
+            instagram: userSocialData.instagram || '',
+            linkedin: userSocialData.linkedin || '',
+            youtube: userSocialData.youtube || '',
+            twitter: userSocialData.twitter || '',
+            pinterest: userSocialData.pinterest || '',
+          });
+        } else {
+          setSocialMediaData(null);
+          setSocialMediaId(null);
+          setSocialMediaForm({
+            fb: '',
+            instagram: '',
+            linkedin: '',
+            youtube: '',
+            twitter: '',
+            pinterest: '',
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch social media data:', error);
+      toast.error('Failed to load social media links');
+    } finally {
+      setSocialMediaLoading(false);
+    }
+  }, [memberId]);
+
+  const saveSocialMedia = async () => {
+    if (!memberId) {
+      toast.error('User ID not found');
+      return;
+    }
+
+    try {
+      setSocialMediaSaving(true);
+      const headers = getAuthHeaders();
+      
+      const payload = {
+        fb: socialMediaForm.fb || '',
+        instagram: socialMediaForm.instagram || '',
+        linkedin: socialMediaForm.linkedin || '',
+        youtube: socialMediaForm.youtube || '',
+        twitter: socialMediaForm.twitter || '',
+        pinterest: socialMediaForm.pinterest || '',
+      };
+
+      if (socialMediaId) {
+        // Update existing
+        const response = await api.post('Socials/edit/', {
+          id: socialMediaId,
+          ...payload,
+        }, { headers });
+        
+        if (response.data?.status) {
+          toast.success('Social media links updated successfully');
+          setEditSocialMedia(false);
+          await fetchSocialMedia();
+        } else {
+          toast.error(response.data?.message || 'Failed to update social media links');
+        }
+      } else {
+        // Add new
+        const response = await api.post('Socials/add/', payload, { headers });
+        
+        if (response.data?.status) {
+          toast.success('Social media links added successfully');
+          setEditSocialMedia(false);
+          await fetchSocialMedia();
+        } else {
+          toast.error(response.data?.message || 'Failed to add social media links');
+        }
+      }
+    } catch (error) {
+      console.error('Failed to save social media data:', error);
+      toast.error('Failed to save social media links');
+    } finally {
+      setSocialMediaSaving(false);
+    }
+  };
+
+  const deleteSocialMedia = async () => {
+    if (!socialMediaId) {
+      toast.error('No social media data to delete');
+      return;
+    }
+
+    // Confirm deletion
+    if (!window.confirm('Are you sure you want to delete all your social media links? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setSocialMediaSaving(true);
+      const headers = getAuthHeaders();
+      const response = await api.delete('Socials/delete/', {
+        headers,
+        data: {
+          id: socialMediaId,
+        },
+      });
+      
+      if (response.data?.status) {
+        toast.success('Social media links deleted successfully');
+        setSocialMediaData(null);
+        setSocialMediaId(null);
+        setSocialMediaForm({
+          fb: '',
+          instagram: '',
+          linkedin: '',
+          youtube: '',
+          twitter: '',
+          pinterest: '',
+        });
+        setEditSocialMedia(false);
+        // Refresh visiting card to remove icons
+        await fetchSocialMedia();
+      } else {
+        toast.error(response.data?.message || 'Failed to delete social media links');
+      }
+    } catch (error) {
+      console.error('Failed to delete social media data:', error);
+      toast.error('Failed to delete social media links');
+    } finally {
+      setSocialMediaSaving(false);
+    }
+  };
+
   useEffect(() => {
     if (member) {
       console.log('🔍 Member loaded, fetching countries and states with optimization...');
       fetchLocationDataOptimized();
     }
   }, [member]); // Depend on entire member object to trigger after data refresh
+
+  useEffect(() => {
+    if (activeTab === 'e-visiting-card' && memberId) {
+      fetchSocialMedia();
+    }
+  }, [activeTab, memberId, fetchSocialMedia]);
 
   // Fetch states when country changes (similar to AdminAccounts pattern)
   useEffect(() => {
@@ -5366,6 +5537,226 @@ export default function MemberDetail() {
                 </p>
               </div>
             </div>
+
+            {/* Social Media Links Section */}
+            <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] border border-gray-200 dark:border-gray-700">
+              <div className="p-4 sm:p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Social Media Links
+                  </h2>
+                  {!editSocialMedia && (
+                    <div className="flex items-center gap-2">
+                      {socialMediaData && (
+                        <button
+                          type="button"
+                          onClick={deleteSocialMedia}
+                          disabled={socialMediaSaving}
+                          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <FiTrash2 size={16} />
+                          Delete
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setEditSocialMedia(true)}
+                        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
+                      >
+                        <FiEdit2 size={16} />
+                        {socialMediaData ? 'Edit Links' : 'Add Links'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {editSocialMedia ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Facebook
+                        </label>
+                        <input
+                          type="text"
+                          value={socialMediaForm.fb}
+                          onChange={(e) => setSocialMediaForm({ ...socialMediaForm, fb: e.target.value })}
+                          placeholder="Enter Facebook URL or username"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Instagram
+                        </label>
+                        <input
+                          type="text"
+                          value={socialMediaForm.instagram}
+                          onChange={(e) => setSocialMediaForm({ ...socialMediaForm, instagram: e.target.value })}
+                          placeholder="Enter Instagram URL or username"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          LinkedIn
+                        </label>
+                        <input
+                          type="text"
+                          value={socialMediaForm.linkedin}
+                          onChange={(e) => setSocialMediaForm({ ...socialMediaForm, linkedin: e.target.value })}
+                          placeholder="Enter LinkedIn URL or username"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          YouTube
+                        </label>
+                        <input
+                          type="text"
+                          value={socialMediaForm.youtube}
+                          onChange={(e) => setSocialMediaForm({ ...socialMediaForm, youtube: e.target.value })}
+                          placeholder="Enter YouTube URL or channel name"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Twitter/X
+                        </label>
+                        <input
+                          type="text"
+                          value={socialMediaForm.twitter}
+                          onChange={(e) => setSocialMediaForm({ ...socialMediaForm, twitter: e.target.value })}
+                          placeholder="Enter Twitter/X URL or username"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Pinterest
+                        </label>
+                        <input
+                          type="text"
+                          value={socialMediaForm.pinterest}
+                          onChange={(e) => setSocialMediaForm({ ...socialMediaForm, pinterest: e.target.value })}
+                          placeholder="Enter Pinterest URL or username"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <button
+                        type="button"
+                        onClick={saveSocialMedia}
+                        disabled={socialMediaSaving}
+                        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {socialMediaSaving ? (
+                          <>
+                            <FiRefreshCw className="animate-spin" size={16} />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <FiCheck size={16} />
+                            Save Links
+                          </>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditSocialMedia(false);
+                          // Reset form to original values
+                          if (socialMediaData) {
+                            setSocialMediaForm({
+                              fb: socialMediaData.fb || '',
+                              instagram: socialMediaData.instagram || '',
+                              linkedin: socialMediaData.linkedin || '',
+                              youtube: socialMediaData.youtube || '',
+                              twitter: socialMediaData.twitter || '',
+                              pinterest: socialMediaData.pinterest || '',
+                            });
+                          } else {
+                            setSocialMediaForm({
+                              fb: '',
+                              instagram: '',
+                              linkedin: '',
+                              youtube: '',
+                              twitter: '',
+                              pinterest: '',
+                            });
+                          }
+                        }}
+                        disabled={socialMediaSaving}
+                        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
+                      >
+                        <FiX size={16} />
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {socialMediaLoading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <FiRefreshCw className="animate-spin text-indigo-600" size={24} />
+                        <span className="ml-2 text-gray-600 dark:text-gray-400">Loading social media links...</span>
+                      </div>
+                    ) : socialMediaData ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {socialMediaForm.fb && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-medium text-gray-700 dark:text-gray-300 w-24">Facebook:</span>
+                            <span className="text-gray-600 dark:text-gray-400 truncate">{socialMediaForm.fb}</span>
+                          </div>
+                        )}
+                        {socialMediaForm.instagram && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-medium text-gray-700 dark:text-gray-300 w-24">Instagram:</span>
+                            <span className="text-gray-600 dark:text-gray-400 truncate">{socialMediaForm.instagram}</span>
+                          </div>
+                        )}
+                        {socialMediaForm.linkedin && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-medium text-gray-700 dark:text-gray-300 w-24">LinkedIn:</span>
+                            <span className="text-gray-600 dark:text-gray-400 truncate">{socialMediaForm.linkedin}</span>
+                          </div>
+                        )}
+                        {socialMediaForm.youtube && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-medium text-gray-700 dark:text-gray-300 w-24">YouTube:</span>
+                            <span className="text-gray-600 dark:text-gray-400 truncate">{socialMediaForm.youtube}</span>
+                          </div>
+                        )}
+                        {socialMediaForm.twitter && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-medium text-gray-700 dark:text-gray-300 w-24">Twitter/X:</span>
+                            <span className="text-gray-600 dark:text-gray-400 truncate">{socialMediaForm.twitter}</span>
+                          </div>
+                        )}
+                        {socialMediaForm.pinterest && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-medium text-gray-700 dark:text-gray-300 w-24">Pinterest:</span>
+                            <span className="text-gray-600 dark:text-gray-400 truncate">{socialMediaForm.pinterest}</span>
+                          </div>
+                        )}
+                        {!socialMediaForm.fb && !socialMediaForm.instagram && !socialMediaForm.linkedin && 
+                         !socialMediaForm.youtube && !socialMediaForm.twitter && !socialMediaForm.pinterest && (
+                          <p className="text-sm text-gray-500 dark:text-gray-400">No social media links added yet.</p>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 dark:text-gray-400">No social media links added yet. Click "Add Links" to get started.</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Visiting Card Preview */}
             <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] border border-gray-200 dark:border-gray-700">
               <div className="p-4 sm:p-6">
                  <VisitingCard

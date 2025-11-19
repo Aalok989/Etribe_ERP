@@ -1,7 +1,7 @@
 import React from 'react';
 import parentLogo from '../../../../assets/logos/parent.jpg';
 import memberPhoto from '../../../../assets/Aashish.png';
-import { FaFacebook, FaInstagram, FaLinkedin, FaYoutube } from 'react-icons/fa';
+import { FaFacebook, FaInstagram, FaLinkedin, FaYoutube, FaPinterest } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 
 const Template4 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }) => {
@@ -13,7 +13,14 @@ const Template4 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
   const barHeight = cardHeight * 0.16;
   const halfBarHeight = barHeight / 2;
   const triangleWidth = cardWidth * 0.12;
-  const socialIcons = [FaFacebook, FaInstagram, FaLinkedin, FaYoutube, FaXTwitter];
+  const socialIconsData = [
+    { Icon: FaFacebook, url: visitingCardData.facebookUrl },
+    { Icon: FaInstagram, url: visitingCardData.instagramUrl },
+    { Icon: FaLinkedin, url: visitingCardData.linkedinUrl },
+    { Icon: FaYoutube, url: visitingCardData.youtubeUrl },
+    { Icon: FaXTwitter, url: visitingCardData.twitterUrl || visitingCardData.xUrl },
+    { Icon: FaPinterest, url: visitingCardData.pinterestUrl },
+  ].filter(({ url }) => url && url.trim() !== ''); // Only show icons with valid URLs
   const photoSrc = visitingCardData.profileImage || memberPhoto;
   const photoSize = Math.min(cardWidth * 0.38, availableRightWidth * 0.8);
   const photoLeft = leftStripWidth + (availableRightWidth - photoSize) / 2;
@@ -58,8 +65,25 @@ const Template4 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
           zIndex: 4
         }}
       >
-        {socialIcons.map((Icon, index) => (
-          <Icon key={index} size={20} color="#FFFFFF" />
+        {socialIconsData.map(({ Icon, url }, index) => (
+          <a
+            key={index}
+            href={url || '#'}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => {
+              if (!url) {
+                e.preventDefault();
+              }
+            }}
+            style={{ display: 'inline-flex', alignItems: 'center' }}
+          >
+            <Icon 
+              size={20} 
+              color="#FFFFFF"
+              style={{ cursor: url ? 'pointer' : 'not-allowed', opacity: url ? 1 : 0.6 }}
+            />
+          </a>
         ))}
       </div>
       {photoSrc && (

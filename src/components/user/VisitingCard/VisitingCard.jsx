@@ -5,6 +5,18 @@ import parentLogo from '../../../assets/logos/parent.jpg';
 import memberPhoto from '../../../assets/Aashish.png';
 import { templates } from './templates';
 import { getAssignmentForUser, saveUserTemplateSelection } from '../../../data/mockVisitingCardConfig';
+import api from '../../../api/axiosConfig';
+import { getAuthHeaders } from '../../../utils/apiHeaders';
+
+// Helper function to normalize URLs (add protocol if missing)
+const normalizeUrl = (url) => {
+  if (!url || url.trim() === '') return null;
+  const trimmedUrl = url.trim();
+  if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+    return trimmedUrl;
+  }
+  return `https://${trimmedUrl}`;
+};
 
 const SHAREABLE_FIELDS = [
   'memberName',
@@ -56,20 +68,91 @@ const VisitingCard = ({
     issuedUpto: 'Dec 2025',
   }), []);
 
-  const visitingCardData = useMemo(() => {
-    if (useMockData || !profileData) {
-      return baseMockData;
-    }
+  const [socialMediaData, setSocialMediaData] = useState(null);
+  const [loadingSocials, setLoadingSocials] = useState(false);
 
-    const sanitizedProfile = {
-      ...baseMockData,
-      ...Object.fromEntries(
-        Object.entries(profileData).filter(([, value]) => value !== undefined && value !== null && value !== '')
-      ),
+  // Fetch social media data from API
+  useEffect(() => {
+    const fetchSocialMediaData = async () => {
+      // Always try to get userId from localStorage first (real user ID), even if using mock data
+      const storedUid = typeof window !== 'undefined' ? window.localStorage.getItem('uid') : null;
+      
+      // Get userId from profileData or localStorage
+      const userId = profileData?.uid
+        || profileData?.id
+        || profileData?.userId
+        || profileData?.membershipId
+        || storedUid
+        || (useMockData ? baseMockData.membershipId : null);
+
+      if (!userId) {
+        setSocialMediaData(null);
+        return;
+      }
+
+      try {
+        setLoadingSocials(true);
+        const headers = getAuthHeaders();
+        const response = await api.get('Socials/index/', { headers });
+        
+        if (response.data?.status && response.data?.data?.contact) {
+          // Find the contact data for the current user
+          const userSocialData = response.data.data.contact.find(
+            (contact) => String(contact.user_id) === String(userId)
+          );
+          
+          if (userSocialData) {
+            setSocialMediaData({
+              facebookUrl: normalizeUrl(userSocialData.fb),
+              instagramUrl: normalizeUrl(userSocialData.instagram),
+              linkedinUrl: normalizeUrl(userSocialData.linkedin),
+              youtubeUrl: normalizeUrl(userSocialData.youtube),
+              twitterUrl: normalizeUrl(userSocialData.twitter),
+              xUrl: normalizeUrl(userSocialData.twitter), // Support both twitterUrl and xUrl
+              pinterestUrl: normalizeUrl(userSocialData.pinterest),
+            });
+          } else {
+            setSocialMediaData(null);
+          }
+        } else {
+          setSocialMediaData(null);
+        }
+      } catch (error) {
+        console.error('Failed to fetch social media data:', error);
+        setSocialMediaData(null);
+      } finally {
+        setLoadingSocials(false);
+      }
     };
 
-    return sanitizedProfile;
-  }, [baseMockData, profileData, useMockData]);
+    fetchSocialMediaData();
+  }, [profileData, useMockData, baseMockData.membershipId]);
+
+  const visitingCardData = useMemo(() => {
+    let cardData;
+    
+    if (useMockData || !profileData) {
+      cardData = { ...baseMockData };
+    } else {
+      cardData = {
+        ...baseMockData,
+        ...Object.fromEntries(
+          Object.entries(profileData).filter(([, value]) => value !== undefined && value !== null && value !== '')
+        ),
+      };
+    }
+
+    // Always merge social media data if available (even when using mock data)
+    if (socialMediaData) {
+      Object.keys(socialMediaData).forEach((key) => {
+        if (socialMediaData[key]) {
+          cardData[key] = socialMediaData[key];
+        }
+      });
+    }
+
+    return cardData;
+  }, [baseMockData, profileData, useMockData, socialMediaData]);
 
   const templateKeys = useMemo(() => Object.keys(templates).sort(), []);
 
@@ -134,6 +217,8 @@ const VisitingCard = ({
     }
     return [Number(initialTemplateId)];
   }, [allowSelection, assignedTemplates, initialTemplateId]);
+
+  const isSingleTemplate = assignedTemplates.length <= 1;
 
   useEffect(() => {
     if (availableTemplates.length === 0) return;
@@ -317,6 +402,12 @@ const VisitingCard = ({
     }
   }, [assignedTemplates, currentTemplate]);
 
+  useEffect(() => {
+    if (isSingleTemplate && assignedTemplates[0] !== undefined) {
+      setMarkedDefaultTemplate(assignedTemplates[0]);
+    }
+  }, [isSingleTemplate, assignedTemplates]);
+
   const activeIndex = assignedTemplates.findIndex((template) => template === currentTemplate);
 
   const navigateTemplates = (direction) => {
@@ -465,23 +556,25 @@ const VisitingCard = ({
               })}
             </div>
 
-            <div className="mt-6 flex flex-col items-center justify-center gap-3">
-              <label className="inline-flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-200">
-                <input
-                  type="checkbox"
-                  checked={isCurrentMarkedDefault}
-                  onChange={(event) => toggleDefaultTemplate(event.target.checked)}
-                  className="h-4 w-4 cursor-pointer rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                />
-                <span>Mark this template as default</span>
-              </label>
-              <p className="text-xs text-slate-500 dark:text-slate-300">
-                Default template for preview/share:&nbsp;
-                <span className="font-semibold text-slate-700 dark:text-slate-100">
-                  {markedDefaultTemplate ? `Template ${markedDefaultTemplate}` : 'None selected'}
-                </span>
-              </p>
-            </div>
+            {!isSingleTemplate && (
+              <div className="mt-6 flex flex-col items-center justify-center gap-3">
+                <label className="inline-flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-200">
+                  <input
+                    type="checkbox"
+                    checked={isCurrentMarkedDefault}
+                    onChange={(event) => toggleDefaultTemplate(event.target.checked)}
+                    className="h-4 w-4 cursor-pointer rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <span>Mark this template as default</span>
+                </label>
+                <p className="text-xs text-slate-500 dark:text-slate-300">
+                  Default template for preview/share:&nbsp;
+                  <span className="font-semibold text-slate-700 dark:text-slate-100">
+                    {markedDefaultTemplate ? `Template ${markedDefaultTemplate}` : 'None selected'}
+                  </span>
+                </p>
+              </div>
+            )}
 
             {assignedTemplates.length > 0 && (
               <div className="mt-2 flex items-center justify-center gap-2">
