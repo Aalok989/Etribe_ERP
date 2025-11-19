@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
 import DashboardLayout from "../../components/user/Layout/DashboardLayout";
 import StatusCards from "../../components/user/StatusCards/StatusCards";
 import AnalyticsGraph from "../../components/user/AnalyticsGraph/AnalyticsGraph";
@@ -45,35 +44,6 @@ const DashboardSkeleton = () => (
   </div>
 );
 
-// Simplified Upcoming Events Card for Mobile/Tablet
-function UpcomingEventsCard() {
-  const navigate = useNavigate();
-  const { stats, loading } = useDashboard();
-
-  // Use cached stats from dashboard context
-  const upcomingCount = stats.upcomingEventsCount;
-
-  return (
-    <div 
-      className="relative h-32 rounded-2xl shadow-lg flex flex-col items-center justify-center p-3 gap-1 transition-transform duration-200 hover:scale-105 cursor-pointer overflow-hidden bg-gradient-to-br from-indigo-200 via-blue-100 to-white dark:from-indigo-800 dark:via-blue-900 dark:to-[#202123] border border-gray-200 dark:border-gray-700"
-      onClick={() => navigate("/event-management/upcoming")}
-      title="Go to Upcoming Events"
-    >
-      {/* Glassmorphism overlay */}
-      <div className="absolute inset-0 bg-white/30 dark:bg-gray-700/40 backdrop-blur-md border border-white/30 dark:border-gray-700 rounded-2xl pointer-events-none" />
-      <div className="relative z-10 flex flex-col items-center justify-center h-full w-full">
-        <svg className="w-8 h-8 text-indigo-600 dark:text-indigo-300 opacity-80 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-        <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">Upcoming Events</div>
-        <div className="text-2xl font-extrabold text-gray-900 dark:text-gray-100 drop-shadow">
-          {loading.initial || loading.events ? '...' : upcomingCount}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function DashboardContent() {
   const { loading, fastLoading } = useDashboard();
 
@@ -98,9 +68,7 @@ function DashboardContent() {
         
         {/* Event Statistics Section */}
         <div>
-          <div className="grid grid-cols-1 gap-4">
-            <UpcomingEventsCard />
-          </div>
+          <UpcomingEvents />
         </div>
         
         {/* Member Analytics Section */}
