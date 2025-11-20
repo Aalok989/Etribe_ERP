@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import DashboardLayout from "../../components/admin/Layout/DashboardLayout";
+import DashboardLayout from "../../components/admin/DashboardLayout";
 import {
   FiPlus,
   FiFileText,

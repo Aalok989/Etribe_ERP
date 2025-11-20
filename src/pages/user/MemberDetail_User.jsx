@@ -10,7 +10,7 @@ import {
   FiEye, FiShare2, FiEdit, FiTrash2, FiChevronRight, FiChevronUp, FiImage, FiFolder, 
   FiPlus, FiUpload, FiCheck
 } from "react-icons/fi";
-import DashboardLayout from "../../components/user/Layout/DashboardLayout";
+import DashboardLayout from "../../components/user/DashboardLayout";
 import api from "../../api/axiosConfig";
 import { getAuthHeaders } from "../../utils/apiHeaders";
 import { toast } from 'react-toastify';

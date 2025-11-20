@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import DashboardLayout from "../../components/admin/Layout/DashboardLayout";
+import DashboardLayout from "../../components/admin/DashboardLayout";
 import { FiPlus, FiX, FiEdit2, FiTrash2, FiRefreshCw, FiSave, FiAlertCircle, FiCheckCircle, FiDollarSign, FiCalendar, FiPackage, FiSearch, FiFilter } from "react-icons/fi";
 import { BiRupee } from "react-icons/bi";
 import api from "../../api/axiosConfig";

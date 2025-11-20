@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import DashboardLayout from "../../components/user/Layout/DashboardLayout";
+import DashboardLayout from "../../components/user/DashboardLayout";
 import etribeLogo from "../../assets/Etribe-logo.jpg";
 import defaultSignature from "../../assets/company-logo/parent.jpg";
 import { FiEdit2, FiX, FiUpload, FiCheckCircle } from "react-icons/fi";

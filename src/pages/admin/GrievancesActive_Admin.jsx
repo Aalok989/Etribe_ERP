@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import DashboardLayout from "../../components/admin/Layout/DashboardLayout";
+import DashboardLayout from "../../components/admin/DashboardLayout";
 import {
   FiSearch,
   FiRefreshCw,

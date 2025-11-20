@@ -3,8 +3,8 @@ import { FiSun, FiMoon, FiUser, FiBell, FiClock, FiCalendar, FiCheckCircle, FiRe
 import { Link } from "react-router-dom";
 import api from "../../../api/axiosConfig";
 import { getAuthHeaders } from "../../../utils/apiHeaders";
-import MemberIDCard from "../MemberIDCard/MemberIDCard";
-import MembershipCertificate from "../MembershipCertificate/MembershipCertificate";
+import MemberIDCard from "./MemberIDCard";
+import MembershipCertificate from "./MembershipCertificate";
 
 export default function TopBar() {
   const [profile, setProfile] = useState({ 

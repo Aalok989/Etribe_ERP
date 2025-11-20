@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import DashboardLayout from "../../components/user/Layout/DashboardLayout";
+import DashboardLayout from "../../components/user/DashboardLayout";
 import { FiFileText, FiRefreshCw, FiSearch, FiUser, FiX } from "react-icons/fi";
 import { toast } from "react-toastify";
 import api from "../../api/axiosConfig";

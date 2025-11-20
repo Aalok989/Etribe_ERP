@@ -11,7 +11,7 @@ import "react-toastify/dist/ReactToastify.css";
 // Shared Components
 import Login from "./pages/shared/Login";
 import VisitingCardShare from "./pages/shared/VisitingCardShare";
-import FastPreloader from "./components/user/FastPreloader/FastPreloader";
+import FastPreloader from "./components/user/FastPreloader";
 
 // Admin Pages
 import Dashboard_Admin from "./pages/admin/Dashboard_Admin";

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FiEdit2, FiArrowUp, FiUser, FiMail, FiPhone, FiMapPin, FiHome, FiCalendar, FiShield, FiFileText, FiGlobe, FiAlertCircle, FiChevronLeft, FiRefreshCw, FiBriefcase, FiX, FiSearch, FiUsers, FiCopy, FiDownload, FiFile, FiChevronDown, FiEye, FiEdit, FiTrash2, FiChevronRight, FiChevronUp, FiImage, FiFolder, FiPlus, FiUpload } from "react-icons/fi";
-import DashboardLayout from "../../components/admin/Layout/DashboardLayout";
+import DashboardLayout from "../../components/admin/DashboardLayout";
 import api from "../../api/axiosConfig";
 import { toast } from 'react-toastify';
 import { getAuthHeaders } from "../../utils/apiHeaders";

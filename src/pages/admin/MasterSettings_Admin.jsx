@@ -1,5 +1,5 @@
 import React from "react";
-import DashboardLayout from "../../components/admin/Layout/DashboardLayout";
+import DashboardLayout from "../../components/admin/DashboardLayout";
 import { toast } from "react-toastify";
 
 export default function MasterSettings() {

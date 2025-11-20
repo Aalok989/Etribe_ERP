@@ -1,10 +1,10 @@
 import React from "react";
-import DashboardLayout from "../../components/user/Layout/DashboardLayout";
-import StatusCards from "../../components/user/StatusCards/StatusCards";
-import AnalyticsGraph from "../../components/user/AnalyticsGraph/AnalyticsGraph";
-import ImportantContacts from "../../components/user/ImportantContacts/ImportantContacts";
-import UpcomingEvents from "../../components/user/UpcomingEvents/UpcomingEvents";
-import FastPreloader from "../../components/user/FastPreloader/FastPreloader";
+import DashboardLayout from "../../components/user/DashboardLayout";
+import StatusCards from "../../components/user/StatusCards";
+import AnalyticsGraph from "../../components/user/AnalyticsGraph";
+import ImportantContacts from "../../components/user/ImportantContacts";
+import UpcomingEvents from "../../components/user/UpcomingEvents";
+import FastPreloader from "../../components/user/FastPreloader";
 import { useDashboard } from "../../context/DashboardContext";
 
 // Fast loading skeleton for dashboard

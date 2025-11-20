@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import DashboardLayout from "../../components/admin/Layout/DashboardLayout";
+import DashboardLayout from "../../components/admin/DashboardLayout";
 import { FiSearch, FiRefreshCw, FiDownload, FiEye, FiEdit2, FiFilter, FiCopy, FiFile, FiChevronDown, FiChevronLeft, FiChevronRight, FiUsers, FiArrowUp, FiArrowDown, FiPhone, FiMail, FiHome, FiX, FiCalendar, FiAlertCircle } from "react-icons/fi";
 import { toast } from "react-toastify";
 import api from "../../api/axiosConfig";

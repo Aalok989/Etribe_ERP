@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import DashboardLayout from "../../components/user/Layout/DashboardLayout";
+import DashboardLayout from "../../components/user/DashboardLayout";
 import { FiFileText, FiFile, FiEye, FiX, FiCalendar, FiMapPin, FiClock, FiSearch, FiDownload, FiCopy, FiRefreshCw, FiImage, FiChevronDown, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";

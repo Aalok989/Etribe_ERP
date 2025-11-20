@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Sidebar from "../Sidebar/Sidebar";
+import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
 import Footer from "./Footer";
 
@@ -23,8 +23,7 @@ export default function DashboardLayout({ children }) {
         <div className="w-full px-6 flex-1 mb-2">
           {children}
         </div>
-        
-        {/* Footer with separate padding */}
+        {/* Footer */}
         <div className="w-full px-6 pb-2 mb-2">
           <Footer />
         </div>

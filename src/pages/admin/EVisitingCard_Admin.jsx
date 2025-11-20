@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { FiTag, FiSave, FiUsers, FiCheckSquare, FiSquare } from "react-icons/fi";
 
-import DashboardLayout from "../../components/admin/Layout/DashboardLayout";
+import DashboardLayout from "../../components/admin/DashboardLayout";
 import { templates } from "../../components/user/VisitingCard/templates";
 import parentLogo from "../../assets/logos/parent.jpg";
 import memberPhoto from "../../assets/Aashish.png";
