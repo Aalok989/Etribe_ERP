@@ -1,8 +1,6 @@
 import React from 'react';
 import { FaFacebook, FaInstagram, FaLinkedin, FaYoutube, FaPinterest } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
-import memberPhoto from '../../../../assets/Aashish.png';
-import parentLogo from '../../../../assets/company-logo/parent.jpg';
 
 const Template3 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }) => {
   const visitingCardData = cardData || {};
@@ -95,7 +93,8 @@ const Template3 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
         </svg>
       </div>
 
-      {/* Parent Fform Logo */}
+      {/* Company Logo */}
+      {visitingCardData.companyLogo && (
       <div
         style={{
           position: 'absolute',
@@ -108,8 +107,8 @@ const Template3 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
         }}
       >
         <img
-          src={parentLogo}
-          alt="Parent Fform Logo"
+            src={visitingCardData.companyLogo}
+            alt="Company Logo"
           style={{
             width: '100%',
             height: 'auto',
@@ -118,6 +117,7 @@ const Template3 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
           }}
         />
       </div>
+      )}
 
       {/* Right Label */}
       <div
@@ -178,15 +178,15 @@ const Template3 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
             textAlign: 'center'
           }}
         >
-          {visitingCardData.fullName || 'Aashish Jangra'}
+          {visitingCardData.fullName || visitingCardData.memberName || ''}
         </div>
         <div style={contactRowStyle}>
           <strong style={{ color: '#0F172A', whiteSpace: 'nowrap' }}>Phn no:</strong>
-          <span style={contactValueStyle}>{visitingCardData.phone || '9817436147'}</span>
+          <span style={contactValueStyle}>{visitingCardData.phone || ''}</span>
         </div>
         <div style={contactRowStyle}>
           <strong style={{ color: '#0F172A', whiteSpace: 'nowrap' }}>Email:</strong>
-          <span style={contactValueStyle}>{visitingCardData.email || 'aalok1390@gmail.com'}</span>
+          <span style={contactValueStyle}>{visitingCardData.email || ''}</span>
         </div>
         <div style={contactRowStyle}>
           <strong style={{ color: '#0F172A', whiteSpace: 'nowrap' }}>Add:</strong>
@@ -210,8 +210,8 @@ const Template3 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
             alignItems: 'baseline'
           }}
         >
-          <span style={{ wordBreak: 'break-word' }}>{visitingCardData.issuedUpto || 'Dec 2025'}</span>
-          <span style={{ wordBreak: 'break-word' }}>{visitingCardData.membershipId || '140'}</span>
+          <span style={{ wordBreak: 'break-word' }}>{visitingCardData.issuedUpto || ''}</span>
+          <span style={{ wordBreak: 'break-word' }}>{visitingCardData.membershipId || ''}</span>
         </div>
       </div>
 
@@ -244,7 +244,7 @@ const Template3 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
           }}
         >
           <img
-            src={visitingCardData.profileImage || memberPhoto}
+            src={visitingCardData.profileImage || visitingCardData.memberPhoto || ''}
             alt={visitingCardData.fullName || 'Member'}
             style={{
               width: '100%',

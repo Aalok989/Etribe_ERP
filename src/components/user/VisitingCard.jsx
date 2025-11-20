@@ -1,8 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import pako from 'pako';
 import { FiX, FiSave, FiRefreshCw, FiCheck, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
-import parentLogo from '../../assets/logos/parent.jpg';
-import memberPhoto from '../../assets/Aashish.png';
 import { templates } from './VisitingCard/templates';
 import { getAssignmentForUser, saveUserTemplateSelection } from '../../data/mockVisitingCardConfig';
 import api from '../../api/axiosConfig';
@@ -43,33 +41,119 @@ const VisitingCard = ({
   allowSelection = true,
   displayMode = 'modal',
   showSaveButton = true,
-  useMockData = false,
   renderHeaderActions,
   onShare,
 }) => {
 
   const isInline = displayMode === 'inline';
 
-  // Hardcoded data for visiting card (can be replaced with profileData prop)
-  const baseMockData = useMemo(() => ({
-    memberName: 'Aashish Jangra',
-    memberPhoto: memberPhoto,
-    membershipId: '12345',
-    email: 'info@mail.com',
-    phone: '000 1234 5678',
-    companyLogo: parentLogo,
-    companyName: 'Aashish Jangra',
-    companyTagline: '',
-    title: 'Solution Manager',
-    companyId: '',
-    dob: '',
-    bloodGroup: '',
-    address: 'Street Location, City, Country',
-    issuedUpto: 'Dec 2025',
-  }), []);
-
   const [socialMediaData, setSocialMediaData] = useState(null);
   const [loadingSocials, setLoadingSocials] = useState(false);
+  const [memberData, setMemberData] = useState(null);
+  const [loadingMemberData, setLoadingMemberData] = useState(false);
+
+  // Fetch member data from active_members API
+  useEffect(() => {
+    const fetchMemberData = async () => {
+      const storedUid = typeof window !== 'undefined' ? window.localStorage.getItem('uid') : null;
+      const userId = profileData?.uid
+        || profileData?.id
+        || profileData?.userId
+        || profileData?.membershipId
+        || storedUid;
+
+      if (!userId) {
+        setMemberData(null);
+        return;
+      }
+
+      try {
+        setLoadingMemberData(true);
+        const headers = getAuthHeaders();
+        const response = await api.post('/userDetail/active_members/', {}, { headers });
+        
+        if (response.data) {
+          const activeMembers = Array.isArray(response.data) 
+            ? response.data 
+            : response.data.data || response.data || [];
+          
+          // Find the current user in the active members list
+          const foundMember = activeMembers.find(m => {
+            const idMatch = String(m.id) === String(userId);
+            const companyMatch = String(m.company_detail_id) === String(userId);
+            const userDetailMatch = String(m.user_detail_id) === String(userId);
+            const userIdMatch = String(m.user_id) === String(userId);
+            
+            return idMatch || companyMatch || userDetailMatch || userIdMatch;
+          });
+
+          if (foundMember) {
+            // Format valid_upto to month year only
+            let validUpto = '';
+            if (foundMember.valid_upto || foundMember.valid_until || foundMember.valid_to) {
+              const dateStr = foundMember.valid_upto || foundMember.valid_until || foundMember.valid_to;
+              try {
+                const date = new Date(dateStr);
+                if (!isNaN(date.getTime())) {
+                  const month = date.toLocaleString('en-US', { month: 'short' });
+                  const year = date.getFullYear();
+                  validUpto = `${month} ${year}`;
+                }
+              } catch (e) {
+                validUpto = dateStr;
+              }
+            }
+
+            // Get company logo URL
+            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || api.defaults?.baseURL || '';
+            let companyLogoUrl = '';
+            const logoPath = foundMember.company_logo || foundMember.logo || foundMember.business_logo || foundMember.company_logo_image || foundMember.company_logo_path;
+            if (logoPath) {
+              if (logoPath.startsWith('http')) {
+                companyLogoUrl = logoPath;
+              } else {
+                const normalizedPath = logoPath.startsWith('/') ? logoPath : `/${logoPath}`;
+                companyLogoUrl = `${API_BASE_URL}${normalizedPath}`;
+              }
+            }
+
+            // Get member photo URL
+            let memberPhotoUrl = '';
+            const photoPath = foundMember.member_photo || foundMember.photo || foundMember.profile_image || foundMember.profile_photo || foundMember.image;
+            if (photoPath) {
+              if (photoPath.startsWith('http')) {
+                memberPhotoUrl = photoPath;
+              } else {
+                const normalizedPath = photoPath.startsWith('/') ? photoPath : `/${photoPath}`;
+                memberPhotoUrl = `${API_BASE_URL}${normalizedPath}`;
+              }
+            }
+
+            setMemberData({
+              memberName: foundMember.name || foundMember.member_name || foundMember.full_name || '',
+              email: foundMember.email || '',
+              phone: foundMember.phone || foundMember.phone_num || foundMember.contact || '',
+              membershipId: foundMember.id || foundMember.member_id || foundMember.membership_id || '',
+              issuedUpto: validUpto,
+              companyLogo: companyLogoUrl,
+              memberPhoto: memberPhotoUrl,
+              address: foundMember.address || '',
+            });
+          } else {
+            setMemberData(null);
+          }
+        } else {
+          setMemberData(null);
+        }
+      } catch (error) {
+        setMemberData(null);
+      } finally {
+        setLoadingMemberData(false);
+      }
+    };
+
+    fetchMemberData();
+  }, [profileData]);
 
   // Fetch social media data from API
   useEffect(() => {
@@ -82,8 +166,7 @@ const VisitingCard = ({
         || profileData?.id
         || profileData?.userId
         || profileData?.membershipId
-        || storedUid
-        || (useMockData ? baseMockData.membershipId : null);
+        || storedUid;
 
       if (!userId) {
         setSocialMediaData(null);
@@ -125,23 +208,33 @@ const VisitingCard = ({
     };
 
     fetchSocialMediaData();
-  }, [profileData, useMockData, baseMockData.membershipId]);
+  }, [profileData]);
 
   const visitingCardData = useMemo(() => {
-    let cardData;
+    let cardData = {};
     
-    if (useMockData || !profileData) {
-      cardData = { ...baseMockData };
-    } else {
+    // Use real-time member data from API
+    if (memberData) {
       cardData = {
-        ...baseMockData,
+        memberName: memberData.memberName || '',
+        email: memberData.email || '',
+        phone: memberData.phone || '',
+        membershipId: memberData.membershipId || '',
+        issuedUpto: memberData.issuedUpto || '',
+        companyLogo: memberData.companyLogo || '',
+        memberPhoto: memberData.memberPhoto || '',
+        address: memberData.address || '',
+      };
+    } else if (profileData) {
+      // Fallback to profileData if API data not available
+      cardData = {
         ...Object.fromEntries(
           Object.entries(profileData).filter(([, value]) => value !== undefined && value !== null && value !== '')
         ),
       };
     }
 
-    // Always merge social media data if available (even when using mock data)
+    // Merge social media data if available
     if (socialMediaData) {
       Object.keys(socialMediaData).forEach((key) => {
         if (socialMediaData[key]) {
@@ -151,7 +244,7 @@ const VisitingCard = ({
     }
 
     return cardData;
-  }, [baseMockData, profileData, useMockData, socialMediaData]);
+  }, [profileData, socialMediaData, memberData]);
 
   const templateKeys = useMemo(() => Object.keys(templates).sort(), []);
 

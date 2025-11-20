@@ -195,10 +195,11 @@ const Template1 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
           fontFamily: 'Lora, serif'
         }}
       >
-        {visitingCardData.companyName || visitingCardData.memberName || 'Aashish Jangra'}
+        {visitingCardData.companyName || visitingCardData.memberName || ''}
       </div>
 
       {/* ID - Right Side Above Red Separator Line */}
+      {visitingCardData.membershipId && (
       <div 
         style={{
           position: 'absolute',
@@ -213,8 +214,9 @@ const Template1 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
           fontFamily: 'Lora, serif'
         }}
       >
-        Id: {visitingCardData.membershipId || '140'}
+          Id: {visitingCardData.membershipId}
       </div>
+      )}
 
       {/* Separator Stripe - Red and White */}
       <div 
@@ -369,7 +371,7 @@ const Template1 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
               fontFamily: 'Lora, serif'
             }}
           >
-            {visitingCardData.issuedUpto || 'Dec 2025'}
+            {visitingCardData.issuedUpto || ''}
           </div>
         </div>
 

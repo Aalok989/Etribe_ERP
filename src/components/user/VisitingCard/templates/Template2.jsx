@@ -1,8 +1,6 @@
 import React from 'react';
 import { FaFacebook, FaInstagram, FaLinkedin, FaYoutube, FaPinterest } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
-import parentLogo from '../../../../assets/logos/parent.jpg';
-import memberPhoto from '../../../../assets/Aashish.png';
 
 const Template2 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }) => {
   const visitingCardData = cardData || {};
@@ -41,7 +39,7 @@ const Template2 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
         }}
       >
         {/* Parent Logo - Top Right Corner (White) */}
-        {(visitingCardData.companyLogo || parentLogo) && (
+        {visitingCardData.companyLogo && (
           <div 
             style={{
               position: 'absolute',
@@ -57,7 +55,7 @@ const Template2 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
             }}
           >
             <img
-              src={visitingCardData.companyLogo || parentLogo}
+              src={visitingCardData.companyLogo}
               alt="Company Logo"
               style={{
                 maxWidth: '100%',
@@ -143,7 +141,7 @@ const Template2 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
         }}
       >
         {/* Profile Image - Square Box */}
-        {(visitingCardData.memberPhoto || memberPhoto) && (
+        {visitingCardData.memberPhoto && (
           <div
             style={{
               position: 'absolute',
@@ -164,7 +162,7 @@ const Template2 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
             }}
           >
             <img
-              src={visitingCardData.memberPhoto || memberPhoto}
+              src={visitingCardData.memberPhoto}
               alt="Member Photo"
               style={{
                 width: '100%',
@@ -197,7 +195,7 @@ const Template2 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
               marginBottom: '0px'
             }}
           >
-            {visitingCardData.memberName || 'Aashish Jangra'}
+            {visitingCardData.memberName || ''}
           </div>
         </div>
 
@@ -290,7 +288,7 @@ const Template2 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
             }}
           >
             <span style={{ fontWeight: 700 }}>Issued upto:</span>
-            <span>{visitingCardData.issuedUpto || 'Dec 2025'}</span>
+            <span>{visitingCardData.issuedUpto || ''}</span>
           </div>
 
           {/* Member ID - Right Side */}
@@ -302,7 +300,11 @@ const Template2 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
               fontFamily: 'Lora, serif'
             }}
           >
-            <span style={{ fontWeight: 700 }}>Id :</span> {visitingCardData.membershipId || '140'}
+            {visitingCardData.membershipId && (
+              <>
+                <span style={{ fontWeight: 700 }}>Id :</span> {visitingCardData.membershipId}
+              </>
+            )}
           </div>
         </div>
 

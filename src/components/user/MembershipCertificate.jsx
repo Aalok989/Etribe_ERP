@@ -3,19 +3,9 @@ import { FiX, FiDownload } from "react-icons/fi";
 import api from "../../api/axiosConfig";
 import { getAuthHeaders } from "../../utils/apiHeaders";
 import GoldenBadge from "../../assets/GoldenBadge.png";
-import CompanyLogo from "../../assets/company-logo/parent.jpg";
 import EtribeTree from "../../assets/Etribe-Tree.png";
 import EtribeText from "../../assets/Etribe-Text.png";
 import GoldLeaf from "../../assets/goldleaf.png";
-import Sign1 from "../../assets/sign 1.png";
-import Sign2 from "../../assets/sign 2.png";
-import Sign3 from "../../assets/sign 3.png";
-
-const DEFAULT_SIGNATORIES = [
-  { name: "Parveen Garg", designation: "President", signature: Sign1 },
-  { name: "Pardeep Koul", designation: "Gen. Secretary", signature: Sign2 },
-  { name: "Ashok Kumar Mittal", designation: "Treasurer", signature: Sign3 },
-];
 
 const createDefaultCertificateData = () => ({
   memberName: "",
@@ -36,10 +26,44 @@ const createDefaultCertificateData = () => ({
 const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
   const [loading, setLoading] = useState(true);
   const [certificateData, setCertificateData] = useState(createDefaultCertificateData);
+  const [groupData, setGroupData] = useState({ logo: "", name: "", signature: "" });
 
   useEffect(() => {
-    if (isOpen) fetchCertificateData();
+    if (isOpen) {
+      fetchGroupSettings();
+      fetchCertificateData();
+    }
   }, [isOpen, profileData]);
+
+  const fetchGroupSettings = async () => {
+    try {
+      const response = await api.post(
+        '/groupSettings',
+        {},
+        { headers: getAuthHeaders(), timeout: 10000 }
+      );
+
+      const backendData = response.data?.data || response.data || {};
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || api.defaults?.baseURL || "";
+
+      setGroupData({
+        logo: backendData.logo
+          ? backendData.logo.startsWith('http')
+            ? backendData.logo
+            : `${API_BASE_URL}/${backendData.logo}`
+          : "",
+        name: backendData.name || "",
+        signature: backendData.signature
+          ? backendData.signature.startsWith('http')
+            ? backendData.signature
+            : `${API_BASE_URL}/${backendData.signature}`
+          : "",
+      });
+    } catch (err) {
+      // Silently fail - use empty values if group settings can't be fetched
+      setGroupData({ logo: "", name: "", signature: "" });
+    }
+  };
 
   const fetchCertificateData = async () => {
     try {
@@ -143,14 +167,10 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
           : [],
       });
     } catch (err) {
-      // Set default values on error
       const userId = profileData?.id || localStorage.getItem("uid") || "";
       setCertificateData({
         ...createDefaultCertificateData(),
-        memberName: "Aalok Kumar",
-        companyName: "Stark Industries",
         membershipId: userId,
-        organizationName: "Etribe (Empowering Communities)",
       });
     } finally {
       setLoading(false);
@@ -219,12 +239,11 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
             signatory.position ||
             signatory.title ||
             "Authorized Signatory",
-          signature:
-            resolveAssetUrl(signatory.signature_url || signatory.signatureUrl) ||
-            DEFAULT_SIGNATORIES[index]?.signature ||
-            DEFAULT_SIGNATORIES[0]?.signature,
+          signature: resolveAssetUrl(
+            signatory.signature_url || signatory.signatureUrl
+          ),
         }))
-      : DEFAULT_SIGNATORIES
+      : []
   ).slice(0, 3);
 
   const handleDownload = async () => {
@@ -396,15 +415,15 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
                 />
               </div>
 
-              {/* Logo in top left corner */}
+              {/* Signature in top left corner */}
               <div className="absolute top-12 left-12 z-10">
+                {groupData.signature && (
                 <img
-                  src={
-                    resolveAssetUrl(certificateData.companyLogo) || CompanyLogo
-                  }
-                  alt="Organization Logo"
+                    src={groupData.signature}
+                    alt="Organization Signature"
                   className="h-12 w-auto"
                 />
+                )}
               </div>
 
               {/* Logo in top right corner */}
@@ -471,8 +490,16 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
                     This is to certify that
                   </p>
                   <div className="mb-2">
-                    <p className="mb-0 text-5xl" style={{ fontFamily: "'Dancing Script', cursive", fontWeight: 600, color: '#dc2626', marginBottom: '0.75rem' }}>
-                      {certificateData.memberName || "Aalok Kumar"}
+                    <p
+                      className="mb-0 text-5xl"
+                      style={{
+                        fontFamily: "'Dancing Script', cursive",
+                        fontWeight: 600,
+                        color: '#dc2626',
+                        marginBottom: '0.75rem',
+                      }}
+                    >
+                      {certificateData.memberName || ""}
                     </p>
                     <div className="flex justify-center" style={{ marginTop: '0.75rem' }}>
                       <div 
@@ -491,15 +518,27 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
                   <p className="mb-2 text-gray-800" style={{ fontFamily: "'Playfair Display', serif" }}>
                     Director of
                   </p>
-                  <p className="mb-2 text-5xl" style={{ fontFamily: "'Great Vibes', cursive", fontWeight: 400, color: '#b91c1c' }}>
-                    {certificateData.companyName || "Stark Industries"}
+                  <p
+                    className="mb-2 text-5xl"
+                    style={{
+                      fontFamily: "'Great Vibes', cursive",
+                      fontWeight: 400,
+                      color: '#b91c1c',
+                    }}
+                  >
+                    {certificateData.companyName || ""}
                   </p>
+                  {(groupData.name || certificateData.organizationName) && (
                   <p className="-mb-1">
                     is a recognized Member of{" "}
-                    <span className="font-semibold text-gray-900" style={{ fontFamily: "'Playfair Display', serif" }}>
-                      {certificateData.organizationName || "Etribe (Empowering Communities)"}
+                      <span
+                        className="font-semibold text-gray-900"
+                        style={{ fontFamily: "'Playfair Display', serif" }}
+                      >
+                        {groupData.name || certificateData.organizationName}
                     </span>
                   </p>
+                  )}
                   <p className="-mb-1">
                     and have signed a pledge to abide by the
                   </p>
@@ -519,9 +558,11 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
                     className="w-32 h-32"
                   />
                   <div className="text-center leading-tight">
+                    {memberNumericId && (
                     <p className="text-lg font-semibold text-amber-700">
-                      {memberNumericId ? `Member ID: ${memberNumericId}` : "Member"}
+                        Member ID: {memberNumericId}
                     </p>
+                    )}
                     {membershipIdentifier && (
                       <p className="text-sm font-semibold text-amber-700 mt-1">
                         {membershipIdentifier}

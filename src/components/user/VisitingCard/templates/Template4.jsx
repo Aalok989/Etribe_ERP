@@ -1,12 +1,10 @@
 import React from 'react';
-import parentLogo from '../../../../assets/logos/parent.jpg';
-import memberPhoto from '../../../../assets/Aashish.png';
 import { FaFacebook, FaInstagram, FaLinkedin, FaYoutube, FaPinterest } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 
 const Template4 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }) => {
   const visitingCardData = cardData || {};
-  const logoSrc = visitingCardData.companyLogo || parentLogo;
+  const logoSrc = visitingCardData.companyLogo;
   const leftStripWidth = Math.max(cardWidth * 0.22, 50);
   const availableRightWidth = cardWidth - leftStripWidth;
   const barTop = cardHeight * 0.10;
@@ -21,7 +19,7 @@ const Template4 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
     { Icon: FaXTwitter, url: visitingCardData.twitterUrl || visitingCardData.xUrl },
     { Icon: FaPinterest, url: visitingCardData.pinterestUrl },
   ].filter(({ url }) => url && url.trim() !== ''); // Only show icons with valid URLs
-  const photoSrc = visitingCardData.profileImage || memberPhoto;
+  const photoSrc = visitingCardData.profileImage || visitingCardData.memberPhoto;
   const photoSize = Math.min(cardWidth * 0.38, availableRightWidth * 0.8);
   const photoLeft = leftStripWidth + (availableRightWidth - photoSize) / 2;
   const infoTop = barTop + barHeight + cardHeight * 0.04 + photoSize + cardHeight * 0.04;
@@ -132,11 +130,11 @@ const Template4 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
       >
         <div style={{ display: 'flex', gap: '6px' }}>
           <strong style={{ color: '#0F172A', whiteSpace: 'nowrap' }}>Phn no:</strong>
-          <span style={{ wordBreak: 'break-word' }}>{visitingCardData.phone || '9817436147'}</span>
+          <span style={{ wordBreak: 'break-word' }}>{visitingCardData.phone || ''}</span>
         </div>
         <div style={{ display: 'flex', gap: '6px' }}>
           <strong style={{ color: '#0F172A', whiteSpace: 'nowrap' }}>Email:</strong>
-          <span style={{ wordBreak: 'break-word' }}>{visitingCardData.email || 'aalok1390@gmail.com'}</span>
+          <span style={{ wordBreak: 'break-word' }}>{visitingCardData.email || ''}</span>
         </div>
         <div style={{ display: 'flex', gap: '6px' }}>
           <strong style={{ color: '#0F172A', whiteSpace: 'nowrap' }}>Add:</strong>
@@ -157,7 +155,7 @@ const Template4 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
         }}
       >
         <strong style={{ color: '#0F172A', whiteSpace: 'nowrap' }}>Issued upto:</strong>
-        <span>{visitingCardData.issuedUpto || 'Dec 2025'}</span>
+        <span>{visitingCardData.issuedUpto || ''}</span>
       </div>
       {logoSrc && (
         <div
@@ -221,7 +219,7 @@ const Template4 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
             fontFamily: 'Lora, serif'
           }}
         >
-          {visitingCardData.fullName || 'Aashish Jangra'}
+          {visitingCardData.fullName || visitingCardData.memberName || ''}
         </div>
         <div
           style={{
@@ -237,7 +235,7 @@ const Template4 = ({ cardData, cardWidth, cardHeight, cardId = 'visiting-card' }
             fontFamily: 'Lora, serif'
           }}
         >
-          {`Id : ${visitingCardData.membershipId || '12345'}`}
+          {visitingCardData.membershipId && `Id : ${visitingCardData.membershipId}`}
         </div>
       </div>
     </div>
