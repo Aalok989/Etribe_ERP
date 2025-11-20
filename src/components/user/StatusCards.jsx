@@ -1,7 +1,7 @@
 import React from "react";
 import { FiUserCheck, FiMessageSquare, FiCheckCircle, FiCalendar, FiClock } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import { useDashboard } from "../../../context/DashboardContext";
+import { useDashboard } from "../../context/DashboardContext";
 
 export default function StatusCards() {
   const { stats } = useDashboard();

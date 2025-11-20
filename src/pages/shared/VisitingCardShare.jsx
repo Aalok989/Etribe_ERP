@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import pako from "pako";
-import VisitingCard from "../../components/user/VisitingCard/VisitingCard";
+import VisitingCard from "../../components/user/VisitingCard";
 
 const decodeSharePayload = (encoded) => {
   if (!encoded) return { error: "No share data provided." };

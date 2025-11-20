@@ -3,7 +3,7 @@ import { FiDownload, FiFilter, FiUser, FiMail, FiPhone, FiMapPin, FiRefreshCw, F
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { useDashboard } from "../../../context/DashboardContext";
+import { useDashboard } from "../../context/DashboardContext";
 import { toast } from "react-toastify";
 
 

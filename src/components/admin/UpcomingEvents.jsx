@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FiCalendar, FiMapPin, FiClock, FiUsers } from "react-icons/fi";
-import { useDashboard } from '../../../context/DashboardContext';
+import { useDashboard } from '../../context/DashboardContext';
 
 // Utility function to strip HTML tags
 function stripHtmlTags(str) {

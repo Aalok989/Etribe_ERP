@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FiX, FiDownload } from 'react-icons/fi';
-import api from '../../../api/axiosConfig';
-import { getAuthHeaders } from '../../../utils/apiHeaders';
-import { useDashboard } from '../../../context/DashboardContext';
+import api from '../../api/axiosConfig';
+import { getAuthHeaders } from '../../utils/apiHeaders';
+import { useDashboard } from '../../context/DashboardContext';
 
 const MemberIDCard = ({ isOpen, onClose, profileData }) => {
   const { data: dashboardData } = useDashboard();

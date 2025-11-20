@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import pako from 'pako';
 import { FiX, FiSave, FiRefreshCw, FiCheck, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
-import parentLogo from '../../../assets/logos/parent.jpg';
-import memberPhoto from '../../../assets/Aashish.png';
-import { templates } from './templates';
-import { getAssignmentForUser, saveUserTemplateSelection } from '../../../data/mockVisitingCardConfig';
-import api from '../../../api/axiosConfig';
-import { getAuthHeaders } from '../../../utils/apiHeaders';
+import parentLogo from '../../assets/logos/parent.jpg';
+import memberPhoto from '../../assets/Aashish.png';
+import { templates } from './VisitingCard/templates';
+import { getAssignmentForUser, saveUserTemplateSelection } from '../../data/mockVisitingCardConfig';
+import api from '../../api/axiosConfig';
+import { getAuthHeaders } from '../../utils/apiHeaders';
 
 // Helper function to normalize URLs (add protocol if missing)
 const normalizeUrl = (url) => {

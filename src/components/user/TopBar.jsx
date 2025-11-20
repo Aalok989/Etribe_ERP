@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import { FiSun, FiMoon, FiUser, FiBell, FiClock, FiCalendar, FiCheckCircle, FiRefreshCw, FiMessageSquare, FiCreditCard, FiSettings, FiAward } from "react-icons/fi";
 import { Link } from "react-router-dom";
-import api from "../../../api/axiosConfig";
-import { getAuthHeaders } from "../../../utils/apiHeaders";
+import api from "../../api/axiosConfig";
+import { getAuthHeaders } from "../../utils/apiHeaders";
 import MemberIDCard from "./MemberIDCard";
 import MembershipCertificate from "./MembershipCertificate";
 

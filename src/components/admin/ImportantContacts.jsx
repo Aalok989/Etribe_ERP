@@ -3,8 +3,8 @@ import { FiDownload, FiFilter, FiEdit2, FiTrash2, FiUser, FiMail, FiPhone, FiMap
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { useContacts } from "../../../context/ContactsContext";
-import { useDashboard } from "../../../context/DashboardContext";
+import { useContacts } from "../../context/ContactsContext";
+import { useDashboard } from "../../context/DashboardContext";
 import { toast } from "react-toastify";
 
 export default function ImportantContacts() {

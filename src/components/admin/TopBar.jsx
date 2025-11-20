@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
 import { FiSun, FiMoon, FiUser, FiBell, FiClock, FiCalendar, FiCheckCircle } from "react-icons/fi";
 import { Link } from "react-router-dom";
-import api from "../../../api/axiosConfig";
-import { getAuthHeaders } from "../../../utils/apiHeaders";
-import { useDashboard } from "../../../context/DashboardContext";
-import { useGroupData } from "../../../context/GroupDataContext";
+import api from "../../api/axiosConfig";
+import { getAuthHeaders } from "../../utils/apiHeaders";
+import { useDashboard } from "../../context/DashboardContext";
+import { useGroupData } from "../../context/GroupDataContext";
 
 export default function TopBar() {
   const [profile, setProfile] = useState({ name: "", email: "" });

@@ -14,10 +14,10 @@ import {
   FiChevronDown,
 } from "react-icons/fi";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import api from "../../../api/axiosConfig";
-import { getAuthHeaders } from "../../../utils/apiHeaders";
-import { useDashboard } from "../../../context/DashboardContext";
-import { useGroupData } from "../../../context/GroupDataContext";
+import api from "../../api/axiosConfig";
+import { getAuthHeaders } from "../../utils/apiHeaders";
+import { useDashboard } from "../../context/DashboardContext";
+import { useGroupData } from "../../context/GroupDataContext";
 
 // Custom logout hook
 const useLogout = () => {

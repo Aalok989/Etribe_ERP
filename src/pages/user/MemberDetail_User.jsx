@@ -20,7 +20,7 @@ import autoTable from "jspdf-autotable";
 import PhonepeLogo from "../../assets/Phonepe.png";
 import RazorpayLogo from "../../assets/Razorpay.png";
 import StripeLogo from "../../assets/Stripe.png";
-import VisitingCard from "../../components/user/VisitingCard/VisitingCard";
+import VisitingCard from "../../components/user/VisitingCard";
 
 // ============================================================================
 // COMPONENT HEADER AND DOCUMENTATION

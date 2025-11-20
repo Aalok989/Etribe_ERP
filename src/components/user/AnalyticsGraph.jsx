@@ -18,7 +18,7 @@ import {
   ComposedChart,
 } from "recharts";
 import { FiTrendingUp, FiUsers, FiUserCheck, FiUserX, FiClock, FiRefreshCw, FiBarChart2, FiPieChart, FiActivity } from "react-icons/fi";
-import { useDashboard } from '../../../context/DashboardContext';
+import { useDashboard } from '../../context/DashboardContext';
 
 // Custom tooltip component
 const CustomTooltip = ({ active, payload, label }) => {

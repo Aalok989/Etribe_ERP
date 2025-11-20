@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { FiX, FiDownload } from "react-icons/fi";
-import api from "../../../api/axiosConfig";
-import { getAuthHeaders } from "../../../utils/apiHeaders";
-import GoldenBadge from "../../../assets/GoldenBadge.png";
-import CompanyLogo from "../../../assets/company-logo/parent.jpg";
-import EtribeTree from "../../../assets/Etribe-Tree.png";
-import EtribeText from "../../../assets/Etribe-Text.png";
-import GoldLeaf from "../../../assets/goldleaf.png";
-import Sign1 from "../../../assets/sign 1.png";
-import Sign2 from "../../../assets/sign 2.png";
-import Sign3 from "../../../assets/sign 3.png";
+import api from "../../api/axiosConfig";
+import { getAuthHeaders } from "../../utils/apiHeaders";
+import GoldenBadge from "../../assets/GoldenBadge.png";
+import CompanyLogo from "../../assets/company-logo/parent.jpg";
+import EtribeTree from "../../assets/Etribe-Tree.png";
+import EtribeText from "../../assets/Etribe-Text.png";
+import GoldLeaf from "../../assets/goldleaf.png";
+import Sign1 from "../../assets/sign 1.png";
+import Sign2 from "../../assets/sign 2.png";
+import Sign3 from "../../assets/sign 3.png";
 
 const DEFAULT_SIGNATORIES = [
   { name: "Parveen Garg", designation: "President", signature: Sign1 },
