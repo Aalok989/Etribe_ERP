@@ -1,12 +1,42 @@
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "../../components/user/DashboardLayout";
-import { FiDownload, FiFilter, FiEdit2, FiTrash2, FiChevronDown, FiFileText, FiFile, FiX, FiCopy, FiPlus, FiUser, FiRefreshCw, FiSearch } from "react-icons/fi";
+import { FiDownload, FiFilter, FiEdit2, FiTrash2, FiChevronDown, FiFileText, FiFile, FiX, FiCopy, FiPlus, FiUser, FiSearch } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "react-toastify";
 import api from "../../api/axiosConfig";
 import { getAuthHeaders } from "../../utils/apiHeaders";
+
+// Cache configuration
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_STORAGE_KEY = 'public_jobs_cache';
+
+// Cache utility functions
+const isDataFresh = (timestamp) => {
+  return Date.now() - timestamp < CACHE_DURATION;
+};
+
+const getCacheMetadata = () => {
+  try {
+    const cached = sessionStorage.getItem(CACHE_STORAGE_KEY);
+    return cached ? JSON.parse(cached) : null;
+  } catch {
+    return null;
+  }
+};
+
+const setCacheData = (data) => {
+  try {
+    const cacheEntry = {
+      data,
+      timestamp: Date.now()
+    };
+    sessionStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify(cacheEntry));
+  } catch (error) {
+    console.warn('Failed to cache public jobs data:', error);
+  }
+};
 
 export default function PublicJobUserPage() {
   const [jobsData, setJobsData] = useState([]);
@@ -25,10 +55,25 @@ export default function PublicJobUserPage() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [formError, setFormError] = useState(null);
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.etribes.mittalservices.com';
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+  const loadPublicJobs = async (force = false) => {
+    // Check cache first unless force refresh
+    if (!force) {
+      const cached = getCacheMetadata();
+      if (cached && isDataFresh(cached.timestamp)) {
+        setJobsData(cached.data);
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Fetch from API
+    await fetchPublicJobs(force);
+  };
 
   // Fetch public jobs from API
-  const fetchPublicJobs = async () => {
+  const fetchPublicJobs = async (force = false) => {
     setLoading(true);
     try {
       const response = await api.post('/Job_post/all_public', {}, {
@@ -37,10 +82,13 @@ export default function PublicJobUserPage() {
       
       // Handle different response structures
       const jobs = response.data?.data || response.data || [];
-      setJobsData(Array.isArray(jobs) ? jobs : []);
+      const jobsArray = Array.isArray(jobs) ? jobs : [];
+      setJobsData(jobsArray);
+      setCacheData(jobsArray);
     } catch (err) {
       toast.error("Failed to fetch public jobs: " + (err.response?.data?.message || err.message));
       setJobsData([]);
+      setCacheData([]);
     } finally {
       setLoading(false);
     }
@@ -48,7 +96,7 @@ export default function PublicJobUserPage() {
 
   // Fetch data on component mount
   useEffect(() => {
-    fetchPublicJobs();
+    loadPublicJobs();
   }, []);
 
   // Handle click outside for export dropdown
@@ -230,10 +278,6 @@ export default function PublicJobUserPage() {
     toast.success("All jobs copied to clipboard!");
   };
 
-  const handleRefresh = () => {
-    fetchPublicJobs();
-    toast.info("Refreshing jobs...");
-  };
 
   // Loading state
   if (loading && jobsData.length === 0) {
@@ -241,7 +285,7 @@ export default function PublicJobUserPage() {
       <DashboardLayout>
         <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
           <div className="flex items-center gap-3">
-            <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
+            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
             <p className="text-indigo-700 dark:text-indigo-300">Loading public jobs...</p>
           </div>
         </div>
@@ -283,79 +327,88 @@ export default function PublicJobUserPage() {
             </div>
             
             <div className="flex flex-wrap gap-2 items-center justify-between xl:justify-start">
-              <button 
-                className="flex items-center gap-1 bg-blue-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition"
-                onClick={handleRefresh}
-                title="Refresh Data"
-              >
-                <FiRefreshCw /> 
-                <span>Refresh</span>
-              </button>
               
               {/* Desktop Export Buttons - Show on larger screens */}
               <div className="hidden xl:flex gap-2">
                 <button 
-                  className="flex items-center gap-1 bg-gray-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-600 transition"
+                  className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                   onClick={handleCopyToClipboard}
                   title="Copy to Clipboard"
                 >
-                  <FiCopy /> 
-                  Copy
+                  <FiCopy className="text-gray-600" size={18} />
                 </button>
                 
-                <button 
-                  className="flex items-center gap-1 bg-green-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition"
-                  onClick={handleExportCSV}
-                  title="Export CSV"
-                >
-                  <FiDownload /> 
-                  CSV
-                </button>
-                
-                <button 
-                  className="flex items-center gap-1 bg-emerald-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-emerald-600 transition"
-                  onClick={handleExportExcel}
-                  title="Export Excel"
-                >
-                  <FiFile /> 
-                  Excel
-                </button>
-                
-                <button 
-                  className="flex items-center gap-1 bg-rose-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-rose-600 transition"
-                  onClick={handleExportPDF}
-                  title="Export PDF"
-                >
-                  <FiFile /> 
-                  PDF
-                </button>
+                <div className="relative">
+                  <button
+                    className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                    onClick={() => setShowExportDropdown(!showExportDropdown)}
+                    title="Export Options"
+                  >
+                    <FiDownload className="text-blue-600" size={18} />
+                  </button>
+                  
+                  {showExportDropdown && (
+                    <div className="absolute right-0 top-full mt-1 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
+                        onClick={() => {
+                          handleExportCSV();
+                          setShowExportDropdown(false);
+                        }}
+                      >
+                        <FiDownload className="text-green-500" />
+                        CSV
+                      </button>
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        onClick={() => {
+                          handleExportExcel();
+                          setShowExportDropdown(false);
+                        }}
+                      >
+                        <FiFile className="text-emerald-500" />
+                        Excel
+                      </button>
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg"
+                        onClick={() => {
+                          handleExportPDF();
+                          setShowExportDropdown(false);
+                        }}
+                      >
+                        <FiFile className="text-red-500" />
+                        PDF
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
               
               {/* Mobile/Tablet Export Dropdown - Show on smaller screens */}
-              <div className="relative xl:hidden flex-1 flex justify-center">
-                <button
-                  className="flex items-center gap-1 bg-indigo-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-indigo-600 transition"
-                  onClick={() => setShowExportDropdown(!showExportDropdown)}
-                >
-                  <FiDownload />
-                  <span>Export</span>
-                  <FiChevronDown className={`transition-transform ${showExportDropdown ? 'rotate-180' : ''}`} />
-                </button>
+              <div className="relative xl:hidden">
+                <div className="flex gap-2">
+                  <button 
+                    className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                    onClick={handleCopyToClipboard}
+                    title="Copy to Clipboard"
+                  >
+                    <FiCopy className="text-gray-600" size={18} />
+                  </button>
+                  
+                  <button
+                    className="flex items-center gap-1 bg-indigo-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-indigo-600 transition"
+                    onClick={() => setShowExportDropdown(!showExportDropdown)}
+                  >
+                    <FiDownload />
+                    <span>Export</span>
+                    <FiChevronDown className={`transition-transform ${showExportDropdown ? 'rotate-180' : ''}`} />
+                  </button>
+                </div>
                 
                 {showExportDropdown && (
                   <div className="absolute right-0 top-full mt-1 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
                     <button
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
-                      onClick={() => {
-                        handleCopyToClipboard();
-                        setShowExportDropdown(false);
-                      }}
-                    >
-                      <FiCopy className="text-gray-500" />
-                      Copy
-                    </button>
-                    <button
-                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                       onClick={() => {
                         handleExportCSV();
                         setShowExportDropdown(false);
@@ -381,7 +434,7 @@ export default function PublicJobUserPage() {
                         setShowExportDropdown(false);
                       }}
                     >
-                      <FiFile className="text-rose-500" />
+                      <FiFile className="text-red-500" />
                       PDF
                     </button>
                   </div>

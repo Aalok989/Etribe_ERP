@@ -13,21 +13,52 @@ export const useDashboard = () => {
   return context;
 };
 
-// Cache duration in milliseconds (5 minutes for faster refresh)
-const CACHE_DURATION = 5 * 60 * 1000;
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_STORAGE_KEY = 'etribe_dashboard_cache';
 
-// Cache utility functions
-const isDataFresh = (timestamp) => {
+const isDataFresh = (timestamp, forceRefresh = false) => {
+  if (forceRefresh) return false;
   return timestamp && (Date.now() - timestamp) < CACHE_DURATION;
 };
 
-const createCacheEntry = (data) => ({
-  data,
-  timestamp: Date.now()
-});
+const createCacheEntry = (data) => {
+  const entry = {
+    data,
+    timestamp: Date.now(),
+    version: 1
+  };
+  
+  try {
+    const cacheData = {
+      timestamp: entry.timestamp,
+      version: entry.version,
+      dataSize: Array.isArray(data) ? data.length : 0
+    };
+    sessionStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify(cacheData));
+  } catch (e) {
+    console.warn('Cache storage failed:', e);
+  }
+  
+  return entry;
+};
+
+const getCacheMetadata = () => {
+  try {
+    const stored = sessionStorage.getItem(CACHE_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch (e) {
+    return null;
+  }
+};
+
+const hasCachedData = (cacheEntry) => {
+  return cacheEntry && 
+         cacheEntry.data && 
+         (Array.isArray(cacheEntry.data) ? cacheEntry.data.length > 0 : true) &&
+         cacheEntry.timestamp;
+};
 
 export const DashboardProvider = ({ children }) => {
-  // Cache states
   const [cache, setCache] = useState({
     members: { active: null, inactive: null, expired: null },
     events: { all: null, past: null, future: null },
@@ -37,7 +68,6 @@ export const DashboardProvider = ({ children }) => {
     groupData: null
   });
 
-  // Loading states
   const [loading, setLoading] = useState({
     members: false,
     events: false,
@@ -45,13 +75,11 @@ export const DashboardProvider = ({ children }) => {
     analytics: false,
     groupData: false,
     enquiries: false,
-    initial: false // Start with false for instant display
+    initial: false
   });
 
-  // Fast loading state for immediate feedback
   const [fastLoading, setFastLoading] = useState(false);
 
-  // Error states
   const [errors, setErrors] = useState({
     members: null,
     events: null,
@@ -61,7 +89,6 @@ export const DashboardProvider = ({ children }) => {
     enquiries: null
   });
 
-  // Data states (computed from cache)
   const [data, setData] = useState({
     members: { active: [], inactive: [], expired: [] },
     events: { all: [], past: [], future: [] },
@@ -89,12 +116,9 @@ export const DashboardProvider = ({ children }) => {
     }
   });
 
-  // Generic error handler
   const handleError = useCallback((error, type) => {
-    
     let errorMessage = `Failed to load ${type}`;
     
-    // Handle specific error types
     if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
       errorMessage = `${type} request timed out. Please check your connection.`;
     } else if (error.response?.status === 401) {
@@ -109,21 +133,19 @@ export const DashboardProvider = ({ children }) => {
     
     setErrors(prev => ({ ...prev, [type]: errorMessage }));
     
-    // Don't show toast for initial loads to avoid spam
     if (!loading.initial) {
       toast.error(errorMessage);
     }
   }, [loading.initial]);
 
-  // Fetch members data (active, inactive, expired) - Optimized for speed
   const fetchMembers = useCallback(async (force = false) => {
     const membersCache = cache.members;
     
-    // Check if we have fresh cached data
     if (!force && 
-        isDataFresh(membersCache.active?.timestamp) && 
-        isDataFresh(membersCache.inactive?.timestamp) && 
-        isDataFresh(membersCache.expired?.timestamp)) {
+        hasCachedData(membersCache.active) && 
+        hasCachedData(membersCache.inactive) && 
+        hasCachedData(membersCache.expired) &&
+        isDataFresh(membersCache.active?.timestamp)) {
       return;
     }
 
@@ -134,7 +156,6 @@ export const DashboardProvider = ({ children }) => {
       const uid = localStorage.getItem('uid') || '1';
       const headers = { ...getAuthHeaders() };
 
-      // Use Promise.allSettled for better error handling and speed
       const results = await Promise.allSettled([
         api.post('/userDetail/active_members', { uid }, { headers }),
         api.post('/userDetail/not_members', { uid }, { headers }),
@@ -148,7 +169,6 @@ export const DashboardProvider = ({ children }) => {
       const expiredMembers = results[2].status === 'fulfilled' ? 
         (Array.isArray(results[2].value.data) ? results[2].value.data : results[2].value.data?.data || []) : [];
 
-      // Update cache immediately
       setCache(prev => ({
         ...prev,
         members: {
@@ -181,14 +201,13 @@ export const DashboardProvider = ({ children }) => {
     }
   }, [cache.members, handleError]);
 
-  // Fetch enquiries data (received and done)
   const fetchEnquiries = useCallback(async (force = false) => {
     const enquiriesCache = cache.enquiries;
     
-    // Check if we have fresh cached data
     if (!force && 
-        isDataFresh(enquiriesCache.received?.timestamp) && 
-        isDataFresh(enquiriesCache.done?.timestamp)) {
+        hasCachedData(enquiriesCache.received) && 
+        hasCachedData(enquiriesCache.done) &&
+        isDataFresh(enquiriesCache.received?.timestamp)) {
       return;
     }
 
@@ -202,7 +221,6 @@ export const DashboardProvider = ({ children }) => {
         api.post('/product/enquiry_index', {}, { headers })
       ]);
 
-      // Helper function to extract enquiries from various response formats
       const extractEnquiries = (response) => {
         if (response.data?.data?.view_enquiry) return response.data.data.view_enquiry;
         if (response.data?.data?.enquiry) return response.data.data.enquiry;
@@ -239,7 +257,6 @@ export const DashboardProvider = ({ children }) => {
       }));
 
     } catch (error) {
-      // Set default values to prevent loading from being stuck
       setData(prev => ({
         ...prev,
         stats: {
@@ -254,15 +271,14 @@ export const DashboardProvider = ({ children }) => {
     }
   }, [cache.enquiries, handleError]);
 
-  // Fetch events data (all, past, future)
   const fetchEvents = useCallback(async (force = false) => {
     const eventsCache = cache.events;
     
-    // Check if we have fresh cached data
     if (!force && 
-        isDataFresh(eventsCache.all?.timestamp) && 
-        isDataFresh(eventsCache.past?.timestamp) && 
-        isDataFresh(eventsCache.future?.timestamp)) {
+        hasCachedData(eventsCache.all) && 
+        hasCachedData(eventsCache.past) && 
+        hasCachedData(eventsCache.future) &&
+        isDataFresh(eventsCache.all?.timestamp)) {
       return;
     }
 
@@ -331,10 +347,8 @@ export const DashboardProvider = ({ children }) => {
     }
   }, [cache.events, handleError]);
 
-  // Fetch contacts data
   const fetchContacts = useCallback(async (force = false) => {
-    // Check if we have fresh cached data
-    if (!force && isDataFresh(cache.contacts?.timestamp)) {
+    if (!force && hasCachedData(cache.contacts) && isDataFresh(cache.contacts?.timestamp)) {
       return;
     }
 
@@ -360,7 +374,6 @@ export const DashboardProvider = ({ children }) => {
         contacts = response.data.contact;
       }
 
-      // Map contacts to consistent format
       const mappedContacts = contacts.map((contact, index) => ({
         id: contact.id || contact.contact_id || contact.contactId || index + 1,
         dept: contact.department || contact.dept || contact.role || contact.contact_department || 'General',
@@ -389,10 +402,8 @@ export const DashboardProvider = ({ children }) => {
     }
   }, [cache.contacts, handleError]);
 
-  // Fetch group data
   const fetchGroupData = useCallback(async (force = false) => {
-    // Check if we have fresh cached data
-    if (!force && isDataFresh(cache.groupData?.timestamp)) {
+    if (!force && hasCachedData(cache.groupData) && isDataFresh(cache.groupData?.timestamp)) {
       return;
     }
 
@@ -404,11 +415,8 @@ export const DashboardProvider = ({ children }) => {
       const response = await api.post('/groupSettings', {}, { headers });
 
       const backendData = response.data?.data || response.data || {};
-      
-      // Get API base URL from environment
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
       
-      // Process logo and signature URLs with correct API base URL
       const processedData = {
         name: backendData.name || '',
         email: backendData.email || '',
@@ -438,12 +446,10 @@ export const DashboardProvider = ({ children }) => {
     }
   }, [cache.groupData, handleError]);
 
-  // Generate analytics data from both members and enquiries cache
   const generateAnalytics = useCallback(() => {
     const membersData = data.members;
     const enquiriesData = data.enquiries;
     
-    // Check if we have any data to work with
     const hasMembersData = membersData.active.length || membersData.inactive.length || membersData.expired.length;
     const hasReceivedEnquiries = enquiriesData.received && Array.isArray(enquiriesData.received) && enquiriesData.received.length > 0;
     const hasDoneEnquiries = enquiriesData.done && Array.isArray(enquiriesData.done) && enquiriesData.done.length > 0;
@@ -453,7 +459,6 @@ export const DashboardProvider = ({ children }) => {
     }
 
     try {
-      // Group by month using month index for accurate mapping
       const groupByMonth = (data, dateField = 'lct') => {
         if (!data || !Array.isArray(data)) {
           return {};
@@ -475,16 +480,13 @@ export const DashboardProvider = ({ children }) => {
 
       const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       
-      // Process members data
       const activeByMonth = groupByMonth(membersData.active, 'lct');
       const inactiveByMonth = groupByMonth(membersData.inactive, 'lct');
       const expiredByMonth = groupByMonth(membersData.expired, 'lct');
       
-      // Process enquiries data
       const receivedByMonth = groupByMonth(enquiriesData.received || [], 'dtime');
       const doneByMonth = groupByMonth(enquiriesData.done || [], 'dtime');
 
-      // Create comprehensive chart data with all metrics
       const analyticsData = [
         { 
           month: '0', 
@@ -504,7 +506,6 @@ export const DashboardProvider = ({ children }) => {
         }))
       ];
 
-      // Update cache and data
       setCache(prev => ({
         ...prev,
         analytics: createCacheEntry(analyticsData)
@@ -520,7 +521,6 @@ export const DashboardProvider = ({ children }) => {
     }
   }, [data.members, data.enquiries, handleError]);
 
-  // Update analytics when enquiries or members data changes
   useEffect(() => {
     const hasReceivedEnquiries = data.enquiries.received && Array.isArray(data.enquiries.received) && data.enquiries.received.length > 0;
     const hasDoneEnquiries = data.enquiries.done && Array.isArray(data.enquiries.done) && data.enquiries.done.length > 0;
@@ -531,7 +531,6 @@ export const DashboardProvider = ({ children }) => {
     }
   }, [data.enquiries, data.members, generateAnalytics]);
 
-  // Clear cache function
   const clearCache = useCallback(() => {
     setCache({
       members: { active: null, inactive: null, expired: null },
@@ -543,7 +542,6 @@ export const DashboardProvider = ({ children }) => {
     });
   }, []);
 
-  // Clear all data and cache - useful for logout
   const clearAllData = useCallback(() => {
     setCache({
       members: { active: null, inactive: null, expired: null },
@@ -601,17 +599,14 @@ export const DashboardProvider = ({ children }) => {
     });
   }, []);
 
-  // Listen for logout events to clear data
   useEffect(() => {
     const handleLogout = () => {
       clearAllData();
     };
     
     const handleLogin = () => {
-      // Refetch data when user logs in - optimized for speed
-      setFastLoading(true); // Show fast loader immediately
+      setFastLoading(true);
       
-      // Load all data simultaneously for fastest loading
       Promise.allSettled([
         fetchMembers(),
         fetchEnquiries(),
@@ -633,16 +628,18 @@ export const DashboardProvider = ({ children }) => {
     };
   }, [clearAllData, fetchMembers, fetchEnquiries, fetchGroupData, fetchEvents, fetchContacts]);
 
-  // Check if data needs to be loaded when component mounts or token changes
   useEffect(() => {
-    const checkAndLoadData = () => {
-      const token = localStorage.getItem('token');
-      const hasData = data.members.active.length > 0 || data.members.inactive.length > 0 || data.members.expired.length > 0;
+    const token = localStorage.getItem('token');
+    
+    if (token && !loading.initial) {
+      const hasAnyData = hasCachedData(cache.members.active) || 
+                        hasCachedData(cache.events.all) || 
+                        hasCachedData(cache.contacts) ||
+                        hasCachedData(cache.groupData);
       
-      if (token && !hasData && !loading.initial) {
+      if (!hasAnyData) {
         setLoading(prev => ({ ...prev, initial: true }));
         
-        // Load all data simultaneously for fastest loading
         Promise.allSettled([
           fetchMembers(),
           fetchEnquiries(),
@@ -653,60 +650,40 @@ export const DashboardProvider = ({ children }) => {
           setLoading(prev => ({ ...prev, initial: false }));
         });
       }
-    };
+    }
+  }, []);
 
-    // Check immediately
-    checkAndLoadData();
-    
-    // Also check when token changes
-    const handleStorageChange = () => {
-      checkAndLoadData();
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, [data.members.active.length, data.members.inactive.length, data.members.expired.length, loading.initial, fetchMembers, fetchEnquiries, fetchGroupData, fetchEvents, fetchContacts]);
-
-  // Initial data load - Optimized for instant display
   useEffect(() => {
-    const loadInitialData = async () => {
-      setLoading(prev => ({ ...prev, initial: true }));
+    const token = localStorage.getItem('token');
+    
+    if (token) {
+      const cacheMetadata = getCacheMetadata();
+      const hasValidCache = cacheMetadata && 
+                           cacheMetadata.timestamp && 
+                           (Date.now() - cacheMetadata.timestamp) < CACHE_DURATION;
       
-      try {
-        // Load all data simultaneously for fastest possible loading
-        const loadPromises = [
+      if (!hasValidCache) {
+        setLoading(prev => ({ ...prev, initial: true }));
+        
+        Promise.allSettled([
           fetchMembers(),
           fetchEnquiries(),
           fetchGroupData(),
           fetchEvents(),
           fetchContacts()
-        ];
-        
-        // Wait for all data to load
-        await Promise.allSettled(loadPromises);
-        
-        // Set loading to false immediately after all data is loaded
-        setLoading(prev => ({ ...prev, initial: false }));
-        
-      } catch (error) {
-        toast.error(error.message || 'Failed to load dashboard data.');
+        ]).then(() => {
+          setLoading(prev => ({ ...prev, initial: false }));
+        }).catch(() => {
+          setLoading(prev => ({ ...prev, initial: false }));
+        });
+      } else {
         setLoading(prev => ({ ...prev, initial: false }));
       }
-    };
-
-    // Check if we have a token and need to load data
-    const token = localStorage.getItem('token');
-    if (token) {
-      loadInitialData();
     } else {
       setLoading(prev => ({ ...prev, initial: false }));
     }
-  }, []); // Run only once on mount
+  }, []);
 
-  // Refresh functions
   const refreshMembers = useCallback(() => fetchMembers(true), [fetchMembers]);
   const refreshEvents = useCallback(() => fetchEvents(true), [fetchEvents]);
   const refreshContacts = useCallback(() => fetchContacts(true), [fetchContacts]);
@@ -714,51 +691,94 @@ export const DashboardProvider = ({ children }) => {
   const refreshGroupData = useCallback(() => fetchGroupData(true), [fetchGroupData]);
   
   const refreshAll = useCallback(async () => {
-    await Promise.allSettled([
-      refreshMembers(),
-      refreshEvents(),
-      refreshContacts(),
-      refreshEnquiries(),
-      refreshGroupData()
-    ]);
-    toast.success('Dashboard data refreshed!');
-  }, [refreshMembers, refreshEvents, refreshContacts, refreshEnquiries, refreshGroupData]);
+    setLoading(prev => ({ ...prev, initial: true }));
+    
+    try {
+      await Promise.allSettled([
+        fetchMembers(true),
+        fetchEvents(true),
+        fetchContacts(true),
+        fetchEnquiries(true),
+        fetchGroupData(true)
+      ]);
+      toast.success('Data refreshed');
+    } catch (error) {
+      toast.error('Refresh failed');
+    } finally {
+      setLoading(prev => ({ ...prev, initial: false }));
+    }
+  }, [fetchMembers, fetchEvents, fetchContacts, fetchEnquiries, fetchGroupData]);
 
-  // Context value
+  const invalidateCache = useCallback((cacheKeys = []) => {
+    if (cacheKeys.length === 0) {
+      setCache({
+        members: { active: null, inactive: null, expired: null },
+        events: { all: null, past: null, future: null },
+        contacts: null,
+        analytics: null,
+        enquiries: { received: null, done: null },
+        groupData: null
+      });
+      sessionStorage.removeItem(CACHE_STORAGE_KEY);
+    } else {
+      setCache(prev => {
+        const newCache = { ...prev };
+        cacheKeys.forEach(key => {
+          if (newCache[key]) {
+            newCache[key] = Array.isArray(newCache[key]) ? [] : null;
+          }
+        });
+        return newCache;
+      });
+    }
+  }, []);
+
+  const refreshAfterOperation = useCallback(async (operationType = 'general') => {
+    switch (operationType) {
+      case 'member':
+        await fetchMembers(true);
+        break;
+      case 'event':
+        await fetchEvents(true);
+        break;
+      case 'contact':
+        await fetchContacts(true);
+        break;
+      case 'enquiry':
+        await fetchEnquiries(true);
+        break;
+      default:
+        await refreshAll();
+    }
+  }, [fetchMembers, fetchEvents, fetchContacts, fetchEnquiries, refreshAll]);
+
   const value = {
-    // Data
     data,
     loading,
     errors,
     fastLoading,
     
-    // Cache status
     isCacheValid: {
-      members: isDataFresh(cache.members.active?.timestamp) && 
-               isDataFresh(cache.members.inactive?.timestamp) && 
-               isDataFresh(cache.members.expired?.timestamp),
-      events: isDataFresh(cache.events.all?.timestamp) && 
-              isDataFresh(cache.events.past?.timestamp) && 
-              isDataFresh(cache.events.future?.timestamp),
-      contacts: isDataFresh(cache.contacts?.timestamp),
-      analytics: isDataFresh(cache.analytics?.timestamp),
-      enquiries: isDataFresh(cache.enquiries.received?.timestamp) && 
-                 isDataFresh(cache.enquiries.done?.timestamp),
-      groupData: isDataFresh(cache.groupData?.timestamp)
+      members: hasCachedData(cache.members.active) && isDataFresh(cache.members.active?.timestamp),
+      events: hasCachedData(cache.events.all) && isDataFresh(cache.events.all?.timestamp),
+      contacts: hasCachedData(cache.contacts) && isDataFresh(cache.contacts?.timestamp),
+      analytics: hasCachedData(cache.analytics) && isDataFresh(cache.analytics?.timestamp),
+      enquiries: hasCachedData(cache.enquiries.received) && isDataFresh(cache.enquiries.received?.timestamp),
+      groupData: hasCachedData(cache.groupData) && isDataFresh(cache.groupData?.timestamp)
     },
     
-    // Refresh functions
     refreshMembers,
     refreshEvents,
     refreshContacts,
     refreshEnquiries,
     refreshGroupData,
     refreshAll,
+    refreshAfterOperation,
+    invalidateCache,
     clearCache,
     clearAllData,
-    
-    // Quick access to stats
-    stats: data.stats
+    stats: data.stats,
+    cacheMetadata: getCacheMetadata()
   };
 
   return (

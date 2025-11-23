@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "../../components/user/DashboardLayout";
-import { FiDownload, FiFilter, FiChevronDown, FiFileText, FiFile, FiCopy, FiUser, FiMail, FiPhone, FiMapPin, FiRefreshCw, FiSearch } from "react-icons/fi";
+import { FiDownload, FiFilter, FiChevronDown, FiFileText, FiFile, FiCopy, FiUser, FiMail, FiPhone, FiMapPin, FiSearch } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -8,7 +8,7 @@ import { useContacts } from "../../context/ContactsContext";
 import { toast } from "react-toastify";
 
 export default function ImportantContactsPage() {
-  const { contactsData, loading, error, fetchContacts } = useContacts();
+  const { contactsData, loading, error } = useContacts();
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
   const [sortAsc, setSortAsc] = useState(true);
@@ -140,10 +140,6 @@ export default function ImportantContactsPage() {
     toast.success("All contacts copied to clipboard!");
   };
 
-  const handleRefresh = () => {
-    fetchContacts();
-    toast.info("Refreshing contacts...");
-  };
 
   // Loading state matching other member pages
   if (loading && contactsData.length === 0) {
@@ -151,7 +147,7 @@ export default function ImportantContactsPage() {
       <DashboardLayout>
         <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
           <div className="flex items-center gap-3">
-            <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
+            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
             <p className="text-indigo-700 dark:text-indigo-300">Loading important contacts...</p>
           </div>
         </div>
@@ -193,52 +189,62 @@ export default function ImportantContactsPage() {
             </div>
             
             <div className="flex flex-wrap gap-2 items-center justify-between xl:justify-start">
-              <button 
-                className="flex items-center gap-1 bg-blue-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition"
-                onClick={handleRefresh}
-                title="Refresh Data"
-              >
-                <FiRefreshCw /> 
-                <span>Refresh</span>
-              </button>
               
               {/* Desktop Export Buttons - Show on larger screens */}
               <div className="hidden xl:flex gap-2">
                 <button 
-                  className="flex items-center gap-1 bg-gray-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-600 transition"
+                  className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                   onClick={handleCopyToClipboard}
                   title="Copy to Clipboard"
                 >
-                  <FiCopy /> 
-                  Copy
+                  <FiCopy className="text-gray-500 hover:text-gray-700" />
                 </button>
                 
-                <button 
-                  className="flex items-center gap-1 bg-green-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition"
-                  onClick={handleExportCSV}
-                  title="Export CSV"
-                >
-                  <FiDownload /> 
-                  CSV
-                </button>
-                
-                <button 
-                  className="flex items-center gap-1 bg-emerald-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-emerald-600 transition"
-                  onClick={handleExportExcel}
-                  title="Export Excel"
-                >
-                  <FiFile /> 
-                  Excel
-                </button>
-                
-                <button 
-                  className="flex items-center gap-1 bg-rose-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-rose-600 transition"
-                  onClick={handleExportPDF}
-                  title="Export PDF"
-                >
-                  <FiFile /> 
-                  PDF
-                </button>
+                {/* Export Dropdown */}
+                <div className="relative export-dropdown">
+                  <button
+                    className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                    onClick={() => setShowExportDropdown(!showExportDropdown)}
+                    title="Export Options"
+                  >
+                    <FiDownload className="text-blue-500 hover:text-blue-600" />
+                  </button>
+                  
+                  {showExportDropdown && (
+                    <div className="absolute right-0 top-full mt-2 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-[99999] min-w-32 overflow-visible">
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
+                        onClick={() => {
+                          handleExportCSV();
+                          setShowExportDropdown(false);
+                        }}
+                      >
+                        <FiFileText className="text-green-500" />
+                        CSV
+                      </button>
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        onClick={() => {
+                          handleExportExcel();
+                          setShowExportDropdown(false);
+                        }}
+                      >
+                        <FiFile className="text-emerald-500" />
+                        Excel
+                      </button>
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg"
+                        onClick={() => {
+                          handleExportPDF();
+                          setShowExportDropdown(false);
+                        }}
+                      >
+                        <FiFile className="text-red-500" />
+                        PDF
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
               
               {/* Mobile/Tablet Export Dropdown - Show on smaller screens */}

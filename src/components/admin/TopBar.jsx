@@ -1,10 +1,44 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { FiSun, FiMoon, FiUser, FiBell, FiClock, FiCalendar, FiCheckCircle } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import api from "../../api/axiosConfig";
 import { getAuthHeaders } from "../../utils/apiHeaders";
 import { useDashboard } from "../../context/DashboardContext";
 import { useGroupData } from "../../context/GroupDataContext";
+
+// Admin TopBar caching configuration
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const ADMIN_NOTIFICATIONS_CACHE_KEY = 'admin_topbar_notifications_cache';
+
+// Cache utility functions
+const isDataFresh = (timestamp) => {
+  if (!timestamp) return false;
+  return Date.now() - timestamp < CACHE_DURATION;
+};
+
+const createCacheEntry = (data) => ({
+  data,
+  timestamp: Date.now()
+});
+
+const getCacheMetadata = (cacheKey) => {
+  try {
+    const cached = sessionStorage.getItem(cacheKey);
+    if (!cached) return null;
+    const parsed = JSON.parse(cached);
+    return isDataFresh(parsed.timestamp) ? parsed.data : null;
+  } catch {
+    return null;
+  }
+};
+
+const setCacheData = (cacheKey, data) => {
+  try {
+    sessionStorage.setItem(cacheKey, JSON.stringify(createCacheEntry(data)));
+  } catch {
+    // Handle storage errors silently
+  }
+};
 
 export default function TopBar() {
   const [profile, setProfile] = useState({ name: "", email: "" });
@@ -15,6 +49,10 @@ export default function TopBar() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const notificationsRef = useRef(null);
+  
+  // Cache key based on user ID for user-specific caching
+  const uid = localStorage.getItem('uid');
+  const adminNotificationsCacheKey = useMemo(() => `${ADMIN_NOTIFICATIONS_CACHE_KEY}_${uid}`, [uid]);
   
   // Try to use DashboardContext first, fallback to GroupDataContext
   let groupData = {};
@@ -69,7 +107,7 @@ export default function TopBar() {
     }
   }
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async (forceRefresh = false) => {
     try {
       const token = localStorage.getItem('token');
       const uid = localStorage.getItem('uid');
@@ -77,6 +115,16 @@ export default function TopBar() {
         setNotifications([]);
         setUnreadCount(0);
         return;
+      }
+
+      // Check cache first unless forcing refresh
+      if (!forceRefresh) {
+        const cachedNotifications = getCacheMetadata(adminNotificationsCacheKey);
+        if (cachedNotifications) {
+          setNotifications(cachedNotifications.notifications);
+          setUnreadCount(cachedNotifications.unreadCount);
+          return;
+        }
       }
       const { data } = await api.post('/event/future', {}, {
         headers: getAuthHeaders()
@@ -95,28 +143,34 @@ export default function TopBar() {
       const readNotificationIds = JSON.parse(localStorage.getItem('adminReadNotifications') || '[]');
 
       // Map events to notification objects, preserve read state if possible
-      setNotifications(prev => {
-        const mapped = backendEvents.map((e, idx) => {
-          const id = e.id || `event-${idx}`;
-          return {
-            id,
-            name: e.event_title || e.event || e.title || e.name || "Untitled Event",
-            date: e.event_date && e.event_time ? `${e.event_date}T${e.event_time}` : e.event_date || e.datetime || e.date_time || e.date,
-            read: readNotificationIds.includes(id),
-          };
-        });
-        setUnreadCount(mapped.filter(n => !n.read).length);
-        return mapped;
+      const mapped = backendEvents.map((e, idx) => {
+        const id = e.id || `event-${idx}`;
+        return {
+          id,
+          name: e.event_title || e.event || e.title || e.name || "Untitled Event",
+          date: e.event_date && e.event_time ? `${e.event_date}T${e.event_time}` : e.event_date || e.datetime || e.date_time || e.date,
+          read: readNotificationIds.includes(id),
+        };
       });
+      const unreadCount = mapped.filter(n => !n.read).length;
+      
+      // Cache the notifications data
+      setCacheData(adminNotificationsCacheKey, {
+        notifications: mapped,
+        unreadCount
+      });
+      
+      setNotifications(mapped);
+      setUnreadCount(unreadCount);
     } catch (error) {
       setNotifications([]);
       setUnreadCount(0);
     }
-  };
+  }, [adminNotificationsCacheKey]);
 
   useEffect(() => {
     fetchNotifications();
-  }, []);
+  }, [fetchNotifications]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -131,7 +185,7 @@ export default function TopBar() {
   }, [notificationsRef]);
 
   // Mark as read handler
-  const markAsRead = (id) => {
+  const markAsRead = useCallback((id) => {
     // Add to localStorage
     const readNotificationIds = JSON.parse(localStorage.getItem('adminReadNotifications') || '[]');
     if (!readNotificationIds.includes(id)) {
@@ -141,10 +195,18 @@ export default function TopBar() {
 
     setNotifications(notifications => {
       const updated = notifications.map(n => n.id === id ? { ...n, read: true } : n);
-      setUnreadCount(updated.filter(n => !n.read).length);
+      const newUnreadCount = updated.filter(n => !n.read).length;
+      setUnreadCount(newUnreadCount);
+      
+      // Update cache with new read status
+      setCacheData(adminNotificationsCacheKey, {
+        notifications: updated,
+        unreadCount: newUnreadCount
+      });
+      
       return updated;
     });
-  };
+  }, [adminNotificationsCacheKey]);
 
   // Use groupData from context for profile info
   useEffect(() => {

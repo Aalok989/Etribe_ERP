@@ -72,10 +72,9 @@ import EnquiriesDone_User from "./pages/user/EnquiriesDone_User";
 import ProductServices_User from "./pages/user/ProductServices_User";
 import PTFIMembers_User from "./pages/user/PTFIMembers_User";
 import ImportantContacts_User from "./pages/user/ImportantContacts_User";
-import GroupData_User from "./pages/user/GroupData_User";
-import UserAdditionalFields_User from "./pages/user/UserAdditionalFields_User";
 import Resume_User from "./pages/user/Resume_User";
 import SearchResult_User from "./pages/user/SearchResult_User";
+import JobList from "./pages/user/JobList";
 
 // Context Providers
 import { DashboardProvider } from "./context/DashboardContext";
@@ -372,6 +371,7 @@ function App() {
                   <Route path="grievance" element={<Grievance_User />} />
                   <Route path="post-job" element={<PostJob_User />} />
                   <Route path="public-job" element={<PublicJob_User />} />
+                  <Route path="job-list" element={<JobList />} />
                   <Route path="job-applicants" element={<JobApplicants_User />} />
                   <Route path="enquiry" element={<Enquiry_User />} />
                   <Route path="enquiry-received" element={<EnquiryReceived_User />} />
@@ -379,8 +379,6 @@ function App() {
                   <Route path="product-services" element={<ProductServices_User />} />
                   <Route path="ptfi-members" element={<PTFIMembers_User />} />
                   <Route path="important-contacts" element={<ImportantContacts_User />} />
-                  <Route path="group-data" element={<GroupData_User />} />
-                  <Route path="user-additional-fields" element={<UserAdditionalFields_User />} />
                   <Route path="resume" element={<Resume_User />} />
                   <Route path="search-results" element={<SearchResult_User />} />
                 </Routes>

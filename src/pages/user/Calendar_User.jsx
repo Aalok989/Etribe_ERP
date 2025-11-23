@@ -5,12 +5,52 @@ import api from "../../api/axiosConfig";
 import { getAuthHeaders } from "../../utils/apiHeaders";
 import { toast } from 'react-toastify';
 
+// Cache configuration
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_STORAGE_KEY = 'calendar_events_cache';
+const COUNTS_CACHE_STORAGE_KEY = 'calendar_counts_cache';
+
+// Cache utility functions
+const isDataFresh = (timestamp) => {
+  return Date.now() - timestamp < CACHE_DURATION;
+};
+
+const getCacheMetadata = (key) => {
+  try {
+    const cached = sessionStorage.getItem(key);
+    return cached ? JSON.parse(cached) : null;
+  } catch {
+    return null;
+  }
+};
+
+const setCacheData = (key, data) => {
+  try {
+    const cacheEntry = {
+      data,
+      timestamp: Date.now()
+    };
+    sessionStorage.setItem(key, JSON.stringify(cacheEntry));
+  } catch (error) {
+    console.warn('Failed to cache calendar data:', error);
+  }
+};
+
 // Helper functions
 function isSameDay(d1, d2) {
+  // Ensure both parameters are Date objects
+  const date1 = d1 instanceof Date ? d1 : new Date(d1);
+  const date2 = d2 instanceof Date ? d2 : new Date(d2);
+  
+  // Check if dates are valid
+  if (isNaN(date1.getTime()) || isNaN(date2.getTime())) {
+    return false;
+  }
+  
   return (
-    d1.getFullYear() === d2.getFullYear() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getDate() === d2.getDate()
+    date1.getFullYear() === date2.getFullYear() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getDate() === date2.getDate()
   );
 }
 function getEventDotColor(events) {
@@ -79,7 +119,7 @@ const SimpleCalendar = ({ selectedDate, onDateSelect, events }) => {
             return <div key={index} className="h-12 w-full"></div>;
           }
           const dayDate = new Date(currentYear, currentMonth, day);
-          const eventsForDay = events.filter(event => isSameDay(new Date(event.date), dayDate));
+          const eventsForDay = events.filter(event => isSameDay(event.date, dayDate));
           const isSelected = isSameDay(dayDate, selectedDate);
           const isToday = isSameDay(dayDate, today);
           const dotColor = getEventDotColor(eventsForDay);
@@ -150,9 +190,28 @@ export default function Calendar() {
   const [showEditEventModal, setShowEditEventModal] = useState(false);
 
 
-  // Fetch event counts from backend endpoints
+  // Load event counts with caching
   useEffect(() => {
-    const fetchCounts = async () => {
+    loadCounts();
+  }, []);
+
+  const loadCounts = async (force = false) => {
+    // Check cache first unless force refresh
+    if (!force) {
+      const cached = getCacheMetadata(COUNTS_CACHE_STORAGE_KEY);
+      if (cached && isDataFresh(cached.timestamp)) {
+        setUpcomingCount(cached.data.upcomingCount || 0);
+        setPastCount(cached.data.pastCount || 0);
+        setTodayCount(cached.data.todayCount || 0);
+        return;
+      }
+    }
+
+    // Fetch from API
+    await fetchCounts(force);
+  };
+
+  const fetchCounts = async (force = false) => {
       try {
         const token = localStorage.getItem('token');
         const uid = localStorage.getItem('uid');
@@ -216,22 +275,51 @@ export default function Calendar() {
           return eventDate.getTime() === today.getTime();
         });
         setTodayCount(allToday.length);
+        
+        // Cache the counts
+        setCacheData(COUNTS_CACHE_STORAGE_KEY, {
+          upcomingCount: futureEvents.length,
+          pastCount: pastEvents.length,
+          todayCount: allToday.length
+        });
       } catch (err) {
         setUpcomingCount(0);
         setPastCount(0);
         setTodayCount(0);
+        setCacheData(COUNTS_CACHE_STORAGE_KEY, {
+          upcomingCount: 0,
+          pastCount: 0,
+          todayCount: 0
+        });
       }
-    };
-    fetchCounts();
-    // Removed setInterval polling
-    // Only call fetchCounts after CRUD operations
-    return () => {};
+  };
+
+  // Load events with caching
+  useEffect(() => {
+    loadEvents();
   }, []);
 
-  // Fetch events from backend and poll every 10 seconds
-  useEffect(() => {
-    let interval;
-    const fetchEvents = async () => {
+  const loadEvents = async (force = false) => {
+    // Check cache first unless force refresh
+    if (!force) {
+      const cached = getCacheMetadata(CACHE_STORAGE_KEY);
+      if (cached && isDataFresh(cached.timestamp)) {
+        // Convert cached date strings back to Date objects
+        const eventsWithDates = cached.data.map(event => ({
+          ...event,
+          date: new Date(event.date)
+        }));
+        setEvents(eventsWithDates);
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Fetch from API
+    await fetchEvents(force);
+  };
+
+  const fetchEvents = async (force = false) => {
       setLoading(true);
       setError(null);
       try {
@@ -294,15 +382,15 @@ export default function Calendar() {
           };
         });
         setEvents(mappedEvents);
+        setCacheData(CACHE_STORAGE_KEY, mappedEvents);
       } catch (err) {
         toast.error(err.response?.data?.message || err.message || 'Failed to fetch events');
+        setEvents([]);
+        setCacheData(CACHE_STORAGE_KEY, []);
       } finally {
         setLoading(false);
       }
-    };
-    fetchEvents();
-    return () => {};
-  }, []);
+  };
 
   useEffect(() => {
     const interval = setInterval(() => setTime(new Date()), 1000);

@@ -1,22 +1,81 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import api from '../api/axiosConfig';
 import { getAuthHeaders } from '../utils/apiHeaders';
 
 const ContactsContext = createContext();
 
-export const useContacts = () => useContext(ContactsContext);
+export const useContacts = () => {
+  const context = useContext(ContactsContext);
+  if (!context) {
+    throw new Error('useContacts must be used within a ContactsProvider');
+  }
+  return context;
+};
+
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_STORAGE_KEY = 'etribe_contacts_cache';
+
+const isDataFresh = (timestamp, forceRefresh = false) => {
+  if (forceRefresh) return false;
+  return timestamp && (Date.now() - timestamp) < CACHE_DURATION;
+};
+
+const createCacheEntry = (data) => {
+  const entry = {
+    data,
+    timestamp: Date.now(),
+    version: 1
+  };
+  
+  try {
+    sessionStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify(entry));
+  } catch (e) {
+    console.warn('Contacts cache storage failed:', e);
+  }
+  
+  return entry;
+};
+
+const getCacheFromStorage = () => {
+  try {
+    const stored = sessionStorage.getItem(CACHE_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch (e) {
+    return null;
+  }
+};
+
+const hasCachedData = (cacheEntry) => {
+  return cacheEntry && 
+         cacheEntry.data && 
+         Array.isArray(cacheEntry.data) &&
+         cacheEntry.data.length > 0 &&
+         cacheEntry.timestamp;
+};
 
 export const ContactsProvider = ({ children }) => {
-  const [contactsData, setContactsData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [cache, setCache] = useState(() => {
+    const storedCache = getCacheFromStorage();
+    return storedCache && isDataFresh(storedCache.timestamp) ? storedCache : null;
+  });
+  
+  const [contactsData, setContactsData] = useState(() => {
+    const storedCache = getCacheFromStorage();
+    return storedCache && isDataFresh(storedCache.timestamp) ? storedCache.data : [];
+  });
+  
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchContacts = async () => {
-    try {
+  const fetchContacts = useCallback(async (force = false) => {
+    if (!force && hasCachedData(cache) && isDataFresh(cache?.timestamp)) {
+      return;
+    }
+
       setLoading(true);
       setError(null);
-      const token = localStorage.getItem('token');
-      const uid = localStorage.getItem('uid');
+
+    try {
       const response = await api.get('/contact', {
         headers: getAuthHeaders()
       });
@@ -44,6 +103,9 @@ export const ContactsProvider = ({ children }) => {
         email: contact.email || contact.email_address || contact.contact_email || contact.email_id || '',
         address: contact.address || contact.location || contact.contact_address || contact.address_line || '',
       }));
+
+      const cacheEntry = createCacheEntry(mappedContacts);
+      setCache(cacheEntry);
       setContactsData(mappedContacts);
     } catch (err) {
       setError('Failed to fetch contacts: ' + (err.response?.data?.message || err.message));
@@ -51,29 +113,30 @@ export const ContactsProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [cache]);
 
   useEffect(() => {
-    // Only fetch contacts if user is logged in
     const token = localStorage.getItem('token');
+    
     if (token) {
+      const hasAnyData = hasCachedData(cache);
+      
+      if (!hasAnyData) {
       fetchContacts();
+      }
     } else {
-      // If no token, set loading to false and clear data
       setLoading(false);
       setContactsData([]);
       setError(null);
     }
   }, []);
 
-  // Listen for logout events to clear data
   useEffect(() => {
     const handleLogout = () => {
       clearContacts();
     };
     
     const handleLogin = () => {
-      // Refetch contacts when user logs in
       fetchContacts();
     };
     
@@ -84,24 +147,9 @@ export const ContactsProvider = ({ children }) => {
       window.removeEventListener('logout', handleLogout);
       window.removeEventListener('login', handleLogin);
     };
-  }, []);
-
-  // Check for token changes periodically (every 5 seconds) - reduced frequency
-  useEffect(() => {
-    const checkToken = () => {
-      const token = localStorage.getItem('token');
-      if (token && contactsData.length === 0 && !loading) {
-        fetchContacts();
-      }
-    };
-
-    const interval = setInterval(checkToken, 5000);
-    return () => clearInterval(interval);
-  }, [contactsData.length, loading]);
+  }, [fetchContacts]);
 
   const addContact = async (contact) => {
-    const token = localStorage.getItem('token');
-    const uid = localStorage.getItem('uid');
     try {
       const payload = {
         department: contact.dept,
@@ -113,7 +161,7 @@ export const ContactsProvider = ({ children }) => {
       const response = await api.post('/contact/add', payload, {
         headers: getAuthHeaders()
       });
-      await fetchContacts(); 
+      await fetchContacts(true);
       return response.data;
     } catch (err) {
       throw err.response?.data?.message || 'Failed to add contact';
@@ -121,8 +169,6 @@ export const ContactsProvider = ({ children }) => {
   };
 
   const editContact = async (contact) => {
-    const token = localStorage.getItem('token');
-    const uid = localStorage.getItem('uid');
     try {
       const payload = {
         id: contact.id,
@@ -135,7 +181,7 @@ export const ContactsProvider = ({ children }) => {
       const response = await api.post('/contact/edit', payload, {
         headers: getAuthHeaders()
       });
-      await fetchContacts(); 
+      await fetchContacts(true);
       return response.data;
     } catch (err) {
       throw err.response?.data?.message || 'Failed to edit contact';
@@ -143,36 +189,46 @@ export const ContactsProvider = ({ children }) => {
   };
 
   const deleteContact = async (contactId) => {
-    const token = localStorage.getItem('token');
-    const uid = localStorage.getItem('uid');
     try {
       const response = await api.post('/contact/remove', { id: contactId }, {
         headers: getAuthHeaders()
       });
-      await fetchContacts(); 
+      await fetchContacts(true);
       return response.data;
     } catch (err) {
       throw err.response?.data?.message || 'Failed to delete contact';
     }
   };
 
-  // Function to manually trigger contacts fetch (can be called after login)
-  const refreshContacts = () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      fetchContacts();
-    }
-  };
+  const refreshContacts = useCallback(() => fetchContacts(true), [fetchContacts]);
 
-  // Function to clear contacts data (useful for logout)
-  const clearContacts = () => {
+  const clearContacts = useCallback(() => {
+    setCache(null);
     setContactsData([]);
     setLoading(false);
     setError(null);
+    try {
+      sessionStorage.removeItem(CACHE_STORAGE_KEY);
+    } catch (e) {
+      console.warn('Failed to clear contacts cache:', e);
+    }
+  }, []);
+
+  const value = {
+    contactsData,
+    loading,
+    error,
+    addContact,
+    editContact,
+    deleteContact,
+    fetchContacts,
+    refreshContacts,
+    clearContacts,
+    isCacheValid: hasCachedData(cache) && isDataFresh(cache?.timestamp)
   };
 
   return (
-    <ContactsContext.Provider value={{ contactsData, loading, error, addContact, editContact, deleteContact, fetchContacts, refreshContacts, clearContacts }}>
+    <ContactsContext.Provider value={value}>
       {children}
     </ContactsContext.Provider>
   );

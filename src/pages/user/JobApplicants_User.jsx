@@ -1,9 +1,39 @@
 import React, { useEffect, useMemo, useState } from "react";
 import DashboardLayout from "../../components/user/DashboardLayout";
-import { FiFileText, FiRefreshCw, FiSearch, FiUser, FiX } from "react-icons/fi";
+import { FiFileText, FiSearch, FiUser, FiX } from "react-icons/fi";
 import { toast } from "react-toastify";
 import api from "../../api/axiosConfig";
 import { getAuthHeaders } from "../../utils/apiHeaders";
+
+// Cache configuration
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_STORAGE_KEY = 'job_applicants_cache';
+
+// Cache utility functions
+const isDataFresh = (timestamp) => {
+  return Date.now() - timestamp < CACHE_DURATION;
+};
+
+const getCacheMetadata = () => {
+  try {
+    const cached = sessionStorage.getItem(CACHE_STORAGE_KEY);
+    return cached ? JSON.parse(cached) : null;
+  } catch {
+    return null;
+  }
+};
+
+const setCacheData = (data) => {
+  try {
+    const cacheEntry = {
+      data,
+      timestamp: Date.now()
+    };
+    sessionStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify(cacheEntry));
+  } catch (error) {
+    console.warn('Failed to cache job applicants data:', error);
+  }
+};
 
 const STATUS_OPTIONS = [
   "Applied",
@@ -38,11 +68,26 @@ export default function JobApplicantsUserPage() {
   const [noteForm, setNoteForm] = useState({ status: "", recruiter_notes: "" });
   const [updating, setUpdating] = useState(false);
 
-  const fetchApplicants = async () => {
+  const loadApplicants = async (force = false) => {
+    // Check cache first unless force refresh
+    if (!force) {
+      const cached = getCacheMetadata();
+      if (cached && isDataFresh(cached.timestamp)) {
+        setApplicants(cached.data);
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Fetch from API
+    await fetchApplicants(force);
+  };
+
+  const fetchApplicants = async (force = false) => {
     setLoading(true);
     try {
       const response = await api.post(
-        "/Job_post/job_applicants/",
+        "/JobPortal/job_applicants/",
         {},
         { headers: getAuthHeaders() }
       );
@@ -54,20 +99,23 @@ export default function JobApplicantsUserPage() {
       if (!Array.isArray(list)) {
         list = Object.values(list || {});
       }
-      setApplicants(list.filter(Boolean));
+      const filteredList = list.filter(Boolean);
+      setApplicants(filteredList);
+      setCacheData(filteredList);
     } catch (err) {
       toast.error(
         "Failed to fetch job applicants: " +
           (err.response?.data?.message || err.message)
       );
       setApplicants([]);
+      setCacheData([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchApplicants();
+    loadApplicants();
   }, []);
 
   const filteredApplicants = useMemo(() => {
@@ -130,7 +178,7 @@ export default function JobApplicantsUserPage() {
     setUpdating(true);
     try {
       await api.post(
-        `/Job_post/update_applicant_status/${selectedApplicant.id}`,
+        `/JobPortal/update_applicant_status/${selectedApplicant.id}`,
         {
           status: noteForm.status,
           recruiter_notes: noteForm.recruiter_notes,
@@ -139,7 +187,7 @@ export default function JobApplicantsUserPage() {
       );
       toast.success("Applicant status updated");
       closeNoteModal();
-      fetchApplicants();
+      loadApplicants(true);
     } catch (err) {
       toast.error(
         "Failed to update applicant: " +
@@ -155,7 +203,7 @@ export default function JobApplicantsUserPage() {
       <DashboardLayout>
         <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
           <div className="flex items-center gap-3">
-            <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
+            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
             <p className="text-indigo-700 dark:text-indigo-300">
               Loading job applicants...
             </p>
@@ -197,13 +245,6 @@ export default function JobApplicantsUserPage() {
                 {Math.min(startIdx + entriesPerPage, totalEntries)} of{" "}
                 {totalEntries} entries
               </div>
-              <button
-                className="flex items-center gap-1 bg-blue-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition"
-                onClick={fetchApplicants}
-              >
-                <FiRefreshCw />
-                Refresh
-              </button>
             </div>
           </div>
 

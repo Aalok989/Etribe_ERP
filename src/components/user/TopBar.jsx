@@ -1,10 +1,45 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { FiSun, FiMoon, FiUser, FiBell, FiClock, FiCalendar, FiCheckCircle, FiRefreshCw, FiMessageSquare, FiCreditCard, FiSettings, FiAward } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import api from "../../api/axiosConfig";
 import { getAuthHeaders } from "../../utils/apiHeaders";
 import MemberIDCard from "./MemberIDCard";
 import MembershipCertificate from "./MembershipCertificate";
+
+// TopBar caching configuration
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const PROFILE_CACHE_KEY = 'topbar_profile_cache';
+const NOTIFICATIONS_CACHE_KEY = 'topbar_notifications_cache';
+
+// Cache utility functions
+const isDataFresh = (timestamp) => {
+  if (!timestamp) return false;
+  return Date.now() - timestamp < CACHE_DURATION;
+};
+
+const createCacheEntry = (data) => ({
+  data,
+  timestamp: Date.now()
+});
+
+const getCacheMetadata = (cacheKey) => {
+  try {
+    const cached = sessionStorage.getItem(cacheKey);
+    if (!cached) return null;
+    const parsed = JSON.parse(cached);
+    return isDataFresh(parsed.timestamp) ? parsed.data : null;
+  } catch {
+    return null;
+  }
+};
+
+const setCacheData = (cacheKey, data) => {
+  try {
+    sessionStorage.setItem(cacheKey, JSON.stringify(createCacheEntry(data)));
+  } catch {
+    // Handle storage errors silently
+  }
+};
 
 export default function TopBar() {
   const [profile, setProfile] = useState({ 
@@ -27,7 +62,10 @@ export default function TopBar() {
   const [isCertificateOpen, setIsCertificateOpen] = useState(false);
   const profileDropdownRef = useRef(null);
   
-  // No more hardcoded groupData - we fetch real user data from API
+  // Cache keys based on user ID for user-specific caching
+  const uid = localStorage.getItem('uid');
+  const userProfileCacheKey = useMemo(() => `${PROFILE_CACHE_KEY}_${uid}`, [uid]);
+  const userNotificationsCacheKey = useMemo(() => `${NOTIFICATIONS_CACHE_KEY}_${uid}`, [uid]);
 
   useEffect(() => {
     if (theme === "dark") {
@@ -66,7 +104,7 @@ export default function TopBar() {
     }
   }
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async (forceRefresh = false) => {
     try {
       const token = localStorage.getItem('token');
       const uid = localStorage.getItem('uid');
@@ -74,6 +112,16 @@ export default function TopBar() {
         setNotifications([]);
         setUnreadCount(0);
         return;
+      }
+
+      // Check cache first unless forcing refresh
+      if (!forceRefresh) {
+        const cachedNotifications = getCacheMetadata(userNotificationsCacheKey);
+        if (cachedNotifications) {
+          setNotifications(cachedNotifications.notifications);
+          setUnreadCount(cachedNotifications.unreadCount);
+          return;
+        }
       }
 
       // Fetch both events and enquiries in parallel
@@ -142,18 +190,25 @@ export default function TopBar() {
 
       // Combine all notifications
       const allNotifications = [...eventNotifications, ...enquiryNotifications];
+      const unreadCount = allNotifications.filter(n => !n.read).length;
+      
+      // Cache the notifications data
+      setCacheData(userNotificationsCacheKey, {
+        notifications: allNotifications,
+        unreadCount
+      });
       
       setNotifications(allNotifications);
-      setUnreadCount(allNotifications.filter(n => !n.read).length);
+      setUnreadCount(unreadCount);
     } catch (error) {
       setNotifications([]);
       setUnreadCount(0);
     }
-  };
+  }, [userNotificationsCacheKey]);
 
   useEffect(() => {
     fetchNotifications();
-  }, []);
+  }, [fetchNotifications]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -171,7 +226,7 @@ export default function TopBar() {
   }, [notificationsRef, profileDropdownRef]);
 
   // Mark as read handler
-  const markAsRead = (id) => {
+  const markAsRead = useCallback((id) => {
     // Add to localStorage
     const readNotificationIds = JSON.parse(localStorage.getItem('userReadNotifications') || '[]');
     if (!readNotificationIds.includes(id)) {
@@ -181,13 +236,21 @@ export default function TopBar() {
 
     setNotifications(notifications => {
       const updated = notifications.map(n => n.id === id ? { ...n, read: true } : n);
-      setUnreadCount(updated.filter(n => !n.read).length);
+      const newUnreadCount = updated.filter(n => !n.read).length;
+      setUnreadCount(newUnreadCount);
+      
+      // Update cache with new read status
+      setCacheData(userNotificationsCacheKey, {
+        notifications: updated,
+        unreadCount: newUnreadCount
+      });
+      
       return updated;
     });
-  };
+  }, [userNotificationsCacheKey]);
 
   // Fetch current user's profile data using the same API as MemberDetail
-  const fetchUserProfile = async (isRefresh = false) => {
+  const fetchUserProfile = useCallback(async (isRefresh = false) => {
     try {
       if (isRefresh) {
         setRefreshing(true);
@@ -203,6 +266,18 @@ export default function TopBar() {
         setLoading(false);
         setRefreshing(false);
         return;
+      }
+
+      // Check cache first unless forcing refresh
+      if (!isRefresh) {
+        const cachedProfile = getCacheMetadata(userProfileCacheKey);
+        if (cachedProfile) {
+          setProfile(cachedProfile);
+          setError(null);
+          setLoading(false);
+          setRefreshing(false);
+          return;
+        }
       }
 
       let foundUser = null;
@@ -236,13 +311,18 @@ export default function TopBar() {
       }
 
               if (foundUser) {
-          setProfile({
+          const profileData = {
             name: foundUser.name || foundUser.full_name || foundUser.company_name || 'User',
             email: foundUser.email || foundUser.email_id || foundUser.company_email || 'No email',
             photo: foundUser.profile_image || foundUser.user_image || foundUser.avatar || foundUser.logo || foundUser.company_logo || foundUser.business_logo || null,
             company_name: foundUser.company_name || foundUser.company || '',
             phone: foundUser.phone || foundUser.phone_num || foundUser.contact || foundUser.company_phone || ''
-          });
+          };
+          
+          // Cache the profile data
+          setCacheData(userProfileCacheKey, profileData);
+          
+          setProfile(profileData);
           setError(null);
         } else {
           setError('User profile not found');
@@ -253,14 +333,14 @@ export default function TopBar() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [userProfileCacheKey]);
 
   // Remove fallback to groupData - we want real user data only
 
   // Fetch user profile on component mount
   useEffect(() => {
     fetchUserProfile();
-  }, []);
+  }, [fetchUserProfile]);
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
@@ -446,12 +526,13 @@ export default function TopBar() {
                 <button
                   onClick={() => {
                     fetchUserProfile(true);
+                    fetchNotifications(true);
                     setIsProfileDropdownOpen(false);
                   }}
                   className="w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
                 >
                   <FiRefreshCw className="text-blue-600 dark:text-blue-400" size={18} />
-                  <span className="font-medium">Refresh Profile</span>
+                  <span className="font-medium">Refresh Data</span>
                 </button>
               </div>
             </div>

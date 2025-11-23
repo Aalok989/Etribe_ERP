@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FiDownload, FiFilter, FiUser, FiMail, FiPhone, FiMapPin, FiRefreshCw, FiSearch, FiCopy, FiFileText, FiFile, FiChevronDown } from "react-icons/fi";
+import { FiDownload, FiFilter, FiUser, FiMail, FiPhone, FiMapPin, FiSearch, FiCopy, FiFileText, FiFile, FiChevronDown } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -10,7 +10,7 @@ import { toast } from "react-toastify";
 
 export default function ImportantContacts() {
   // Use dashboard context for faster loading with cached data
-  const { data: dashboardData, loading: dashboardLoading, refreshContacts } = useDashboard();
+  const { data: dashboardData, loading: dashboardLoading } = useDashboard();
   
   // Use dashboard data for display (faster loading)
   const contactsData = dashboardData.contacts || [];
@@ -116,10 +116,6 @@ export default function ImportantContacts() {
     toast.success("Contacts copied to clipboard!");
   };
 
-  const handleRefresh = () => {
-    refreshContacts();
-    toast.info("Refreshing contacts...");
-  };
 
   if (loading) {
     return (
@@ -153,12 +149,6 @@ export default function ImportantContacts() {
         <div className="p-5 flex-1 flex items-center justify-center overflow-hidden">
           <div className="text-center text-gray-600 dark:text-gray-300">
             <p>No contacts available</p>
-            <button
-              onClick={handleRefresh}
-              className="mt-2 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors"
-            >
-              Refresh
-            </button>
           </div>
         </div>
       </div>
@@ -166,9 +156,9 @@ export default function ImportantContacts() {
   }
 
   return (
-    <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] h-full w-full flex flex-col border border-gray-200 dark:border-gray-700 overflow-visible">
-      <div className="relative rounded-t-2xl overflow-visible">
-        <div className="absolute inset-0 bg-white dark:bg-[#1E1E1E]" />
+    <div className="rounded-2xl shadow-lg bg-white dark:bg-[#1E1E1E] h-full w-full flex flex-col border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="relative rounded-t-2xl overflow-hidden">
+        <div className="absolute inset-0 bg-white dark:bg-[#1E1E1E] rounded-t-2xl" />
         <div className="relative z-30 px-5 py-3 overflow-visible">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
             <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 tracking-wide">
@@ -206,14 +196,6 @@ export default function ImportantContacts() {
                 <FiCopy />
               </button>
 
-              {/* Refresh Button - Icon Only */}
-              <button
-                className="flex items-center justify-center text-gray-600 dark:text-gray-400 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 transition"
-                onClick={handleRefresh}
-                title="Refresh Contacts"
-              >
-                <FiRefreshCw />
-              </button>
 
               {/* Export Dropdown Button */}
               <div className="relative export-dropdown z-50">
@@ -268,17 +250,17 @@ export default function ImportantContacts() {
       <div className="px-3 pt-0 pb-3 flex-1 flex flex-col overflow-visible">
         {/* Table Section */}
         <div className="flex-1 min-h-0 overflow-hidden">
-          <div className="h-full overflow-hidden bg-white dark:bg-[#1E1E1E] rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="h-full overflow-hidden bg-white dark:bg-[#1E1E1E] border border-gray-200 dark:border-gray-700">
             <div className="h-full overflow-y-auto custom-scroll scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
               <table className="min-w-full text-sm bg-white dark:bg-[#1E1E1E] whitespace-nowrap">
                 <thead className="bg-white dark:bg-[#1E1E1E] text-gray-900 dark:text-gray-100 sticky top-0 z-10 border-b-2 border-gray-400 dark:border-gray-600">
                   <tr>
-                    <th className="p-3 rounded-l-xl text-left min-w-[60px]">Sr No</th>
+                    <th className="p-3 text-left min-w-[60px]">Sr No</th>
                     <th className="p-3 text-left min-w-[120px]">Department</th>
                     <th className="p-3 text-left min-w-[120px]">Person Name</th>
                     <th className="p-3 text-left min-w-[100px]">Contact</th>
                     <th className="p-3 text-left min-w-[150px]">Email</th>
-                    <th className="p-3 rounded-r-xl text-left min-w-[120px]">Address</th>
+                    <th className="p-3 text-left min-w-[120px]">Address</th>
                   </tr>
                 </thead>
                 <tbody>

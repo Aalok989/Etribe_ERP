@@ -25,6 +25,36 @@ import api from "../../api/axiosConfig";
 import { getAuthHeaders } from "../../utils/apiHeaders";
 import { toast } from "react-toastify";
 
+// Cache configuration
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_STORAGE_KEY = 'all_events_cache';
+
+// Cache utility functions
+const isDataFresh = (timestamp) => {
+  return Date.now() - timestamp < CACHE_DURATION;
+};
+
+const getCacheMetadata = () => {
+  try {
+    const cached = sessionStorage.getItem(CACHE_STORAGE_KEY);
+    return cached ? JSON.parse(cached) : null;
+  } catch {
+    return null;
+  }
+};
+
+const setCacheData = (data) => {
+  try {
+    const cacheEntry = {
+      data,
+      timestamp: Date.now()
+    };
+    sessionStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify(cacheEntry));
+  } catch (error) {
+    console.warn('Failed to cache all events data:', error);
+  }
+};
+
 export default function AllEvents() {
   const [events, setEvents] = useState([]);
   const [search, setSearch] = useState("");
@@ -39,9 +69,27 @@ export default function AllEvents() {
   const [showExportDropdown, setShowExportDropdown] = useState(false);
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      setLoading(true);
-      try {
+    loadEvents();
+  }, []);
+
+  const loadEvents = async (force = false) => {
+    // Check cache first unless force refresh
+    if (!force) {
+      const cached = getCacheMetadata();
+      if (cached && isDataFresh(cached.timestamp)) {
+        setEvents(cached.data);
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Fetch from API
+    await fetchEvents(force);
+  };
+
+  const fetchEvents = async (force = false) => {
+    setLoading(true);
+    try {
         const token = localStorage.getItem("token");
         const uid = localStorage.getItem("uid");
         const response = await api.post(
@@ -83,15 +131,15 @@ export default function AllEvents() {
         }));
         
         setEvents(mappedEvents);
+        setCacheData(mappedEvents);
       } catch (error) {
         toast.error("Failed to fetch events");
+        setEvents([]);
+        setCacheData([]);
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchEvents();
-  }, []);
+  };
 
   // Handle click outside for export dropdown
   useEffect(() => {
@@ -117,10 +165,6 @@ export default function AllEvents() {
     setSelectedEventIdx(null);
   };
 
-  const handleRefresh = () => {
-    window.location.reload();
-    toast.info("Refreshing events...");
-  };
 
   const handleSearch = (e) => {
     setSearch(e.target.value);
@@ -279,7 +323,7 @@ export default function AllEvents() {
       <DashboardLayout>
         <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
           <div className="flex items-center gap-3">
-            <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
+            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
             <p className="text-indigo-700 dark:text-indigo-300">Loading events...</p>
           </div>
         </div>
@@ -321,52 +365,61 @@ export default function AllEvents() {
                       </div>
             
             <div className="flex flex-wrap gap-2 items-center justify-between xl:justify-start">
-                  <button
-                className="flex items-center gap-1 bg-blue-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition"
-                onClick={handleRefresh}
-                title="Refresh Data"
-              >
-                <FiRefreshCw /> 
-                <span>Refresh</span>
-                  </button>
               
-              {/* Desktop Export Buttons - Show on larger screens */}
+              {/* Export Buttons */}
               <div className="hidden xl:flex gap-2">
-                  <button
-                  className="flex items-center gap-1 bg-gray-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-600 transition"
+                <button 
+                  className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                   onClick={copyToClipboard}
                   title="Copy to Clipboard"
                 >
-                  <FiCopy /> 
-                  Copy
+                  <FiCopy className="text-gray-500 hover:text-gray-700" />
+                </button>
+                
+                <div className="relative">
+                  <button
+                    className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                    onClick={() => setShowExportDropdown(!showExportDropdown)}
+                    title="Export Options"
+                  >
+                    <FiDownload className="text-blue-500 hover:text-blue-700" />
                   </button>
-                
-              <button
-                  className="flex items-center gap-1 bg-green-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition"
-                  onClick={exportToCSV}
-                  title="Export CSV"
-                >
-                  <FiDownload /> 
-                CSV
-              </button>
-                
-              <button
-                className="flex items-center gap-1 bg-emerald-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-emerald-600 transition"
-                  onClick={exportToExcel}
-                  title="Export Excel"
-              >
-                <FiFile />
-                Excel
-              </button>
-                
-              <button
-                  className="flex items-center gap-1 bg-rose-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-rose-600 transition"
-                  onClick={exportToPDF}
-                  title="Export PDF"
-              >
-                <FiFile />
-                PDF
-              </button>
+                  
+                  {showExportDropdown && (
+                    <div className="absolute right-0 top-full mt-1 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
+                        onClick={() => {
+                          exportToCSV();
+                          setShowExportDropdown(false);
+                        }}
+                      >
+                        <FiDownload className="text-green-500" />
+                        CSV
+                      </button>
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        onClick={() => {
+                          exportToExcel();
+                          setShowExportDropdown(false);
+                        }}
+                      >
+                        <FiFile className="text-emerald-500" />
+                        Excel
+                      </button>
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg"
+                        onClick={() => {
+                          exportToPDF();
+                          setShowExportDropdown(false);
+                        }}
+                      >
+                        <FiFile className="text-rose-500" />
+                        PDF
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
               
               {/* Mobile/Tablet Export Dropdown - Show on smaller screens */}

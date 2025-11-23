@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "../../components/user/DashboardLayout";
-import { FiSearch, FiRefreshCw, FiDownload, FiCopy, FiFile, FiChevronDown, FiChevronUp, FiChevronLeft, FiChevronRight, FiMessageSquare, FiPlus, FiX, FiEye, FiSend } from "react-icons/fi";
+import { FiSearch, FiDownload, FiCopy, FiFile, FiChevronDown, FiChevronUp, FiChevronLeft, FiChevronRight, FiMessageSquare, FiPlus, FiX, FiEye, FiSend } from "react-icons/fi";
 import { toast } from "react-toastify";
 import api from "../../api/axiosConfig";
 import { getAuthHeaders } from "../../utils/apiHeaders";
@@ -8,6 +8,36 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import RichTextEditor from '../../components/shared/RichTextEditor';
+
+// Cache configuration
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_STORAGE_KEY = 'enquiry_cache';
+
+// Cache utility functions
+const isDataFresh = (timestamp) => {
+  return Date.now() - timestamp < CACHE_DURATION;
+};
+
+const getCacheMetadata = (searchKey = '') => {
+  try {
+    const cached = sessionStorage.getItem(`${CACHE_STORAGE_KEY}_${searchKey}`);
+    return cached ? JSON.parse(cached) : null;
+  } catch {
+    return null;
+  }
+};
+
+const setCacheData = (searchKey = '', data) => {
+  try {
+    const cacheEntry = {
+      data,
+      timestamp: Date.now()
+    };
+    sessionStorage.setItem(`${CACHE_STORAGE_KEY}_${searchKey}`, JSON.stringify(cacheEntry));
+  } catch (error) {
+    console.warn('Failed to cache enquiry data:', error);
+  }
+};
 
 export default function Enquiry() {
   const [enquiries, setEnquiries] = useState([]);
@@ -26,18 +56,13 @@ export default function Enquiry() {
   const [enquiryLoading, setEnquiryLoading] = useState(false);
 
   useEffect(() => {
-    fetchEnquiries();
+    loadEnquiries();
   }, []);
 
-  // Fetch enquiries when search changes (with debounce)
+  // Load enquiries when search changes (with debounce)
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (search.trim() !== '') {
-        fetchEnquiries();
-      } else if (search.trim() === '') {
-        // If search is empty, fetch all products
-        fetchEnquiries();
-      }
+      loadEnquiries();
     }, 500); // 500ms debounce
 
     return () => clearTimeout(timer);
@@ -55,7 +80,24 @@ export default function Enquiry() {
     return html.replace(/<[^>]*>/g, '').replace(/\r?\n/g, ' ').trim();
   };
 
-  const fetchEnquiries = async () => {
+  const loadEnquiries = async (force = false) => {
+    const searchKey = search.trim();
+    
+    // Check cache first unless force refresh
+    if (!force) {
+      const cached = getCacheMetadata(searchKey);
+      if (cached && isDataFresh(cached.timestamp)) {
+        setEnquiries(cached.data);
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Fetch from API
+    await fetchEnquiries(force);
+  };
+
+  const fetchEnquiries = async (force = false) => {
     try {
       const token = localStorage.getItem("token");
       const uid = localStorage.getItem("uid");
@@ -103,6 +145,7 @@ export default function Enquiry() {
             });
           
           setEnquiries(mappedEnquiries);
+          setCacheData(search.trim(), mappedEnquiries);
        } else if (response.data && Array.isArray(response.data)) {
         // Fallback: API returns data directly in response.data as an array
         const apiEnquiries = response.data;
@@ -133,6 +176,7 @@ export default function Enquiry() {
          });
          
          setEnquiries(mappedEnquiries);
+         setCacheData(search.trim(), mappedEnquiries);
       } else if (response.data?.data) {
         // Fallback for other data structures
         const apiEnquiries = response.data.data;
@@ -162,8 +206,10 @@ export default function Enquiry() {
            }) : [];
          
          setEnquiries(mappedEnquiries);
+         setCacheData(search.trim(), mappedEnquiries);
       } else {
         setEnquiries([]);
+        setCacheData(search.trim(), []);
       }
     } catch (err) {
       if (err.response?.status === 401) {
@@ -176,6 +222,7 @@ export default function Enquiry() {
       }
       
       setEnquiries([]);
+      setCacheData(search.trim(), []);
     } finally {
       setLoading(false);
     }
@@ -345,10 +392,6 @@ export default function Enquiry() {
     }
   };
 
-  const handleRefresh = () => {
-    setLoading(true);
-    fetchEnquiries();
-  };
 
   const handleViewEnquiry = (enquiry) => {
     setSelectedEnquiry(enquiry);
@@ -380,6 +423,8 @@ export default function Enquiry() {
         setEnquiryMessage("");
         setShowEnquiryModal(false);
         setShowViewModal(false);
+        // Refresh enquiries after sending to reflect any changes
+        await loadEnquiries(true);
       } else {
         toast.error(response.data?.message || "Failed to send enquiry");
       }
@@ -437,7 +482,7 @@ export default function Enquiry() {
       <DashboardLayout>
         <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
           <div className="flex items-center gap-3">
-            <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
+            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
             <p className="text-indigo-700 dark:text-indigo-300">Loading enquiries...</p>
           </div>
         </div>
@@ -479,81 +524,90 @@ export default function Enquiry() {
             </div>
 
             <div className="flex flex-wrap gap-2 items-center justify-between xl:justify-start">
-              <button 
-                className="flex items-center gap-1 bg-blue-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition"
-                onClick={handleRefresh}
-                title="Refresh Data"
-              >
-                <FiRefreshCw /> 
-                <span>Refresh</span>
-              </button>
               
 
               
               {/* Desktop Export Buttons - Show on larger screens */}
               <div className="hidden xl:flex gap-2">
                 <button 
-                  className="flex items-center gap-1 bg-gray-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-600 transition"
+                  className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                   onClick={copyToClipboard}
                   title="Copy to Clipboard"
                 >
-                  <FiCopy /> 
-                  Copy
+                  <FiCopy className="text-gray-600" size={18} />
                 </button>
                 
-                <button 
-                  className="flex items-center gap-1 bg-green-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition"
-                  onClick={exportToCSV}
-                  title="Export CSV"
-                >
-                  <FiDownload /> 
-                  CSV
-                </button>
-                
-                <button 
-                  className="flex items-center gap-1 bg-emerald-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-emerald-600 transition"
-                  onClick={exportToExcel}
-                  title="Export Excel"
-                >
-                  <FiFile /> 
-                  Excel
-                </button>
-                
-                <button 
-                  className="flex items-center gap-1 bg-rose-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-rose-600 transition"
-                  onClick={exportToPDF}
-                  title="Export PDF"
-                >
-                  <FiFile /> 
-                  PDF
-                </button>
+                <div className="relative">
+                  <button
+                    className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                    onClick={() => setShowExportDropdown(!showExportDropdown)}
+                    title="Export Options"
+                  >
+                    <FiDownload className="text-blue-600" size={18} />
+                  </button>
+                  
+                  {showExportDropdown && (
+                    <div className="absolute right-0 top-full mt-1 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
+                        onClick={() => {
+                          exportToCSV();
+                          setShowExportDropdown(false);
+                        }}
+                      >
+                        <FiDownload className="text-green-500" />
+                        CSV
+                      </button>
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        onClick={() => {
+                          exportToExcel();
+                          setShowExportDropdown(false);
+                        }}
+                      >
+                        <FiFile className="text-emerald-500" />
+                        Excel
+                      </button>
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg"
+                        onClick={() => {
+                          exportToPDF();
+                          setShowExportDropdown(false);
+                        }}
+                      >
+                        <FiFile className="text-red-500" />
+                        PDF
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
               
               {/* Mobile/Tablet Export Dropdown - Show on smaller screens */}
               <div className="relative xl:hidden">
-                <button
-                  className="flex items-center gap-1 bg-indigo-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-indigo-600 transition"
-                  onClick={() => setShowExportDropdown(!showExportDropdown)}
-                >
-                  <FiDownload />
-                  <span>Export</span>
-                  <FiChevronDown className={`transition-transform ${showExportDropdown ? 'rotate-180' : ''}`} />
-                </button>
+                <div className="flex gap-2">
+                  <button 
+                    className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                    onClick={copyToClipboard}
+                    title="Copy to Clipboard"
+                  >
+                    <FiCopy className="text-gray-600" size={18} />
+                  </button>
+                  
+                  <button
+                    className="flex items-center gap-1 bg-indigo-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-indigo-600 transition"
+                    onClick={() => setShowExportDropdown(!showExportDropdown)}
+                  >
+                    <FiDownload />
+                    <span>Export</span>
+                    <FiChevronDown className={`transition-transform ${showExportDropdown ? 'rotate-180' : ''}`} />
+                  </button>
+                </div>
                 
                 {showExportDropdown && (
                   <div className="absolute right-0 top-full mt-1 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
                     <button
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
-                      onClick={() => {
-                        copyToClipboard();
-                        setShowExportDropdown(false);
-                      }}
-                    >
-                      <FiCopy className="text-gray-500" />
-                      Copy
-                    </button>
-                    <button
-                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                       onClick={() => {
                         exportToCSV();
                         setShowExportDropdown(false);
@@ -579,7 +633,7 @@ export default function Enquiry() {
                         setShowExportDropdown(false);
                       }}
                     >
-                      <FiFile className="text-rose-500" />
+                      <FiFile className="text-red-500" />
                       PDF
                     </button>
                   </div>

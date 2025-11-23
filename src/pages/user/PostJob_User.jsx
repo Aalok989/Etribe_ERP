@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import DashboardLayout from "../../components/user/DashboardLayout";
-import { FiDownload, FiEdit2, FiTrash2, FiChevronDown, FiFile, FiX, FiCopy, FiPlus, FiUser, FiRefreshCw, FiSearch, FiLoader } from "react-icons/fi";
+import { FiDownload, FiEdit2, FiTrash2, FiChevronDown, FiFile, FiX, FiCopy, FiPlus, FiUser, FiSearch, FiLoader } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -8,6 +8,36 @@ import { toast } from "react-toastify";
 import api from "../../api/axiosConfig";
 import { getAuthHeaders } from "../../utils/apiHeaders";
 import { useDashboard } from "../../context/DashboardContext";
+
+// Cache configuration
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_STORAGE_KEY = 'post_jobs_cache';
+
+// Cache utility functions
+const isDataFresh = (timestamp) => {
+  return Date.now() - timestamp < CACHE_DURATION;
+};
+
+const getCacheMetadata = () => {
+  try {
+    const cached = sessionStorage.getItem(CACHE_STORAGE_KEY);
+    return cached ? JSON.parse(cached) : null;
+  } catch {
+    return null;
+  }
+};
+
+const setCacheData = (data) => {
+  try {
+    const cacheEntry = {
+      data,
+      timestamp: Date.now()
+    };
+    sessionStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify(cacheEntry));
+  } catch (error) {
+    console.warn('Failed to cache post jobs data:', error);
+  }
+};
 
 export default function PostJobUserPage() {
   const { data: dashboardData, refreshMembers } = useDashboard();
@@ -68,7 +98,22 @@ export default function PostJobUserPage() {
     }
   }, [userCompanyId]);
 
-  const fetchPostJobs = async () => {
+  const loadPostJobs = async (force = false) => {
+    // Check cache first unless force refresh
+    if (!force) {
+      const cached = getCacheMetadata();
+      if (cached && isDataFresh(cached.timestamp)) {
+        setJobsData(cached.data);
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Fetch from API
+    await fetchPostJobs(force);
+  };
+
+  const fetchPostJobs = async (force = false) => {
     setLoading(true);
     try {
       const uid = localStorage.getItem("uid") || "1";
@@ -81,25 +126,31 @@ export default function PostJobUserPage() {
       
       if (Array.isArray(jobs)) {
         setJobsData(jobs);
+        setCacheData(jobs);
       } else if (jobs && typeof jobs === "object") {
         if (jobs.id || jobs.job_type || jobs.job_description) {
           setJobsData([jobs]);
+          setCacheData([jobs]);
         } else {
-          setJobsData(Object.values(jobs));
+          const jobsArray = Object.values(jobs);
+          setJobsData(jobsArray);
+          setCacheData(jobsArray);
         }
       } else {
         setJobsData([]);
+        setCacheData([]);
       }
     } catch (err) {
       toast.error("Failed to fetch post jobs: " + (err.response?.data?.message || err.message));
       setJobsData([]);
+      setCacheData([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchPostJobs();
+    loadPostJobs();
   }, []);
 
   useEffect(() => {
@@ -201,7 +252,7 @@ export default function PostJobUserPage() {
       if (response.data?.status === true) {
         toast.success(response.data?.message || "Job updated successfully!");
         setEditJob(null);
-        await fetchPostJobs();
+        await loadPostJobs(true);
       } else {
         const message = response.data?.message || "Failed to update job.";
         setFormError(message);
@@ -228,7 +279,7 @@ export default function PostJobUserPage() {
         toast.success("Job deleted successfully!");
         setDeleteJob(null);
         setDeleteConfirm("");
-        await fetchPostJobs();
+        await loadPostJobs(true);
       } else {
         const message = response.data?.message || "Failed to delete job";
         toast.error(message);
@@ -278,7 +329,7 @@ export default function PostJobUserPage() {
         toast.success(response.data?.message || "Job added successfully!");
         setAddJobForm({ company_detail_id: "", job_type: "", job_description: "", eligibility: "" });
         setShowAddJobModal(false);
-        await fetchPostJobs();
+        await loadPostJobs(true);
       } else {
         const message = response.data?.message || "Failed to add job.";
         setFormError(message);
@@ -364,11 +415,6 @@ export default function PostJobUserPage() {
     toast.success("All jobs copied to clipboard!");
   };
 
-  const handleRefresh = () => {
-    fetchPostJobs();
-    refreshMembers();
-    toast.info("Refreshing jobs...");
-  };
 
   const handleStatusToggle = async (job) => {
     const newStatus = job.status === "1" || job.status === 1 ? 0 : 1;
@@ -382,7 +428,7 @@ export default function PostJobUserPage() {
 
       if (response.data?.status === true) {
         toast.success(response.data?.message || "Status updated successfully!");
-        await fetchPostJobs();
+        await loadPostJobs(true);
       } else {
         toast.error(response.data?.message || "Failed to update status.");
       }
@@ -397,7 +443,7 @@ export default function PostJobUserPage() {
       <DashboardLayout>
         <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
           <div className="flex items-center gap-3">
-            <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
+            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
             <p className="text-indigo-700 dark:text-indigo-300">Loading post jobs...</p>
           </div>
         </div>
@@ -439,79 +485,88 @@ export default function PostJobUserPage() {
             </div>
             
             <div className="flex flex-wrap gap-2 items-center justify-between xl:justify-start">
-              <button 
-                className="flex items-center gap-1 bg-blue-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition"
-                onClick={handleRefresh}
-                title="Refresh Data"
-              >
-                <FiRefreshCw /> 
-                <span>Refresh</span>
-              </button>
               
               {/* Desktop Export Buttons - Show on larger screens */}
               <div className="hidden xl:flex gap-2">
                 <button 
-                  className="flex items-center gap-1 bg-gray-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-600 transition"
+                  className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                   onClick={handleCopyToClipboard}
                   title="Copy to Clipboard"
                 >
-                  <FiCopy /> 
-                  Copy
+                  <FiCopy className="text-gray-600" size={18} />
                 </button>
                 
-                <button 
-                  className="flex items-center gap-1 bg-green-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition"
-                  onClick={handleExportCSV}
-                  title="Export CSV"
-                >
-                  <FiDownload /> 
-                  CSV
-                </button>
-                
-                <button 
-                  className="flex items-center gap-1 bg-emerald-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-emerald-600 transition"
-                  onClick={handleExportExcel}
-                  title="Export Excel"
-                >
-                  <FiFile /> 
-                  Excel
-                </button>
-                
-                <button 
-                  className="flex items-center gap-1 bg-rose-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-rose-600 transition"
-                  onClick={handleExportPDF}
-                  title="Export PDF"
-                >
-                  <FiFile /> 
-                  PDF
-                </button>
+                <div className="relative">
+                  <button
+                    className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                    onClick={() => setShowExportDropdown(!showExportDropdown)}
+                    title="Export Options"
+                  >
+                    <FiDownload className="text-blue-600" size={18} />
+                  </button>
+                  
+                  {showExportDropdown && (
+                    <div className="absolute right-0 top-full mt-1 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
+                        onClick={() => {
+                          handleExportCSV();
+                          setShowExportDropdown(false);
+                        }}
+                      >
+                        <FiDownload className="text-green-500" />
+                        CSV
+                      </button>
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        onClick={() => {
+                          handleExportExcel();
+                          setShowExportDropdown(false);
+                        }}
+                      >
+                        <FiFile className="text-emerald-500" />
+                        Excel
+                      </button>
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg"
+                        onClick={() => {
+                          handleExportPDF();
+                          setShowExportDropdown(false);
+                        }}
+                      >
+                        <FiFile className="text-red-500" />
+                        PDF
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
               
               {/* Mobile/Tablet Export Dropdown - Show on smaller screens */}
-              <div className="relative xl:hidden flex-1 flex justify-center">
-                <button
-                  className="flex items-center gap-1 bg-indigo-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-indigo-600 transition"
-                  onClick={() => setShowExportDropdown(!showExportDropdown)}
-                >
-                  <FiDownload />
-                  <span>Export</span>
-                  <FiChevronDown className={`transition-transform ${showExportDropdown ? 'rotate-180' : ''}`} />
-                </button>
+              <div className="relative xl:hidden">
+                <div className="flex gap-2">
+                  <button 
+                    className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                    onClick={handleCopyToClipboard}
+                    title="Copy to Clipboard"
+                  >
+                    <FiCopy className="text-gray-600" size={18} />
+                  </button>
+                  
+                  <button
+                    className="flex items-center gap-1 bg-indigo-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-indigo-600 transition"
+                    onClick={() => setShowExportDropdown(!showExportDropdown)}
+                  >
+                    <FiDownload />
+                    <span>Export</span>
+                    <FiChevronDown className={`transition-transform ${showExportDropdown ? 'rotate-180' : ''}`} />
+                  </button>
+                </div>
                 
                 {showExportDropdown && (
                   <div className="absolute right-0 top-full mt-1 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
                     <button
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
-                      onClick={() => {
-                        handleCopyToClipboard();
-                        setShowExportDropdown(false);
-                      }}
-                    >
-                      <FiCopy className="text-gray-500" />
-                      Copy
-                    </button>
-                    <button
-                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                       onClick={() => {
                         handleExportCSV();
                         setShowExportDropdown(false);
@@ -537,7 +592,7 @@ export default function PostJobUserPage() {
                         setShowExportDropdown(false);
                       }}
                     >
-                      <FiFile className="text-rose-500" />
+                      <FiFile className="text-red-500" />
                       PDF
                     </button>
                   </div>

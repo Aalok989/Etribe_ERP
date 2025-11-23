@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/user/DashboardLayout";
-import { FiEdit2, FiPlus, FiKey, FiX, FiFileText, FiFile, FiRefreshCw, FiTrash2, FiUser, FiMail, FiPhone, FiMapPin, FiShield, FiCheckCircle, FiAlertCircle, FiCopy, FiDownload, FiChevronDown, FiChevronUp, FiChevronLeft, FiChevronRight, FiSearch, FiUsers, FiHome, FiCalendar } from "react-icons/fi";
+import { FiEdit2, FiPlus, FiKey, FiX, FiFileText, FiFile, FiTrash2, FiUser, FiMail, FiPhone, FiMapPin, FiShield, FiCheckCircle, FiAlertCircle, FiCopy, FiDownload, FiChevronDown, FiChevronUp, FiChevronLeft, FiChevronRight, FiSearch, FiUsers, FiHome, FiCalendar } from "react-icons/fi";
 import api from "../../api/axiosConfig";
 import { toast } from 'react-toastify';
 import { getAuthHeaders } from "../../utils/apiHeaders";
@@ -14,7 +14,7 @@ import autoTable from "jspdf-autotable";
 // Cache for additional fields to avoid repeated API calls
 let additionalFieldsCache = null;
 let cacheTimestamp = null;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
 // Fetch additional fields function
 const fetchAdditionalFields = async () => {
@@ -104,7 +104,7 @@ const getMemberCardFields = (additionalFields = []) => {
 
 export default function PTFIMembers() {
   const navigate = useNavigate();
-  const { data: dashboardData, loading: dashboardLoading, refreshMembers } = useDashboard();
+  const { data: dashboardData, loading: dashboardLoading } = useDashboard();
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
@@ -319,10 +319,6 @@ export default function PTFIMembers() {
     }
   };
 
-  const handleRefresh = () => {
-    refreshMembers();
-    toast.info("Refreshing PTFI members...");
-  };
 
   // Test download functionality
   const testDownload = () => {
@@ -340,17 +336,13 @@ export default function PTFIMembers() {
     toast.info("Test download initiated");
   };
 
-  // Fetch data on component mount
-  useEffect(() => {
-    refreshMembers();
-  }, [refreshMembers]);
 
   if (dashboardLoading.members && dashboardMembers.length === 0) {
     return (
       <DashboardLayout>
         <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
           <div className="flex items-center gap-3">
-            <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
+            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
             <p className="text-indigo-700 dark:text-indigo-300">Loading PTFI members...</p>
           </div>
         </div>
@@ -390,52 +382,62 @@ export default function PTFIMembers() {
             </div>
 
             <div className="flex flex-wrap gap-2 items-center justify-between xl:justify-start">
-              <button 
-                className="flex items-center gap-1 bg-blue-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition"
-                onClick={handleRefresh}
-                title="Refresh Data"
-              >
-                <FiRefreshCw /> 
-                <span>Refresh</span>
-              </button>
               
               {/* Desktop Export Buttons - Show on larger screens */}
               <div className="hidden xl:flex gap-2">
-              <button 
-                className="flex items-center gap-1 bg-gray-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-600 transition"
+                <button 
+                  className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                   onClick={handleExportCopy}
-                title="Copy to Clipboard"
-              >
-                  <FiCopy /> 
-                  Copy
-              </button>
-              
-              <button 
-                className="flex items-center gap-1 bg-green-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition"
-                onClick={handleExportCSV}
-                title="Export CSV"
-              >
-                  <FiDownload /> 
-                  CSV
-              </button>
-              
-              <button 
-                className="flex items-center gap-1 bg-emerald-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-emerald-600 transition"
-                onClick={handleExportExcel}
-                title="Export Excel"
-              >
-                  <FiFile /> 
-                  Excel
-              </button>
-              
-              <button 
-                className="flex items-center gap-1 bg-rose-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-rose-600 transition"
-                onClick={handleExportPDF}
-                title="Export PDF"
-              >
-                  <FiFile /> 
-                  PDF
+                  title="Copy to Clipboard"
+                >
+                  <FiCopy className="text-gray-500 hover:text-gray-700" />
                 </button>
+                
+                {/* Export Dropdown */}
+                <div className="relative export-dropdown">
+                  <button
+                    className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                    onClick={() => setShowExportDropdown(!showExportDropdown)}
+                    title="Export Options"
+                  >
+                    <FiDownload className="text-blue-500 hover:text-blue-600" />
+                  </button>
+                  
+                  {showExportDropdown && (
+                    <div className="absolute right-0 top-full mt-2 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-[99999] min-w-32 overflow-visible">
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
+                        onClick={() => {
+                          handleExportCSV();
+                          setShowExportDropdown(false);
+                        }}
+                      >
+                        <FiFileText className="text-green-500" />
+                        CSV
+                      </button>
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        onClick={() => {
+                          handleExportExcel();
+                          setShowExportDropdown(false);
+                        }}
+                      >
+                        <FiFile className="text-emerald-500" />
+                        Excel
+                      </button>
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg"
+                        onClick={() => {
+                          handleExportPDF();
+                          setShowExportDropdown(false);
+                        }}
+                      >
+                        <FiFile className="text-red-500" />
+                        PDF
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
               
               {/* Mobile/Tablet Export Dropdown - Show on smaller screens */}

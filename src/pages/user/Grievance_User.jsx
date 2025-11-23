@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "../../components/user/DashboardLayout";
-import { FiPlus, FiX, FiUpload, FiSearch, FiRefreshCw, FiDownload, FiCopy, FiChevronDown, FiChevronLeft, FiChevronRight, FiAlertTriangle, FiUser, FiCalendar, FiEye, FiFile } from "react-icons/fi";
+import { FiPlus, FiX, FiUpload, FiSearch, FiDownload, FiCopy, FiChevronDown, FiChevronLeft, FiChevronRight, FiAlertTriangle, FiUser, FiCalendar, FiEye, FiFile } from "react-icons/fi";
 import { toast } from "react-toastify";
 import api from "../../api/axiosConfig";
 import { getAuthHeaders } from "../../utils/apiHeaders";
@@ -15,6 +15,10 @@ export default function Grievances() {
   });
   const [grievances, setGrievances] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Cache configuration
+  const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+  const CACHE_STORAGE_KEY = 'grievances_cache';
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
@@ -69,8 +73,46 @@ export default function Grievances() {
   };
 
   useEffect(() => {
-    fetchGrievances();
+    loadGrievances();
   }, []);
+  
+  // Cache utility functions
+  const isDataFresh = (timestamp) => {
+    return timestamp && (Date.now() - timestamp) < CACHE_DURATION;
+  };
+  
+  const getCacheMetadata = () => {
+    try {
+      const cached = sessionStorage.getItem(CACHE_STORAGE_KEY);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  };
+  
+  const setCacheData = (data) => {
+    try {
+      sessionStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify({
+        data,
+        timestamp: Date.now()
+      }));
+    } catch {
+      // Ignore storage errors
+    }
+  };
+  
+  const loadGrievances = async () => {
+    // Check cache first
+    const cached = getCacheMetadata();
+    if (cached && isDataFresh(cached.timestamp)) {
+      setGrievances(cached.data);
+      setLoading(false);
+      return;
+    }
+    
+    // Fetch fresh data
+    await fetchGrievances();
+  };
 
   useEffect(() => {
     filterGrievances();
@@ -130,8 +172,10 @@ export default function Grievances() {
           };
         });
         setGrievances(mappedGrievances);
+        setCacheData(mappedGrievances);
       } else {
         setGrievances([]);
+        setCacheData([]);
       }
     } catch (err) {
       if (err.response?.status === 401) {
@@ -142,6 +186,7 @@ export default function Grievances() {
       }
       
       setGrievances([]);
+      setCacheData([]);
     } finally {
       setLoading(false);
     }
@@ -198,7 +243,7 @@ export default function Grievances() {
           grievance_file: null
         });
         setShowAddForm(false);
-        fetchGrievances(); // Refresh the list
+        await loadGrievances(); // Refresh the list after adding
       } else {
         let errorMessage = 'Failed to submit grievance';
         try {
@@ -301,10 +346,6 @@ export default function Grievances() {
     }
   };
 
-  const handleRefresh = () => {
-    setLoading(true);
-    fetchGrievances();
-  };
 
   const handleEntriesChange = (e) => {
     setEntriesPerPage(Number(e.target.value));
@@ -325,7 +366,7 @@ export default function Grievances() {
       <DashboardLayout>
         <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
           <div className="flex items-center gap-3">
-            <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
+            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
             <p className="text-indigo-700 dark:text-indigo-300">Loading your grievances...</p>
           </div>
         </div>
@@ -347,14 +388,6 @@ export default function Grievances() {
               <FiAlertTriangle className="text-green-600" />
               <span>Total: {grievances.length}</span>
             </div>
-            <button 
-              className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition"
-              onClick={handleRefresh}
-              title="Refresh Data"
-            >
-              <FiRefreshCw /> 
-              <span>Refresh</span>
-            </button>
             <button
               onClick={() => setShowAddForm(true)}
               className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
@@ -365,17 +398,6 @@ export default function Grievances() {
           </div>
         </div>
 
-        {/* Information Message */}
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6 text-center">
-          <div className="max-w-md mx-auto">
-            <p className="text-blue-700 dark:text-blue-300 text-lg mb-2">
-              Please feel free to share your grievances in this section.
-            </p>
-            <p className="text-blue-600 dark:text-blue-400">
-              We will try our best to find a suitable solution.
-            </p>
-          </div>
-        </div>
 
         {/* Search and Export Controls */}
         <div className="bg-white dark:bg-[#1E1E1E] rounded-xl shadow-lg p-6">
@@ -400,12 +422,11 @@ export default function Grievances() {
             <div className="flex flex-wrap gap-2 items-center">
               <div className="hidden xl:flex gap-2">
                 <button 
-                  className="flex items-center gap-1 bg-gray-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-600 transition"
+                  className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                   onClick={() => navigator.clipboard.writeText(filteredGrievances.map((g, i) => `${i+1}. ${g.title} - ${g.status} - ${g.submittedBy}`).join('\n'))}
                   title="Copy to Clipboard"
                 >
-                  <FiCopy /> 
-                  Copy
+                  <FiCopy className="text-gray-500 hover:text-gray-700" />
                 </button>
               </div>
               

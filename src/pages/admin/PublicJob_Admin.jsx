@@ -34,7 +34,7 @@ export default function PublicJobPage() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [formError, setFormError] = useState(null);
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.etribes.mittalservices.com';
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   // Fetch public jobs from API
   const fetchPublicJobs = async () => {

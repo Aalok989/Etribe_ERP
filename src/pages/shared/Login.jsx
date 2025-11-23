@@ -250,7 +250,7 @@ const Login = () => {
         
         setTimeout(() => {
           window.dispatchEvent(new Event('login'));
-        }, 50);
+        },50);
         return;
       }
 

@@ -1,10 +1,40 @@
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "../../components/user/DashboardLayout";
-import { FiSearch, FiRefreshCw, FiBriefcase, FiImage, FiChevronLeft, FiChevronRight, FiPlus, FiX, FiFile, FiEye, FiEdit2 } from "react-icons/fi";
+import { FiSearch, FiBriefcase, FiImage, FiChevronLeft, FiChevronRight, FiPlus, FiX, FiFile, FiEye, FiEdit2 } from "react-icons/fi";
 import { toast } from "react-toastify";
 import api from "../../api/axiosConfig";
 import { getAuthHeaders } from "../../utils/apiHeaders";
 import RichTextEditor from '../../components/shared/RichTextEditor';
+
+// Cache configuration
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_STORAGE_KEY = 'products_cache';
+
+// Cache utility functions
+const isDataFresh = (timestamp) => {
+  return Date.now() - timestamp < CACHE_DURATION;
+};
+
+const getCacheMetadata = () => {
+  try {
+    const cached = sessionStorage.getItem(CACHE_STORAGE_KEY);
+    return cached ? JSON.parse(cached) : null;
+  } catch {
+    return null;
+  }
+};
+
+const setCacheData = (data) => {
+  try {
+    const cacheEntry = {
+      data,
+      timestamp: Date.now()
+    };
+    sessionStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify(cacheEntry));
+  } catch (error) {
+    console.warn('Failed to cache products data:', error);
+  }
+};
 
 export default function ProductServices() {
   const [products, setProducts] = useState([]);
@@ -31,14 +61,29 @@ export default function ProductServices() {
   const [productSaving, setProductSaving] = useState(false);
 
   useEffect(() => {
-    fetchProducts();
+    loadProducts();
   }, []);
 
   useEffect(() => {
     filterProducts();
   }, [products, searchTerm]);
 
-  const fetchProducts = async () => {
+  const loadProducts = async (force = false) => {
+    // Check cache first unless force refresh
+    if (!force) {
+      const cached = getCacheMetadata();
+      if (cached && isDataFresh(cached.timestamp)) {
+        setProducts(cached.data);
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Fetch from API
+    await fetchProducts(force);
+  };
+
+  const fetchProducts = async (force = false) => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
@@ -79,9 +124,11 @@ export default function ProductServices() {
       }));
       
       setProducts(mappedProducts);
+      setCacheData(mappedProducts);
     } catch (err) {
       toast.error('Failed to fetch products');
       setProducts([]);
+      setCacheData([]);
     } finally {
       setLoading(false);
     }
@@ -200,7 +247,7 @@ export default function ProductServices() {
 
         if (editResponse.data?.status === 'success' || editResponse.data?.message || editResponse.status === 200) {
           toast.success('Product updated successfully!');
-          await fetchProducts();
+          await loadProducts(true);
           closeProductModal();
         } else {
           toast.error(editResponse.data?.message || 'Failed to update product');
@@ -222,7 +269,7 @@ export default function ProductServices() {
 
         if (response.data?.status === 'success' || response.data?.message || response.status === 200) {
           toast.success('Product added successfully!');
-          await fetchProducts();
+          await loadProducts(true);
           closeProductModal();
         } else {
           toast.error(response.data?.message || 'Failed to add product');
@@ -258,7 +305,7 @@ export default function ProductServices() {
       <DashboardLayout>
         <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
           <div className="flex items-center gap-3">
-            <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
+            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
             <p className="text-indigo-700 dark:text-indigo-300">Loading products...</p>
           </div>
         </div>
@@ -303,14 +350,6 @@ export default function ProductServices() {
               >
                 <FiPlus /> 
                 <span>Add Product</span>
-              </button>
-              <button 
-                className="flex items-center gap-1 bg-blue-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition"
-                onClick={fetchProducts}
-                title="Refresh Data"
-              >
-                <FiRefreshCw /> 
-                <span>Refresh</span>
               </button>
             </div>
           </div>
@@ -597,7 +636,7 @@ export default function ProductServices() {
               >
                 {productSaving ? (
                   <>
-                    <FiRefreshCw className="animate-spin" size={16} />
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     <span>Saving...</span>
                   </>
                 ) : (

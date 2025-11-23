@@ -26,6 +26,39 @@ import VisitingCard from "../../components/user/VisitingCard";
 // COMPONENT HEADER AND DOCUMENTATION
 // ============================================================================
 
+// Cache configuration
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const MEMBER_CACHE_KEY = 'member_detail_cache';
+const PAYMENTS_CACHE_KEY = 'member_payments_cache';
+const DOCUMENTS_CACHE_KEY = 'member_documents_cache';
+const PRODUCTS_CACHE_KEY = 'member_products_cache';
+
+// Cache utility functions
+const isDataFresh = (timestamp) => {
+  return Date.now() - timestamp < CACHE_DURATION;
+};
+
+const getCacheMetadata = (cacheKey) => {
+  try {
+    const cached = sessionStorage.getItem(cacheKey);
+    return cached ? JSON.parse(cached) : null;
+  } catch {
+    return null;
+  }
+};
+
+const setCacheData = (cacheKey, data) => {
+  try {
+    const cacheEntry = {
+      data,
+      timestamp: Date.now()
+    };
+    sessionStorage.setItem(cacheKey, JSON.stringify(cacheEntry));
+  } catch (error) {
+    console.warn(`Failed to cache ${cacheKey}:`, error);
+  }
+};
+
 export default function MemberDetail() {
   // ============================================================================
   // ROUTING AND INITIALIZATION
@@ -600,7 +633,22 @@ export default function MemberDetail() {
   // ============================================================================
   // MEMBER DETAILS AND PROFILE FUNCTIONS
   // ============================================================================
-  const fetchMemberDetails = useCallback(async () => {
+  const loadMemberDetails = useCallback(async (force = false) => {
+    // Check cache first unless force refresh
+    if (!force) {
+      const cached = getCacheMetadata(MEMBER_CACHE_KEY);
+      if (cached && isDataFresh(cached.timestamp)) {
+        setMember(cached.data);
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Fetch from API
+    await fetchMemberDetails(force);
+  }, []);
+
+  const fetchMemberDetails = useCallback(async (force = false) => {
     try {
       setLoading(true);
       setError(null);
@@ -796,6 +844,7 @@ export default function MemberDetail() {
       
       if (foundMember) {
         setMember(foundMember);
+        setCacheData(MEMBER_CACHE_KEY, foundMember);
       } else {
         setError('Member not found - please check your profile or contact support');
       }
@@ -850,9 +899,9 @@ export default function MemberDetail() {
 
   useEffect(() => {
     if (memberId) {
-      fetchMemberDetails();
+      loadMemberDetails();
     }
-  }, [memberId, fetchMemberDetails]);
+  }, [memberId, loadMemberDetails]);
 
   // Preload countries and states data immediately when component mounts
   useEffect(() => {
@@ -1593,7 +1642,7 @@ export default function MemberDetail() {
         setEditBusinessMode(false);
         setEditData({});
         // Refresh member data
-        await fetchMemberDetails();
+        await loadMemberDetails(true);
         // After refreshing member data, ensure states are mapped again only if needed
         if (states.length > 0 && statesCache['India']) {
           // Use cached data to avoid API call
@@ -3282,7 +3331,7 @@ export default function MemberDetail() {
       <DashboardLayout>
         <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#202123]">
           <div className="flex items-center gap-3">
-            <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
+            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
             <p className="text-indigo-700 dark:text-indigo-300">Loading your membership details...</p>
           </div>
         </div>
@@ -3838,7 +3887,7 @@ export default function MemberDetail() {
           return (
             <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#202123]">
               <div className="flex items-center gap-3">
-                <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
+                <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
                 <p className="text-indigo-700 dark:text-indigo-300">Loading company documents...</p>
               </div>
             </div>
@@ -3994,7 +4043,7 @@ export default function MemberDetail() {
           return (
             <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#202123]">
               <div className="flex items-center gap-3">
-                <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
+                <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
                 <p className="text-indigo-700 dark:text-indigo-300">Loading personal documents...</p>
               </div>
             </div>
@@ -4151,7 +4200,7 @@ export default function MemberDetail() {
           return (
             <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#202123]">
               <div className="flex items-center gap-3">
-                <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
+                <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
                 <p className="text-indigo-700 dark:text-indigo-300">Loading payment details...</p>
               </div>
             </div>
@@ -4199,66 +4248,90 @@ export default function MemberDetail() {
                   {/* Desktop Export Buttons */}
                   <div className="hidden xl:flex gap-2">
                     <button 
-                      className="flex items-center gap-1 bg-gray-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-600 transition"
+                      className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                       onClick={copyToClipboard}
                       title="Copy to Clipboard"
                     >
-                      <FiCopy /> 
-                      Copy
+                      <FiCopy className="text-gray-600" size={18} />
                     </button>
-                    <button 
-                      className="flex items-center gap-1 bg-green-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition"
-                      onClick={exportToCSV}
-                      title="Export CSV"
-                    >
-                      <FiDownload /> 
-                      CSV
-                    </button>
-                    <button 
-                      className="flex items-center gap-1 bg-emerald-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-emerald-600 transition"
-                      onClick={exportToExcel}
-                      title="Export Excel"
-                    >
-                      <FiFile /> 
-                      Excel
-                    </button>
-                    <button 
-                      className="flex items-center gap-1 bg-rose-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-rose-600 transition"
-                      onClick={exportToPDF}
-                      title="Export PDF"
-                    >
-                      <FiFile /> 
-                      PDF
-                    </button>
+                    
+                    <div className="relative">
+                      <button
+                        className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                        onClick={() => setShowExportDropdown(!showExportDropdown)}
+                        title="Export Options"
+                      >
+                        <FiDownload className="text-blue-600" size={18} />
+                      </button>
+                      
+                      {showExportDropdown && (
+                        <div className="absolute right-0 top-full mt-1 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
+                          <button
+                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
+                            onClick={() => {
+                              exportToCSV();
+                              setShowExportDropdown(false);
+                            }}
+                          >
+                            <FiDownload className="text-green-500" />
+                            CSV
+                          </button>
+                          <button
+                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            onClick={() => {
+                              exportToExcel();
+                              setShowExportDropdown(false);
+                            }}
+                          >
+                            <FiFile className="text-emerald-500" />
+                            Excel
+                          </button>
+                          <button
+                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg"
+                            onClick={() => {
+                              exportToPDF();
+                              setShowExportDropdown(false);
+                            }}
+                          >
+                            <FiFile className="text-red-500" />
+                            PDF
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   {/* Mobile Export Dropdown */}
                   <div className="relative xl:hidden">
-                    <button
-                      className="flex items-center gap-1 bg-indigo-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-indigo-600 transition"
-                      onClick={() => setShowExportDropdown(!showExportDropdown)}
-                    >
-                      <FiDownload />
-                      <span>Export</span>
-                      <FiChevronDown className={`transition-transform ${showExportDropdown ? 'rotate-180' : ''}`} />
-                    </button>
+                    <div className="flex gap-2">
+                      <button 
+                        className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                        onClick={copyToClipboard}
+                        title="Copy to Clipboard"
+                      >
+                        <FiCopy className="text-gray-600" size={18} />
+                      </button>
+                      
+                      <button
+                        className="flex items-center gap-1 bg-indigo-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-indigo-600 transition"
+                        onClick={() => setShowExportDropdown(!showExportDropdown)}
+                      >
+                        <FiDownload />
+                        <span>Export</span>
+                        <FiChevronDown className={`transition-transform ${showExportDropdown ? 'rotate-180' : ''}`} />
+                      </button>
+                    </div>
+                    
                     {showExportDropdown && (
                       <div className="absolute right-0 top-full mt-1 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
                         <button
                           className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
-                          onClick={() => { copyToClipboard(); setShowExportDropdown(false); }}
-                        >
-                          <FiCopy className="text-gray-500" />
-                          Copy
-                        </button>
-                        <button
-                          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                           onClick={() => { exportToCSV(); setShowExportDropdown(false); }}
                         >
                           <FiDownload className="text-green-500" />
                           CSV
                         </button>
                         <button
-                          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-700"
+                          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                           onClick={() => { exportToExcel(); setShowExportDropdown(false); }}
                         >
                           <FiFile className="text-emerald-500" />
@@ -4268,7 +4341,7 @@ export default function MemberDetail() {
                           className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg"
                           onClick={() => { exportToPDF(); setShowExportDropdown(false); }}
                         >
-                          <FiFile className="text-rose-500" />
+                          <FiFile className="text-red-500" />
                           PDF
                         </button>
                       </div>
@@ -5248,7 +5321,7 @@ export default function MemberDetail() {
                   <div className="space-y-3">
                     {socialMediaLoading ? (
                       <div className="flex items-center justify-center py-8">
-                        <FiRefreshCw className="animate-spin text-indigo-600" size={24} />
+                        <div className="w-6 h-6 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
                         <span className="ml-2 text-gray-600 dark:text-gray-400">Loading social media links...</span>
                       </div>
                     ) : socialMediaData ? (

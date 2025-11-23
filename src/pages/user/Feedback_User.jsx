@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "../../components/user/DashboardLayout";
-import { FiSearch, FiRefreshCw, FiDownload, FiCopy, FiFile, FiChevronDown, FiChevronUp, FiChevronLeft, FiChevronRight, FiMessageSquare, FiPlus, FiX, FiCalendar } from "react-icons/fi";
+import { FiSearch, FiDownload, FiCopy, FiFile, FiChevronDown, FiChevronUp, FiChevronLeft, FiChevronRight, FiMessageSquare, FiPlus, FiX, FiCalendar } from "react-icons/fi";
 import { toast } from "react-toastify";
 import api from "../../api/axiosConfig";
 import { getAuthHeaders } from "../../utils/apiHeaders";
@@ -8,6 +8,36 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import RichTextEditor from '../../components/shared/RichTextEditor';
+
+// Cache configuration
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_STORAGE_KEY = 'feedbacks_cache';
+
+// Cache utility functions
+const isDataFresh = (timestamp) => {
+  return Date.now() - timestamp < CACHE_DURATION;
+};
+
+const getCacheMetadata = () => {
+  try {
+    const cached = sessionStorage.getItem(CACHE_STORAGE_KEY);
+    return cached ? JSON.parse(cached) : null;
+  } catch {
+    return null;
+  }
+};
+
+const setCacheData = (data) => {
+  try {
+    const cacheEntry = {
+      data,
+      timestamp: Date.now()
+    };
+    sessionStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify(cacheEntry));
+  } catch (error) {
+    console.warn('Failed to cache feedbacks data:', error);
+  }
+};
 
 export default function Feedbacks() {
   const [feedbacks, setFeedbacks] = useState([]);
@@ -30,7 +60,7 @@ export default function Feedbacks() {
 
 
   useEffect(() => {
-    fetchFeedbacks();
+    loadFeedbacks();
   }, []);
 
   useEffect(() => {
@@ -39,7 +69,22 @@ export default function Feedbacks() {
 
 
 
-  const fetchFeedbacks = async () => {
+  const loadFeedbacks = async (force = false) => {
+    // Check cache first unless force refresh
+    if (!force) {
+      const cached = getCacheMetadata();
+      if (cached && isDataFresh(cached.timestamp)) {
+        setFeedbacks(cached.data);
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Fetch from API
+    await fetchFeedbacks(force);
+  };
+
+  const fetchFeedbacks = async (force = false) => {
     try {
       const token = localStorage.getItem("token");
       const uid = localStorage.getItem("uid");
@@ -68,6 +113,7 @@ export default function Feedbacks() {
         });
         
         setFeedbacks(mappedFeedbacks);
+        setCacheData(mappedFeedbacks);
       } else if (response.data && Array.isArray(response.data)) {
         // Fallback: if data is directly in response.data
         const apiFeedbacks = response.data;
@@ -83,9 +129,11 @@ export default function Feedbacks() {
         });
         
         setFeedbacks(mappedFeedbacks);
+        setCacheData(mappedFeedbacks);
       } else {
         // No data found in API response
         setFeedbacks([]);
+        setCacheData([]);
       }
     } catch (err) {
       if (err.response?.status === 401) {
@@ -236,7 +284,7 @@ export default function Feedbacks() {
       if (response.status === 200 || response.status === 201) {
         toast.success('Feedback submitted successfully!');
         handleCloseModal();
-        fetchFeedbacks(); // Refresh the list
+        await loadFeedbacks(true); // Force refresh the list
       } else {
         let errorMessage = 'Failed to submit feedback';
         try {
@@ -345,10 +393,6 @@ export default function Feedbacks() {
     }
   };
 
-  const handleRefresh = () => {
-    setLoading(true);
-    fetchFeedbacks();
-  };
 
   const handleEntriesChange = (e) => {
     setEntriesPerPage(Number(e.target.value));
@@ -383,7 +427,7 @@ export default function Feedbacks() {
       <DashboardLayout>
         <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1E1E1E]">
           <div className="flex items-center gap-3">
-            <FiRefreshCw className="animate-spin text-indigo-600 text-2xl" />
+            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
             <p className="text-indigo-700 dark:text-indigo-300">Loading feedbacks...</p>
           </div>
         </div>
@@ -432,52 +476,61 @@ export default function Feedbacks() {
                 <span>Add Suggestion</span>
               </button>
               
-              <button 
-                className="flex items-center gap-1 bg-blue-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition"
-                onClick={handleRefresh}
-                title="Refresh Data"
-              >
-                <FiRefreshCw /> 
-                <span>Refresh</span>
-              </button>
               
-              {/* Desktop Export Buttons - Show on larger screens */}
+              {/* Export Buttons */}
               <div className="hidden xl:flex gap-2">
                 <button 
-                  className="flex items-center gap-1 bg-gray-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-600 transition"
+                  className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                   onClick={copyToClipboard}
                   title="Copy to Clipboard"
                 >
-                  <FiCopy /> 
-                  Copy
+                  <FiCopy className="text-gray-500 hover:text-gray-700" />
                 </button>
                 
-                <button 
-                  className="flex items-center gap-1 bg-green-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition"
-                  onClick={exportToCSV}
-                  title="Export CSV"
-                >
-                  <FiDownload /> 
-                  CSV
-                </button>
-                
-                <button 
-                  className="flex items-center gap-1 bg-emerald-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-emerald-600 transition"
-                  onClick={exportToExcel}
-                  title="Export Excel"
-                >
-                  <FiFile /> 
-                  Excel
-                </button>
-                
-                <button 
-                  className="flex items-center gap-1 bg-rose-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-rose-600 transition"
-                  onClick={exportToPDF}
-                  title="Export PDF"
-                >
-                  <FiFile /> 
-                  PDF
-                </button>
+                <div className="relative">
+                  <button
+                    className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                    onClick={() => setShowExportDropdown(!showExportDropdown)}
+                    title="Export Options"
+                  >
+                    <FiDownload className="text-blue-500 hover:text-blue-700" />
+                  </button>
+                  
+                  {showExportDropdown && (
+                    <div className="absolute right-0 top-full mt-1 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 min-w-32">
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
+                        onClick={() => {
+                          exportToCSV();
+                          setShowExportDropdown(false);
+                        }}
+                      >
+                        <FiDownload className="text-green-500" />
+                        CSV
+                      </button>
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        onClick={() => {
+                          exportToExcel();
+                          setShowExportDropdown(false);
+                        }}
+                      >
+                        <FiFile className="text-emerald-500" />
+                        Excel
+                      </button>
+                      <button
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg"
+                        onClick={() => {
+                          exportToPDF();
+                          setShowExportDropdown(false);
+                        }}
+                      >
+                        <FiFile className="text-rose-500" />
+                        PDF
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
               
               {/* Mobile/Tablet Export Dropdown - Show on smaller screens */}
@@ -804,7 +857,7 @@ export default function Feedbacks() {
                       ) : (
                       <>
                         <span className="text-lg">✔</span>
-                        Submit Suggestion
+                        Submit
                       </>
                     )}
                   </button>

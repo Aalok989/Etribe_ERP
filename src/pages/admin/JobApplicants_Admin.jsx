@@ -51,7 +51,7 @@ export default function JobApplicantsAdminPage() {
     setLoading(true);
     try {
       const response = await api.post(
-        "/Job_post/job_applicants/",
+        "/JobPortal/job_applicants/",
         {},
         { headers: getAuthHeaders() }
       );
@@ -146,7 +146,7 @@ export default function JobApplicantsAdminPage() {
     setUpdating(true);
     try {
       await api.post(
-        `/Job_post/update_applicant_status/${selectedApplicant.id}`,
+        `/JobPortal/update_applicant_status/${selectedApplicant.id}`,
         {
           status: noteForm.status,
           recruiter_notes: noteForm.recruiter_notes,

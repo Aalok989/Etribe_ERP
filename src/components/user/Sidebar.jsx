@@ -124,6 +124,7 @@ const menuItems = [
     basePath: "/user/job-portal",
     dropdown: true,
     subItems: [
+      { label: "Job List", path: "/user/job-list" },
       { label: "Post Job", path: "/user/post-job" },
       { label: "Public Job", path: "/user/public-job" },
       { label: "Job Applicants", path: "/user/job-applicants" },
