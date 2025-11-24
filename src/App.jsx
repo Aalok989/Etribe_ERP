@@ -74,7 +74,6 @@ import PTFIMembers_User from "./pages/user/PTFIMembers_User";
 import ImportantContacts_User from "./pages/user/ImportantContacts_User";
 import Resume_User from "./pages/user/Resume_User";
 import SearchResult_User from "./pages/user/SearchResult_User";
-import JobList from "./pages/user/JobList";
 
 // Context Providers
 import { DashboardProvider } from "./context/DashboardContext";
@@ -371,7 +370,6 @@ function App() {
                   <Route path="grievance" element={<Grievance_User />} />
                   <Route path="post-job" element={<PostJob_User />} />
                   <Route path="public-job" element={<PublicJob_User />} />
-                  <Route path="job-list" element={<JobList />} />
                   <Route path="job-applicants" element={<JobApplicants_User />} />
                   <Route path="enquiry" element={<Enquiry_User />} />
                   <Route path="enquiry-received" element={<EnquiryReceived_User />} />

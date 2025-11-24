@@ -10,7 +10,6 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [redirect, setRedirect] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
@@ -62,8 +61,6 @@ const Login = () => {
   const fetchCountries = async () => {
     try {
       setLoadingCountries(true);
-      const token = localStorage.getItem('token');
-      const uid = localStorage.getItem('uid');
       
       const response = await api.post('/common/countries', {}, {
         headers: getApiHeaders()
@@ -79,7 +76,7 @@ const Login = () => {
     } else {
         setCountries([]);
       }
-    } catch (error) {
+    } catch {
       setCountries([]);
     } finally {
       setLoadingCountries(false);
@@ -95,8 +92,6 @@ const Login = () => {
 
     try {
       setLoadingStates(true);
-      const token = localStorage.getItem('token');
-      const uid = localStorage.getItem('uid');
       
       // For now, hardcode India to test the API
       const countryName = 'India';
@@ -110,7 +105,7 @@ const Login = () => {
       } else {
         setStates([]);
       }
-    } catch (error) {
+    } catch {
       setStates([]);
     } finally {
       setLoadingStates(false);
@@ -171,7 +166,7 @@ const Login = () => {
           } else {
             throw new Error('No valid JSON found in response');
           }
-        } catch (parseError) {
+        } catch {
           toast.error('Server returned invalid response format. Please try again.');
           return;
         }
@@ -379,9 +374,6 @@ const Login = () => {
     }
     
     try {
-      const token = localStorage.getItem('token');
-      const uid = localStorage.getItem('uid');
-      
       // Prepare registration data according to API format
       const registrationData = {
         name: regForm.name,
@@ -521,12 +513,6 @@ const Login = () => {
     });
   }, []);
 
-  // Use useEffect for navigation
-  useEffect(() => {
-    if (redirect) {
-      navigate('/dashboard', { replace: true });
-    }
-  }, [redirect, navigate]);
 
   // if (redirect) {
   //   return null;

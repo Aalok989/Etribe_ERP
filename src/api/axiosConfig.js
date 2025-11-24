@@ -75,7 +75,7 @@ const extractJsonFromString = (str) => {
           if (parsed && (parsed.status !== undefined || parsed.token !== undefined || parsed.message !== undefined)) {
             return parsed;
           }
-        } catch (e) {
+        } catch {
           continue;
         }
       }
