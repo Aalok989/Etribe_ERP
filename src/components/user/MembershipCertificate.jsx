@@ -230,9 +230,11 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
     certificateData.member_id ||
     "";
 
-  const signatoriesToDisplay = (
-    certificateData.signatories && certificateData.signatories.length > 0
-      ? certificateData.signatories.map((signatory, index) => ({
+  const signatoriesToDisplay = Array.isArray(certificateData.signatories)
+    ? certificateData.signatories
+        .filter(Boolean)
+        .slice(0, 3)
+        .map((signatory, index) => ({
           name: signatory.name || `Authorized Signatory ${index + 1}`,
           designation:
             signatory.designation ||
@@ -243,8 +245,7 @@ const MembershipCertificate = ({ isOpen, onClose, profileData }) => {
             signatory.signature_url || signatory.signatureUrl
           ),
         }))
-      : []
-  ).slice(0, 3);
+    : [];
 
   const handleDownload = async () => {
     const element = document.getElementById("membership-certificate");
