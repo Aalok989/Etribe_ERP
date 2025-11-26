@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import pako from 'pako';
-import { FiX, FiSave, FiRefreshCw, FiCheck, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiX, FiSave, FiRefreshCw, FiCheck, FiChevronLeft, FiChevronRight, FiShare2 } from 'react-icons/fi';
 import { templates } from './VisitingCard/templates';
 import { getAssignmentForUser, saveUserTemplateSelection } from '../../data/mockVisitingCardConfig';
 import api from '../../api/axiosConfig';
 import { getAuthHeaders } from '../../utils/apiHeaders';
+import shareService from '../../services/shareService';
 
 // Helper function to normalize URLs (add protocol if missing)
 const normalizeUrl = (url) => {
@@ -325,6 +325,10 @@ const VisitingCard = ({
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState(null);
 
+  // State for new sharing system
+  const [shareUrl, setShareUrl] = useState(null);
+  const [shareLoading, setShareLoading] = useState(false);
+
   const sharePayload = useMemo(() => {
     const minimalCardData = SHAREABLE_FIELDS.reduce((acc, key) => {
       const value = visitingCardData?.[key];
@@ -340,48 +344,60 @@ const VisitingCard = ({
     };
   }, [currentTemplate, markedDefaultTemplate, visitingCardData]);
 
-  const shareUrl = useMemo(() => {
-    if (typeof window === 'undefined') return null;
-    try {
-      const json = JSON.stringify(sharePayload);
-      const compressed = pako.deflate(json, { to: 'string' });
-      const encoded = btoa(compressed)
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=+$/, '');
-      return `${window.location.origin}/share/visiting-card/${encoded}`;
-    } catch (error) {
-      return null;
-    }
-  }, [sharePayload]);
-
   const handleShareRequest = async () => {
-    if (!shareUrl) {
-      onShare?.({ url: null, status: 'error', error: new Error('Share link not available') });
-      return;
-    }
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: visitingCardData?.memberName || 'Visiting Card',
-          url: shareUrl,
-        });
-        onShare?.({ url: shareUrl, status: 'shared' });
-        return;
-      } catch (error) {
-        if (error?.name === 'AbortError') {
-          onShare?.({ url: shareUrl, status: 'cancelled' });
-          return;
-        }
-      }
-    }
-
     try {
-      await navigator.clipboard.writeText(shareUrl);
-      onShare?.({ url: shareUrl, status: 'copied' });
+      setShareLoading(true);
+      
+      // Create share using the new service
+      const result = await shareService.createShare(
+        sharePayload.cardData, 
+        sharePayload.templateId,
+        {
+          expiresIn: '90d', // 3 months expiry
+          allowDownload: true,
+          metadata: {
+            sharedFrom: 'visiting_card_component',
+            memberName: visitingCardData?.memberName
+          }
+        }
+      );
+
+      if (result.success) {
+        setShareUrl(result.shortUrl);
+        
+        // Handle the actual sharing
+        const shareResult = await shareService.handleShare(result.shortUrl, {
+          title: visitingCardData?.memberName || 'Visiting Card',
+          text: `Check out ${visitingCardData?.memberName || 'my'} visiting card`
+        });
+
+        if (shareResult.success) {
+          onShare?.({ 
+            url: result.shortUrl, 
+            status: shareResult.method === 'native' ? 'shared' : 'copied',
+            shareId: result.shareId
+          });
+        } else if (shareResult.cancelled) {
+          onShare?.({ url: result.shortUrl, status: 'cancelled' });
+        } else {
+          onShare?.({ url: result.shortUrl, status: 'error', error: new Error(shareResult.error) });
+        }
+      } else {
+        onShare?.({ 
+          url: null, 
+          status: 'error', 
+          error: new Error(result.error || 'Failed to create share link') 
+        });
+      }
     } catch (error) {
-      onShare?.({ url: shareUrl, status: 'error', error });
+      console.error('Share error:', error);
+      onShare?.({ 
+        url: null, 
+        status: 'error', 
+        error: error 
+      });
+    } finally {
+      setShareLoading(false);
     }
   };
 
@@ -481,6 +497,7 @@ const VisitingCard = ({
         defaultTemplate: markedDefaultTemplate || currentTemplate,
         shareUrl,
         triggerShare: handleShareRequest,
+        shareLoading,
       }) || null
     : null;
 

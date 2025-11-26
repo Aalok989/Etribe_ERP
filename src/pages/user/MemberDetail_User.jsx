@@ -83,23 +83,40 @@ export default function MemberDetail() {
   const [editBusinessMode, setEditBusinessMode] = useState(false);
   const [editData, setEditData] = useState({});
   const [saving, setSaving] = useState(false);
-  const handleVisitingCardShareFeedback = useCallback(({ url, status, error }) => {
+  const handleVisitingCardShareFeedback = useCallback(({ url, status, error, shareId }) => {
     if (status === 'shared') {
-      toast.success('Share sheet opened for your visiting card.');
+      toast.success('Visiting card shared successfully!');
       return;
     }
 
     if (status === 'copied') {
-      toast.success('Share link copied to clipboard.');
+      toast.success('Visiting card link copied to clipboard! Share it with anyone.');
       return;
     }
 
     if (status === 'cancelled') {
-      toast.info('Share cancelled.');
+      // Don't show anything for cancelled shares
+      return;
+    }
+
+    if (status === 'error') {
+      console.error('Share error:', error);
+      if (error?.message?.includes('clipboard')) {
+        toast.error('Unable to copy link. Please try sharing manually.');
+      } else if (error?.message?.includes('create')) {
+        toast.error('Unable to create share link. Please check your connection and try again.');
+      } else {
+        toast.error('Unable to share the visiting card. Please try again.');
+      }
       return;
     }
 
     toast.error('Unable to share the visiting card right now.');
+    
+    // Log share ID for analytics (optional)
+    if (shareId) {
+      console.log('Share created with ID:', shareId);
+    }
   }, []);
   const [showVisitingCard, setShowVisitingCard] = useState(false);
   
@@ -5384,7 +5401,7 @@ export default function MemberDetail() {
                    profileData={visitingCardProfileData}
                    useMockData
                    onShare={handleVisitingCardShareFeedback}
-                   renderHeaderActions={({ triggerShare }) => (
+                   renderHeaderActions={({ triggerShare, shareLoading }) => (
                      <div className="flex items-center gap-3">
                        <button
                          type="button"
@@ -5397,10 +5414,15 @@ export default function MemberDetail() {
                        <button
                          type="button"
                          onClick={triggerShare}
-                         className="inline-flex items-center justify-center text-black hover:text-gray-700 transition"
+                         disabled={shareLoading}
+                         className="inline-flex items-center justify-center text-black hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
                          aria-label="Share visiting card"
                        >
-                         <FiShare2 size={22} />
+                         {shareLoading ? (
+                           <FiRefreshCw size={22} className="animate-spin" />
+                         ) : (
+                           <FiShare2 size={22} />
+                         )}
                        </button>
                      </div>
                    )}

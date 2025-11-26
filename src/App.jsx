@@ -11,6 +11,7 @@ import "react-toastify/dist/ReactToastify.css";
 // Shared Components
 import Login from "./pages/shared/Login";
 import VisitingCardShare from "./pages/shared/VisitingCardShare";
+import PublicVisitingCard from "./pages/shared/PublicVisitingCard";
 import FastPreloader from "./components/user/FastPreloader";
 
 // Admin Pages
@@ -270,6 +271,9 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
+          {/* New professional share route */}
+          <Route path="/card/:shareId" element={<PublicVisitingCard />} />
+          {/* Legacy share route for backward compatibility */}
           <Route path="/share/visiting-card/:encodedData" element={<VisitingCardShare />} />
           
           {/* Root Route - Redirect based on user role */}
